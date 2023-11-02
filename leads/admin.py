@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lead, Agent, UserProfile
+from .models import Lead, Agent, Category, UserProfile
 
 
 # Register your models here.
@@ -7,3 +7,4 @@ from .models import Lead, Agent, UserProfile
 admin.site.register(Agent)
 admin.site.register(UserProfile)
 admin.site.register(Lead)
+admin.site.register(Category)

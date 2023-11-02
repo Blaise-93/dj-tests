@@ -1,12 +1,11 @@
 from typing import Any
 from django.db import models
 from django.db.models.query import QuerySet
-from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Lead, Agent
+from .models import Lead, Category
 from django.contrib.auth.forms import PasswordResetForm
 from .forms import LeadModelForm, AgentAssignedForm, LeadForm, CustomUserForm
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,12 +32,14 @@ class LandingPageView(generic.TemplateView):
 class LeadsListView(LoginRequiredMixin, generic.ListView):
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
+    paginate_by = 10
 
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
         if user.is_organizer:
-            queryset = Lead.objects.filter(organization=user.userprofile, agent__isnull=False)
+            queryset = Lead.objects.filter(
+                organization=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization, agent__isnull=False)
@@ -56,21 +57,22 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split leads that have not been 
         assigned yet to an agent """
-        
+
         context = super(LeadsListView, self).get_context_data(**kwargs)
         user = self.request.user
-        
+
         if user.is_organizer:
             # agent__isnull= True -> to check whether a foreign key is null.
             queryset = Lead.objects.filter(
                 organization=user.userprofile, agent__isnull=True
-                )
-        
+            )
+
             context.update({
-                  "unassigned_leads":queryset
+                "unassigned_leads": queryset
             })
-        
+
         return context
+
 
 class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
@@ -79,7 +81,8 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
     def get_queryset(self):
         organization = self.request.user.userprofile
-        queryset = Lead.objects.filter(organization=organization, organization__isnull=True)
+        queryset = Lead.objects.filter(
+            organization=organization, organization__isnull=True)
         return queryset
 
     def get_success_url(self):
@@ -88,7 +91,7 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
 
         user = form.save(commit=False)
-        # create lead user - organizer 
+        # create lead user - organizer
         user.is_agent = False
         user.is_organizer = True
         user.save()
@@ -156,26 +159,46 @@ class LeadsDeleteView(LoginRequiredMixin, generic.DeleteView):
         return reverse('leads:home-page')
 
 
-class AgentAssignedView(OrgnizerAndLoginRequiredMixin,generic.FormView):
+class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     template_name = 'agents/agent-assigned.html'
     form_class = AgentAssignedForm
-    
-    def get_form_kwargs(self):
-        return {'request': self.request } 
-        
-        
+
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super(AgentAssignedView, self).get_form_kwargs(**kwargs)
+        kwargs.update({
+            'request': self.request
+        })
+        return kwargs
+
     def get_success_url(self):
         return reverse('leads:home-page')
-    
-    
-    def form_valid(self, form):
-        
-        return super(AgentAssignedView, self).form_valid(form)
-        
 
-        
+    def form_valid(self, form):
+        # agent cleaned data in the model
+        agent = form.cleaned_data['agent']
+
+        # get key from pk in the URL
+        lead = Lead.objects.get(id=self.kwargs['pk'])
+        # assign the leads to exact agent selected
+        lead.agent = agent
+        lead.save()
+        return super(AgentAssignedView, self).form_valid(form)
+
+
+class CategoryListView(LoginRequiredMixin, generic.ListView):
+    template_name = 'leads/category-list.html'
+    paginate_by = 10
+    context_object_name = 'category_list'
     
-    
-        
-        
-        
+    def get_queryset(self):
+        # login in user - an organizer?
+        user = self.request.user
+        # initial queryset of leads for the organisation
+        if user.is_organizer:
+            queryset = Category.objects.filter(
+                organization=user.userprofile)
+        else:
+            queryset = Category.objects.filter(
+                organization=user.agent.organization)
+
+        return queryset

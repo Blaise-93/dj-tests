@@ -52,7 +52,7 @@ class Agent(models.Model):
     last_name = models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now=True)
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
-    
+    category = models.ForeignKey("Category", on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self) -> str:
         return self.user.username
 
@@ -62,6 +62,23 @@ class UserProfile(models.Model):
     def __str__(self) -> str:
         return self.user.username
     
+class Category(models.Model):
+    """ model that categorized the leads based on the conversion/sales process. 
+        Thus, every lead should be assigned to category model.
+        
+        Category Types: New, Converted, Unconverted?
+    """
+
+    name = models.CharField(max_length=30)
+    organization = models.ForeignKey("Userprofile", on_delete=models.CASCADE)
+    
+    class Meta:
+        verbose_name_plural = 'Categories'
+    
+    def __str__(self) -> str:
+        return self.name
+     
+
 
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """

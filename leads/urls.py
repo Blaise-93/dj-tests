@@ -6,7 +6,8 @@ from .views import (
 
     LeadsListView, LeadsDetailView,
     LeadsCreateView, LeadsUpdateView,
-    LeadsDeleteView, AgentAssignedView
+    LeadsDeleteView, AgentAssignedView,
+    CategoryListView
 
 
 )
@@ -33,6 +34,7 @@ urlpatterns = [
     path("<int:pk>/update/", LeadsUpdateView.as_view(), name="lead-update"),
     path("<int:pk>/delete/", LeadsDeleteView.as_view(), name="lead-delete"),
     path("<int:pk>/assigned-agent/", AgentAssignedView.as_view(), name="assign-agent"),
+    path('category-list/', CategoryListView.as_view(), name="category-list"),
 
 
     # DRF with APIVIEW

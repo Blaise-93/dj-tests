@@ -34,7 +34,7 @@ class AgentAssignedForm(forms.Form):
     )
     
     def __init__(self, *args, **kwargs):
-        print(kwargs)
+        # print(kwargs)
 
         request = kwargs.pop('request')
         agent = Agent.objects.filter(organization=request.user.userprofile)

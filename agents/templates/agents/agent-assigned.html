@@ -7,7 +7,7 @@
   <p>Assigned an agent to this lead</p>
   {% comment %} Action is very important for submissions - know where (url) 
   you want to submit the form  {% endcomment %}
-    <form method="post" action="{% url 'leads:lead-create' %}">
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button >Submit</button>
