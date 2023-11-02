@@ -7,10 +7,16 @@ from django.views import generic
 from leads.models import Agent
 from django.core.mail import send_mail
 from .forms import AgentModelForm
-from .mixins import  OrgnizerAndLoginRequiredMixin
+from .mixins import OrgnizerAndLoginRequiredMixin
+import random
+import string
 
 
-class AgentListView( OrgnizerAndLoginRequiredMixin, generic.ListView):
+def password_setter():
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
+
+
+class AgentListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
     template_name = 'agents/agent-list.html'
     context_object_name = 'agents'
 
@@ -24,7 +30,7 @@ class AgentListView( OrgnizerAndLoginRequiredMixin, generic.ListView):
         return Agent.objects.filter(organization=user_userprofile)
 
 
-class AgentCreateView( OrgnizerAndLoginRequiredMixin, generic.CreateView):
+class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
     template_name = 'agents/agent-create.html'
     form_class = AgentModelForm
     queryset = Agent.objects.all()
@@ -34,21 +40,29 @@ class AgentCreateView( OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         # call form.save()
-        agent = form.save(commit=False)
-        # get the userprofile from the authenticated user
-        agent.organization = self.request.user.userprofile
-        agent.save()
+        user = form.save(commit=False)
+        # create agent user
+        user.is_agent = True
+        user.is_organizer = False
+        # set password
+        user.set_password(password_setter())
+        user.save()
 
+        # create the agent from the form we saved
+        Agent.objects.create(
+            user=user,
+            organization=self.request.user.userprofile
+        )
         send_mail(
-            subject='Agent mail',
-            message="Kindly login in to access your agent status",
+            subject='You are invited to be an agent in our organization',
+            message="You were added as an agent on DJ_Tests. Please come and login to start working",
             from_email="tests@blaise.com",
             recipient_list=["kenny@gmail", "ony@gmail.com"]
         )
         return super(AgentCreateView, self).form_valid(form)
 
 
-class AgentDetailView( OrgnizerAndLoginRequiredMixin, generic.DetailView):
+class AgentDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
 
     context_object_name = 'agent'
     template_name = 'agents/agent-detail.html'
@@ -58,12 +72,11 @@ class AgentDetailView( OrgnizerAndLoginRequiredMixin, generic.DetailView):
         return Agent.objects.filter(organization=userprofile)
 
 
-class AgentUpdateView( OrgnizerAndLoginRequiredMixin, generic.UpdateView):
+class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     template_name = "agents/agent-update.html"
     context_object_name = 'agent'
     form_class = AgentModelForm
 
-    
     def get_queryset(self) -> QuerySet[Any]:
         """ This function get the user profile queryset. Since we don't want agent to update
         information that belongs to other agents in another organization which s/he does not 
@@ -76,9 +89,8 @@ class AgentUpdateView( OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return reverse('agents:agent-detail')
 
 
-class AgentDeleteView( OrgnizerAndLoginRequiredMixin, generic.DeleteView):
+class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     template_name = 'agents/agent-delete.html'
-
 
     def get_queryset(self) -> QuerySet[Any]:
         userprofile = self.request.user.userprofile

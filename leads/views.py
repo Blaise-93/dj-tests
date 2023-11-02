@@ -1,4 +1,5 @@
 from typing import Any
+from django.db import models
 from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -36,29 +37,54 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
-        
         if user.is_organizer:
             queryset = Lead.objects.filter(organization=user.userprofile)
-        if self.request.is_agent:
+        else:
+            queryset = Lead.objects.filter(organization=user.agent.organization)
             # filter according n reassign the queryset
             # which doesnt make multiple queryset in the db
 
             # filter the agent user via deep filter call (agent__user: filters the lead based on the agent
-            # field where that agent has a user = self.request.user )
+            # field where that agent has a user == self.request.user )
+           
+           # filter agent that is logged in
             queryset = queryset.filter(agent__user=self.request.user)
             # when returned django then evaluate what you filtered
+
+            
+       
         return queryset
 
 
 class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
-    queryset = Lead.objects.all()
+    
     template_name = 'leads/lead-create.html'
     form_class = LeadModelForm
-
+    
+    def get_queryset(self):
+        organization = self.request.user.userprofile
+        queryset = Lead.objects.filter(organization=organization)
+        return queryset
+    
     def get_success_url(self):
         return reverse('leads:lead-list')
 
     def form_valid(self, form):
+       # lead = Lead.objects.create(name="John", organization=org)
+       # organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True)
+       
+        user = form.save(commit=False)
+        # create lead user
+        user.is_agent = False
+        user.is_organizer = True
+        user.save()
+
+        # create the agent from the form we saved
+        Lead.objects.create(
+            user=user,
+            organization=self.request.user.userprofile
+        )
+        
         # TODO send email
         send_mail(
             subject='A lead has been created',
@@ -66,7 +92,6 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             from_email='blaise@gmail.com',
             recipient_list=['test2@gmail.com']
         )
-
         return super(LeadsCreateView, self).form_valid(form)
 
 
@@ -74,6 +99,17 @@ class LeadsDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
     queryset = Lead.objects.all()
     template_name = "leads/lead-detail.html"
 
+    def get_queryset(self):
+        user = self.request.user
+        # login in user - an organizer?
+        if user.is_organizer:
+            queryset = Lead.objects.filter(organization=user.userprofile)
+        else:
+            queryset = Lead.objects.filter(organization=user.agent.organization)
+            
+            queryset = queryset.filter(agent__user=self.request.user)
+            # when returned django then evaluate what you filtered
+        return queryset
 
 class LeadsUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     template_name = "leads/lead-update.html"
@@ -84,10 +120,24 @@ class LeadsUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     def get_success_url(self):
         return reverse('leads:home-page')
 
+    
+    def get_queryset(self):
+        user = self.request.user
+        # login in user - an organizer?
+        if user.is_organizer:
+            return Lead.objects.filter(organization=user.userprofile) 
+      
 
 class LeadsDeleteView(LoginRequiredMixin, generic.DeleteView):
     template_name = 'leads/lead-delete.html'
-    queryset = Lead.objects.all()
-
+   
+    
+    def get_queryset(self):
+        user = self.request.user
+        # initial queryset for entire organization?
+        queryset = Lead.objects.filter(organization=user.userprofile)
+        
+        return queryset
+    
     def get_success_url(self):
         return reverse('leads:home-page')

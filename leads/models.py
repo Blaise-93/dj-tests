@@ -5,11 +5,6 @@ from django.utils.text import slugify
 from django.views.generic import View
 from songs.models import User
 
-from asgiref.sync import sync_to_async
-
-# User = get_user_model()
-
-
 class Lead(models.Model):
     SOURCE_CHOICES = (
         ("Youtube", "Youtube"),

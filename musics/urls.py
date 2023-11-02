@@ -1,7 +1,13 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordResetView,
+    
+    
+    )
 from django.views.generic import TemplateView
 from django.urls import path, include
 from leads.views import  LandingPageView, SignUpView
@@ -23,7 +29,7 @@ urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     path("agents/", include("agents.urls", namespace='agents')),
     
-    # Registration URL
+    # Registra tion URL
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('signup/', SignUpView.as_view(), name='signup'),
