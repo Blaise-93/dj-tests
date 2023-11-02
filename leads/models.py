@@ -15,7 +15,7 @@ class Lead(models.Model):
     last_name = models.CharField(max_length=15)
     age = models.IntegerField(default=0, verbose_name="student-age")
     # allows us to collate agents based on the organization
-    organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True)
 
     # the quotation mark "" on Agent tells Django that Agent is inside this file, Lead
     # agent -> foreign key allows us to set one agent to many leads assigned to an

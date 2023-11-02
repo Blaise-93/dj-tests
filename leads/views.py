@@ -8,7 +8,7 @@ from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Lead, Agent
 from django.contrib.auth.forms import PasswordResetForm
-from .forms import LeadModelForm, LeadForm, CustomUserForm
+from .forms import LeadModelForm, AgentAssignedForm, LeadForm, CustomUserForm
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrgnizerAndLoginRequiredMixin
 
@@ -38,10 +38,10 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
         # login in user - an organizer?
         user = self.request.user
         if user.is_organizer:
-            queryset = Lead.objects.filter(organization=user.userprofile)
+            queryset = Lead.objects.filter(organization=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(
-                organization=user.agent.organization)
+                organization=user.agent.organization, agent__isnull=False)
             # filter according n reassign the queryset
             # which doesnt make multiple queryset in the db
 
@@ -79,25 +79,22 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
     def get_queryset(self):
         organization = self.request.user.userprofile
-        queryset = Lead.objects.filter(organization=organization)
+        queryset = Lead.objects.filter(organization=organization, organization__isnull=True)
         return queryset
 
     def get_success_url(self):
         return reverse('leads:lead-list')
 
     def form_valid(self, form):
-       # lead = Lead.objects.create(name="John", organization=org)
-       # organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True)
 
         user = form.save(commit=False)
-        # create lead user
+        # create lead user - organizer 
         user.is_agent = False
         user.is_organizer = True
         user.save()
 
         # create the agent from the form we saved
         Lead.objects.create(
-            user=user,
             organization=self.request.user.userprofile
         )
 
@@ -157,3 +154,28 @@ class LeadsDeleteView(LoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         return reverse('leads:home-page')
+
+
+class AgentAssignedView(OrgnizerAndLoginRequiredMixin,generic.FormView):
+    template_name = 'agents/agent-assigned.html'
+    form_class = AgentAssignedForm
+    
+    def get_form_kwargs(self):
+        return {'request': self.request } 
+        
+        
+    def get_success_url(self):
+        return reverse('leads:home-page')
+    
+    
+    def form_valid(self, form):
+        
+        return super(AgentAssignedView, self).form_valid(form)
+        
+
+        
+    
+    
+        
+        
+        
