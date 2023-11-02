@@ -1,0 +1,123 @@
+Asyncio is a Python module that provides a way to write concurrent code using coroutines, 
+which are functions that can suspend and resume their execution. Asyncio can help you
+ improve the performance and responsiveness of
+ your Django applications by allowing you to run non-blocking IO operations, such as
+  HTTP requests, database queries, or file operations, without blocking the main thread.
+
+Django has support for writing asynchronous views, which are views that return 
+a coroutine instead of a regular function. You can declare an async view by using 
+async def for your view function or your class-based view methods, such as get() 
+or post(). For example:
+
+
+from asgiref.sync import sync_to_async
+import aiohttp
+
+# An async view that uses the ORM
+async def my_view(request):
+    results = await sync_to_async(MyModel.objects.filter)(name="foo")
+    return HttpResponse(f"There are {len(results)} objects named foo.")
+
+
+# A function-based async view
+async def my_view(request):
+    # Some async code
+    return HttpResponse("Hello, async world!")
+
+# A class-based async view
+class MyView(View):
+    async def get(self, request):
+    # Some async code
+    return HttpResponse("Hello, async world!")
+
+import asyncio
+import aiohttp
+
+async def main():
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://python.org') as response:
+
+            print("Status:", response.status)
+            print("Content-type:", response.headers['content-type'])
+
+            html = await response.text()
+            print("Body:", html[:15], "...")
+
+  asyncio.run(main())
+
+# examples/server_simple.py
+from aiohttp import web
+
+async def handle(request):
+    name = request.match_info.get('name', "Anonymous")
+    text = "Hello, " + name
+    return web.Response(text=text)
+
+async def wshandle(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+
+    async for msg in ws:
+        if msg.type == web.WSMsgType.text:
+            await ws.send_str("Hello, {}".format(msg.data))
+        elif msg.type == web.WSMsgType.binary:
+            await ws.send_bytes(msg.data)
+        elif msg.type == web.WSMsgType.close:
+            break
+
+    return ws
+
+
+app = web.Application()
+app.add_routes([web.get('/', handle),
+                web.get('/echo', wshandle),
+                web.get('/{name}', handle)])
+
+if __name__ == '__main__':
+    web.run_app(app)
+
+
+Async views will work under both WSGI and ASGI servers, but you will 
+only get the full benefits of an async stack if you use ASGI, which is a 
+standard for running asynchronous web applications. ASGI allows you to handle
+ hundreds of concurrent connections without using Python threads, and to use 
+ features like streaming, long-polling, and websockets. You can deploy Django using 
+ ASGI by using a compatible server, such as Daphne, Uvicorn, or Hypercorn.
+
+If you want to use asyncio in your Django views, you will need to be aware of 
+some limitations and challenges. First of all, not all parts of Django are async-ready yet.
+ For example, the ORM and the template engine are still synchronous, and you will need to
+  wrap them in a sync_to_async() call if you want to use them in an async context. This
+ function will run the synchronous code in a separate thread and return an awaitable
+  object. For example:
+
+Secondly, you will need to make sure that your async code is thread-safe, since it
+ may run in different threads depending on the 
+server configuration. This means that you should avoid using global variables or shared 
+state that may cause race conditions or data corruption. You should also be careful with 
+libraries or modules that are not designed for async use, such as time.sleep() or requests.
+ Instead, you should use the asyncio equivalents, such as asyncio.sleep() or aiohttp.
+
+Thirdly, you will need to learn how to use the asyncio API and its features, 
+such as tasks, futures, events, queues, locks, and more. These are the building 
+blocks of writing concurrent and parallel code with asyncio, and they can help you manage 
+the execution flow and the communication between your coroutines. You can find more information and examples in the official documentation of asyncio.
+
+There are many resources and tutorials that can help you learn how to use asyncio in Django. 
+Here are some of them:
+
+Asynchronous support | Django documentation | Django: This is the official guide 
+ how to use async views and middleware in Django.
+using asyncio to do periodic task in django - Stack Overflow: This is a question and 
+answer on how to use asyncio to run a periodic task in a Django view.
+Async Views in Django | TestDriven.io: This is a blog post that shows how to write an 
+async view in Django,
+ make a non-blocking HTTP request, simplify basic background tasks, and use sync_to_async.
+
+LINKS:
+https://stackoverflow.com/questions/41594266/asyncio-with-django
+
+https://docs.djangoproject.com/en/4.2/topics/async/
+
+https://testdriven.io/blog/django-async-views/

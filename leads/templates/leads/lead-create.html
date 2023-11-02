@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block extra_css%}
+<style>
+  .lead {
+    color: steelblue;
+    text-align: center;
+    font-size: bold;
+    padding: 0.5em 0.8em;
+  }
+</style>
+{% endblock extra_css%} {% block content %}
+
+<main>
+  <a href="{% url 'leads:home-page' %}">Go back to home page</a>
+  <p>Create a new Lead </p>
+  {% comment %} Action is very important for submissions - know where (url) 
+  you want to submit the form  {% endcomment %}
+    <form method="post" action="{% url 'leads:lead-create' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button >Submit</button>
+
+    </form>
+
+  {% endblock content %}
+</main>
+
+
