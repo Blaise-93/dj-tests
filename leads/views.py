@@ -7,9 +7,9 @@ from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Lead, Category
 from django.contrib.auth.forms import PasswordResetForm
-from .forms import LeadModelForm, AgentAssignedForm, LeadForm, CustomUserForm
+from .forms import LeadModelForm, LeadCategoryUpdateForm, AgentAssignedForm, LeadForm, CustomUserForm
 from django.core.exceptions import ObjectDoesNotExist
-from agents.mixins import OrgnizerAndLoginRequiredMixin
+from agents.mixins import OrgnizerAndLoginRequiredMixin, OrganizerAgentLoginRequiredMixin
 
 
 """ CRUD + L """
@@ -33,6 +33,7 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
     paginate_by = 10
+    ordering = 'id'
 
     def get_queryset(self):
         # login in user - an organizer?
@@ -112,7 +113,7 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
 
 class LeadsDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
-    queryset = Lead.objects.all()
+    # queryset = Lead.objects.all()
     template_name = "leads/lead-detail.html"
 
     def get_queryset(self):
@@ -133,7 +134,7 @@ class LeadsUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     template_name = "leads/lead-update.html"
     context_object_name = 'lead'
     form_class = LeadModelForm
-    queryset = Lead.objects.all()
+    # queryset = Lead.objects.all()
 
     def get_success_url(self):
         return reverse('leads:home-page')
@@ -153,7 +154,7 @@ class LeadsDeleteView(LoginRequiredMixin, generic.DeleteView):
         # initial queryset for entire organization?
         queryset = Lead.objects.filter(organization=user.userprofile)
 
-        return queryset
+        return queryset.order_by('id')
 
     def get_success_url(self):
         return reverse('leads:home-page')
@@ -189,11 +190,52 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
     template_name = 'leads/category-list.html'
     paginate_by = 10
     context_object_name = 'category_list'
-    
+    ordering = 'id'
+
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
-        # initial queryset of leads for the organisation
+        # initial queryset of leads for the organization
+        if user.is_organizer:
+            queryset = Category.objects.filter(
+                organization=user.userprofile).order_by('id')
+          
+        else:
+            queryset = Category.objects.filter(
+                organization=user.agent.organization).order_by('id')
+            print(queryset)
+
+        return queryset
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super(CategoryListView, self).get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_organizer:
+            queryset = Lead.objects.filter(
+                organization=user.userprofile
+            )
+
+        else:
+            queryset = Lead.objects.filter(
+                organization=user.agent.organization)
+        # leads that are not yet assigned by the oragnizer to the agents
+        # to category.  Unassigned leads
+        context.update({
+            'unasssigned_lead_count': queryset.filter(category__isnull=True)
+            .count()
+        })
+
+        return context
+
+
+class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'leads/category-detail.html'
+    context_object_name = 'category'
+
+    def get_queryset(self):
+        # login in user - an organizer?
+        user = self.request.user
+        # initial queryset of leads for the organization
         if user.is_organizer:
             queryset = Category.objects.filter(
                 organization=user.userprofile)
@@ -201,4 +243,44 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
             queryset = Category.objects.filter(
                 organization=user.agent.organization)
 
+        return queryset.order_by('id')
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+
+        context = super(CategoryDetailView, self).get_context_data(**kwargs)
+
+        # get_object() => used to fetch the actual category in the URL that matches the pk.
+       # qs = Lead.objects.filter(category=self.get_object()) # 1
+        """ OR """
+        # lead_set: does reverse look up via foreign key, category which we had
+        # declared in our lead model
+
+        # 2 - we used our related names, leads for reverse lookup instead
+        qs = self.get_object().leads.all()
+        context.update({
+            'leads': qs
+        })
+
+        return context
+    
+class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
+    template_name = 'leads/category-update.html' 
+    form_class = LeadCategoryUpdateForm
+    
+   
+    def get_queryset(self):
+        user = self.request.user
+        # login in user - an organizer?
+        if user.is_organizer:
+            queryset = Lead.objects.filter(organization=user.userprofile)
+        else:
+            queryset = Lead.objects.filter(
+                organization=user.agent.organization)
+            # filter for the agent that is logged in
+            queryset = queryset.filter(agent__user=self.request.user)
+            # when returned django then evaluate what you filtered
         return queryset
+
+
+    def  get_success_url(self) -> str:
+        return reverse('leads:lead-list')

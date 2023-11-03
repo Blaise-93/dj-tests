@@ -13,7 +13,7 @@ class Lead(models.Model):
     )
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
-    age = models.IntegerField(default=0, verbose_name="student-age")
+    age = models.IntegerField(default=0, verbose_name="client_age")
     # allows us to collate agents based on the organization
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True)
 
@@ -21,8 +21,11 @@ class Lead(models.Model):
     # agent -> foreign key allows us to set one agent to many leads assigned to an
     # agent. Foreign keys allows us to create many agents for one user.
     # we reassign the agent if the agent leads are deleted from db
+    # related_name => to do relationship modeling
+    
     agent = models.ForeignKey(
         "Agent", on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey("Category", related_name='leads', on_delete=models.SET_NULL, null=True, blank=True)
 
     social_media_accounts = models.CharField(
         choices=SOURCE_CHOICES, max_length=20, default="Facebook")
@@ -30,9 +33,12 @@ class Lead(models.Model):
 
     files = models.FileField(blank=True, null=True,
                              upload_to="media/products/")
+    
+    class Meta:
+        ordering = ['id']
 
     def __str__(self) -> str:
-        return self.first_name
+        return f'{self.first_name} {self.last_name}'
 
 """ Eg matt_agent = Agent.objects.get(user__username="blaise") 
     matt_agent => is the Agent instance set for the lead to 
@@ -52,7 +58,7 @@ class Agent(models.Model):
     last_name = models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now=True)
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
-    category = models.ForeignKey("Category", on_delete=models.SET_NULL, null=True, blank=True)
+    
     def __str__(self) -> str:
         return self.user.username
 
@@ -74,6 +80,7 @@ class Category(models.Model):
     
     class Meta:
         verbose_name_plural = 'Categories'
+        ordering = ['id']
     
     def __str__(self) -> str:
         return self.name
@@ -82,7 +89,7 @@ class Category(models.Model):
 
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """
-    print(instance, created) # username get printed of the user
+    # print(instance, created) # username get printed of the user
     
     if created:
         UserProfile.objects.create(user=instance)

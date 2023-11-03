@@ -28,17 +28,23 @@ class CustomUserForm(UserCreationForm):
         fields = ("username",)
         field_classes = {"username": UsernameField}
 
+
 class AgentAssignedForm(forms.Form):
     agent = forms.ModelChoiceField(
         queryset=Agent.objects.none()
     )
-    
+
     def __init__(self, *args, **kwargs):
-        # print(kwargs)
 
         request = kwargs.pop('request')
         agent = Agent.objects.filter(organization=request.user.userprofile)
         super(AgentAssignedForm, self).__init__(*args, **kwargs)
         self.fields['agent'].queryset = agent
-        
 
+
+class LeadCategoryUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Lead
+        fields = [
+            'category'
+        ]

@@ -1,4 +1,5 @@
 from typing import Any
+from django.shortcuts import redirect
 from django.db import models
 from django.db.models.query import QuerySet
 from django.shortcuts import render
@@ -22,7 +23,7 @@ class AgentListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user_userprofile = self.request.user.userprofile
-        print(user_userprofile)
+       
 
         # filter by request user organization - so that each won't see or
         # have access to every agent in other organization
@@ -71,6 +72,10 @@ class AgentDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
         userprofile = self.request.user.userprofile
         return Agent.objects.filter(organization=userprofile)
 
+    def get_success_url(self):
+
+        return reverse('agents:agent-detail')
+
 
 class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     template_name = "agents/agent-update.html"
@@ -86,7 +91,7 @@ class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return Agent.objects.filter(organization=userprofile)
 
     def get_success_url(self):
-        return reverse('agents:agent-detail')
+        return reverse('agents:agent-update')
 
 
 class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):

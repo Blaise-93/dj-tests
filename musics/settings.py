@@ -8,10 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # AUTH_USER_MODEL = 'leads.User'
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-43+xrratu4w0s2)38aopnf5-_g9m-4ibpq58+afhail$7^gj8v'
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
 
 ALLOWED_HOSTS = []
 
@@ -26,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    
     'songs',
     'leads',
     'posts',
@@ -39,7 +41,9 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'tailwind',
+    'sass_processor',
     # 'themw',
+    'compressor',
     'rest_framework',
     'rest_framework.authtoken',
 ]
@@ -101,6 +105,19 @@ if not DEBUG:
 
         }
     }
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+    'sass_processor.finders.CssFinder',
+)
+
+COMPRESS_OFFLINE = True 
+
+SASS_PROCESSOR_INCLUDE_DIRS = [
+    BASE_DIR / 'node_modules',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
