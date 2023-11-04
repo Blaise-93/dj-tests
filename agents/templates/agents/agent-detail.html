@@ -15,7 +15,7 @@
     <div class="lg:w-4/5 mx-auto flex flex-wrap">
       <div class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
         <h2 class="text-sm title-font text-gray-500 tracking-widest">
-          BRAND NAME
+          <i class="text-gray-400">agent</i>
         </h2>
         <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">
           Detailed page of {{ agent.first_name }} {{ agent.last_name }} agent
@@ -29,7 +29,7 @@
             >Reviews</a
           >
           <a href="{% url "agents:agent-update" agent.pk %}" 
-          class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg px-1"
+          class="flex-grow text-blue-500 border-b-2 border-indigo-500 py-2 text-lg px-1"
             >Update Detail</a
           >
         </div>
@@ -37,32 +37,26 @@
           Your lead details about the customer.
         </p>
         <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Age</span>
+          <span class="text-gray-500">Name</span>
           <span class="ml-auto text-gray-900">{{ agent.user.username }}</span>
         </div>
-        <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Location</span>
-          <span class="ml-auto text-gray-900">Dummy Location </span>
-        </div>
         <div class="flex border-t border-b mb-6 border-gray-200 py-2">
           <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">dummy@gmail.com</span>
+          <span class="ml-auto text-gray-900">{{ agent.user.email }}</span>
         </div>
-        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
-          <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">+234876543234</span>
-        </div>
-        <div class="flex lead-detail">
+  
+        <div class="flex">
           <a  href="{% url "agents:agent-update" agent.pk %}" 
-          class="title-font font-medium text-2xl text-gray-900
-             lead-update-btn
+          class="flex mr-auto text-white bg-blue-500 border-0 py-2 px-6 
+          focus:outline-none hover:bg-indigo-500 rounded
+          
             
           "
             >Update Lead </a 
           >
           <a href="{% url 'agents:agent-delete' agent.pk %}"
-            class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 
-            focus:outline-none hover:bg-indigo-600 rounded"
+            class="flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
+            focus:outline-none hover:bg-red-600 rounded-md"
           >
             Delete Lead
           </a >

@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 from leads.models import Agent
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
@@ -49,11 +50,14 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         user.set_password(password_setter())
         user.save()
 
+        
         # create the agent from the form we saved
         Agent.objects.create(
             user=user,
             organization=self.request.user.userprofile
         )
+        
+        
         send_mail(
             subject='You are invited to be an agent in our organization',
             message="You were added as an agent on DJ_Tests. Please come and login to start working",
@@ -91,7 +95,7 @@ class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return Agent.objects.filter(organization=userprofile)
 
     def get_success_url(self):
-        return reverse('agents:agent-update')
+        return reverse('leads:home-page')
 
 
 class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):

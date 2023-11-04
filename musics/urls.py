@@ -20,14 +20,11 @@ admin.site.index_title = 'Django_Test Administration'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('api-auth/', include('rest_framework.urls')),
-
-    # path('', landing_page, name="landing-page"),
+    
+    # Local apps
     path('', LandingPageView.as_view(), name='landing-page'),
     path('song/', include('songs.urls', namespace='songs')),
     path('leads/', include("leads.urls", namespace='leads')),
-    path("__reload__/", include("django_browser_reload.urls")),
     path("agents/", include("agents.urls", namespace='agents')),
 
     # Registration URL - inherited for django.contrib.auths views
@@ -41,6 +38,12 @@ urlpatterns = [
          PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('password-reset-complete/', PasswordResetCompleteView.as_view(),
          name='password_reset_complete'),
+    
+    
+    # third party
+    path('accounts/', include('allauth.urls')),
+    path('api-auth/', include('rest_framework.urls')),
+    path("__reload__/", include("django_browser_reload.urls")),
 
 
 ]

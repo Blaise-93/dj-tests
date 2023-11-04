@@ -9,6 +9,11 @@ class LeadSerializer(serializers.ModelSerializer):
             'first_name',
             "last_name",
             "age",
-            'agent'
+            'agent',
+             "phoned",
+            'phone_number',
+            'description',
+            'email',
+            'social_media_accounts'
         ]
         

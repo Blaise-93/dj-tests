@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'tailwind',
     'sass_processor',
     # 'themw',
+    'crispy_forms',
+    'crispy_tailwind',
     'compressor',
     'rest_framework',
     'rest_framework.authtoken',
@@ -180,10 +182,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # TAILWIND_APP_NAME = 'themw'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/leads'
 LOGIN_URL = '/login'
+LOGOUT_REDIRECT_URL = '/leads'
 
 # ACCOUNT_EMAIL_REQUIRED = True
 
 
 # NPM_BIN_PATH = "/Program Files/nodejs/node_modules/npm/bin/npm.cmd"
+
+CRISPY_TEMPLATE_PACK = 'tailwind'
+CRISPY_ALLOWED_TEMPLATE_PACK = 'tailwind'

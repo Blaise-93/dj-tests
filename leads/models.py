@@ -9,13 +9,22 @@ class Lead(models.Model):
     SOURCE_CHOICES = (
         ("Youtube", "Youtube"),
         ("Facebook", "Facebook"),
-        ("Newsletter", "Newsletter")
+        ("Twitter", "Twitter"),
+        ("Instagram", "Instagram"),
+        ("Reddit", "Reddit"),
+        ("Discord", "Discord"),
+        ("Github", "Github"),
+        ("LinkedIn", "LinkedIn"),
+        ("Tik Tok", "Tik Tok"),
+        ("Others", "Others"),
+         ("Snapchat", "Snapchat"),
+       
     )
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
-    age = models.IntegerField(default=0, verbose_name="client_age")
+    age = models.IntegerField(default=0, verbose_name="client Age")
     # allows us to collate agents based on the organization
-    organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True)
+    organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
 
     # the quotation mark "" on Agent tells Django that Agent is inside this file, Lead
     # agent -> foreign key allows us to set one agent to many leads assigned to an
@@ -25,15 +34,19 @@ class Lead(models.Model):
     
     agent = models.ForeignKey(
         "Agent", on_delete=models.SET_NULL, null=True, blank=True)
-    category = models.ForeignKey("Category", related_name='leads', on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey("Category", related_name='leads',
+                                 on_delete=models.SET_NULL, null=True, blank=True)
 
     social_media_accounts = models.CharField(
-        choices=SOURCE_CHOICES, max_length=20, default="Facebook")
+        choices=SOURCE_CHOICES, max_length=20, null=True, blank=True)
     phoned = models.BooleanField(default=False)
-
+    phone_number = models.CharField(max_length=12)
+    description = models.TextField()
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    address = models.CharField(max_length=50)
     files = models.FileField(blank=True, null=True,
                              upload_to="media/products/")
-    
+    date_added = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ['id']
 
@@ -57,6 +70,7 @@ class Agent(models.Model):
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now=True)
+    email = models.EmailField(max_length=30)
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     
     def __str__(self) -> str:

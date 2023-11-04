@@ -1,34 +1,25 @@
 {% extends "base.html" %} {% block extra_css%}
-<style>
-  .lead {
-    color: steelblue;
-    text-align: center;
-    font-size: bold;
-    padding: 0.5em 0.8em;
-  }
-</style>
-{% endblock extra_css%} {% block content %}
 
-<main>
-    <div class="agents-container">
-        <div>
-            <a href="{% url 'agents:agent-list' %}">
-                Go back to home page</a>
-        </div>
-        <div>
-          <p>Create a new Agent </p>
-        </div>
+{% endblock extra_css%} {% block content %}
+{% load tailwind_filters %}
+
+<main class="max-w-lg mx-auto">
+  <div>
+     <a class="hover:text-blue-500" href="{% url 'agents:agent-list' %}">Go back to agents</a>
+    <div class="py-3 border-t border-gray-200">  
+       <h1 class="text-4xl text-gray-800 ">Create a new Agent </h1 >
     </div>
-  {% comment %} Action is very important for submissions - know where (url) 
-  you want to submit the form  {% endcomment %}
-    <form method="post" action="{% url 'agents:agent-create' %}">
+  </div>
+  
+    <form class="mt-5 mb-4" method="post" action="{% url 'agents:agent-create' %}">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button >Submit</button>
+        {{ form|crispy }}
+        <button class=" w-full text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md">
+          Submit
+        </button>
 
     </form>
-
-  {% endblock content %}
 </main>
+{% endblock content %}
 
 

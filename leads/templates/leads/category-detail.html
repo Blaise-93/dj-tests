@@ -30,18 +30,19 @@
           </tr>
         </thead>
         <tbody>
-          {% for lead in category.leads.all %}
+          {% for lead in leads %} {% comment %} Another way of getting the category {% endcomment %}
           <tr>
             <td class=" px-4 py-3">
-             <!--  {% if leads.pk.exists %} -->
+            {% if not leads.pk.exists %}
               <a class="hover:text-blue-500"
-              href="{% url 'leads:lead-detail' lead.pk %}">{{ lead.first_name }}</a>
+              href="{% url 'leads:lead-detail' lead.pk %}">
+              {{ lead.first_name }}</a>
             </td>
             <td class="px-4 py-3">{{ lead.last_name }}</td>
-            <!-- {% else %}
+            {% else %}
               <p class="text-2xl text-center">The lead detail you are looking for does not exist. Would you mind search for another 
-                one or probably contact the website owner for further information.>
-            {% endif %} -->
+                one or probably contact the website owner for further information.
+            {% endif %} 
           </tr>
 
 

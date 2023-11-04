@@ -4,6 +4,7 @@
 }
 
 .lead-detail >.lead-update-btn {
-    background-color:red;
-    border: 3px solid red
+    background-color: blue;
+    border: 3px solid blue;
+    border-radius: 2px
 }

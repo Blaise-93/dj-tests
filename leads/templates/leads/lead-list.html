@@ -24,7 +24,8 @@
           class="flex border-2 rounded-lg border-gray-200 border-opacity-50 p-8 sm:flex-row flex-col"
         >
           <div
-            class="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0"
+            class="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center
+             rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0"
           >
             <svg
               fill="none"
@@ -45,7 +46,7 @@
             </h2>
             <p class="leading-relaxed text-base"></p>
             <p class="leading-relaxed text-base">
-              The assigned agent to this lead is {{ lead.agent }}.
+              {{ lead.description }}
             </p>
             <a
               href="{% url 'leads:lead-detail' lead.pk %}"
@@ -100,7 +101,7 @@
             </h2>
             <p class="leading-relaxed text-base"></p>
             <p class="leading-relaxed text-base">
-              The assigned agent to this lead is {{ lead.agent }}.
+               {{ lead.description }}
             </p>
             <a
               href="{% url 'leads:assign-agent' lead.pk %}"

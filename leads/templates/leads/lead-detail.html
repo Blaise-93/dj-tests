@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block content %}
 
-<section class="text-gray-600 body-font overflow-hidden">
+<section class="text-gray-600 body-font overflow-hidden mt-0">
     <div class="container px-5 py-24 mx-auto">
       <div class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between 
       items-center ">
@@ -15,10 +15,10 @@
     <div class="lg:w-4/5 mx-auto flex flex-wrap">
       <div class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
         <h2 class="text-sm title-font text-gray-500 tracking-widest">
-          <i> MuSiC WoRLd </i>
+          <i class="text-gray-400"> lead </i>
         </h2>
         <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">
-          Detailed page of {{ lead.first_name }} {{ lead.last_name }} lead
+          Detailed page of {{ user.username}}  lead
         </h1>
         <div class="flex mb-4">
           <a href="{% url "leads:lead-detail" lead.pk %}"
@@ -42,28 +42,27 @@
           <span class="ml-auto text-gray-900">{{ lead.age }}</span>
         </div>
         <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Location</span>
-          <span class="ml-auto text-gray-900">Dummy Location </span>
+          <span class="text-gray-500">Address</span>
+          <span class="ml-auto text-gray-900">{{ lead.address }}</span>
+        </div>
+        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
+          <span class="text-gray-500">Phone Number</span>
+          <span class="ml-auto text-gray-900">{{ lead.phone_number }}</span>
         </div>
         <div class="flex border-t border-b mb-6 border-gray-200 py-2">
           <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">dummy@gmail.com</span>
-        </div>
-        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
-          <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">+234876543234</span>
+          <span class="ml-auto text-gray-900">{{ lead.email }}</span>
         </div>
         <div class="flex lead-detail">
           <a  href="{% url "leads:lead-update" lead.pk %}" 
-          class="title-font font-medium text-2xl text-gray-900
-             lead-update-btn
-            
-          "
+          class="flex mr-auto text-white bg-blue-500 border-0 py-2 px-6 
+          focus:outline-none hover:bg-indigo-500 rounded"
+          
             >Update Lead </a 
           >
           <a href="{% url 'leads:lead-delete' lead.pk %}"
-            class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 
-            focus:outline-none hover:bg-indigo-600 rounded"
+            class="flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
+            focus:outline-none hover:bg-red-500 rounded"
           >
             Delete Lead
           </a >

@@ -1,27 +1,24 @@
+
 {% extends "base.html" %} {% block extra_css%}
-<style>
-  .lead {
-    color: steelblue;
-    text-align: center;
-    font-size: bold;
-    padding: 0.5em 0.8em;
-  }
-</style>
+
 {% endblock extra_css%} {% block content %}
+{% load tailwind_filters %}
+<main class="max-w-lg mx-auto mb-3">
+    
+  <a class="hover:text-blue-500" href="{% url 'leads:home-page' %}">Go back to home page</a>
+  <div class="py-3 border-t border-gray-200">  
+    <h1 class="text-4xl text-gray-800 ">Create a new Lead </h1 >
+  </div>
+  <form method="post" class="mt-5" action="{% url 'leads:lead-create' %}">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button
+            class="w-full hover:text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-md"
+            type="submit"
+          >Submit</button>
+  </form>
 
-<main>
-  <a href="{% url 'leads:home-page' %}">Go back to home page</a>
-  <p>Create a new Lead </p>
-  {% comment %} Action is very important for submissions - know where (url) 
-  you want to submit the form  {% endcomment %}
-    <form method="post" action="{% url 'leads:lead-create' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button >Submit</button>
-
-    </form>
-
-  {% endblock content %}
 </main>
+{% endblock content %}
 
 

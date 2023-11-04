@@ -44,10 +44,10 @@ urlpatterns = [
 
 
     # DRF with APIVIEW
-    path('drf_test', TestView.as_view(), name="drf-test"),
+    path('drf_test/', TestView.as_view(), name="drf-test"),
 
     # DRF with Generic classes
-    path('drf-test/', LeadListView.as_view(), name='lead-list'),
+    path('drf-test/', LeadListView.as_view(), name='drf-test'),
     path('create/', LeadCreateView.as_view(), name="create"),
     path('<int:pk>/delete/', LeadDeleteView.as_view(), name="delete"),
     path('<int:pk>/', LeadRetrieveView.as_view(), name="delete"),
