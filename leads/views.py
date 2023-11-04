@@ -1,12 +1,16 @@
 from typing import Any
-from django.db import models
 from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Lead, Category
-from .forms import LeadModelForm, LeadCategoryUpdateForm, AgentAssignedForm, LeadForm, CustomUserForm
+from .forms import (LeadModelForm, 
+                    CategoryModelForm,
+                    LeadCategoryUpdateForm,
+                    AgentAssignedForm,
+                    CustomUserForm
+)
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrgnizerAndLoginRequiredMixin, OrganizerAgentLoginRequiredMixin
 
@@ -200,7 +204,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         else:
             queryset = Category.objects.filter(
                 organization=user.agent.organization).order_by('id')
-            print(queryset)
+          
 
         return queryset
 
@@ -215,12 +219,16 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization)
+          
         # leads that are not yet assigned by the oragnizer to the agents
         # to category.  Unassigned leads
         context.update({
             'unasssigned_lead_count': queryset.filter(category__isnull=True)
-            .count()
+            .count(),
+           # "contacted_count": category_id.count()
         })
+        
+     
 
         return context
 
@@ -282,3 +290,78 @@ class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
         # call self.get_object() to return the actual lead
         pk = self.get_object().id
         return reverse('leads:lead-detail', kwargs={"pk": pk})
+
+
+class CategoryCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
+
+    template_name = 'leads/category-create.html'
+    form_class = CategoryModelForm
+
+    def get_queryset(self):
+        organization = self.request.user.userprofile
+        queryset = Lead.objects.filter(
+            organization=organization, organization__isnull=True)
+        return queryset
+
+    def get_success_url(self):
+        return reverse('leads:category-list')
+
+    def form_valid(self, form):
+
+        # fetch and save organization id
+        lead = form.save(commit=False)
+        lead.organization = self.request.user.userprofile
+        lead.save()
+
+        # create the agent from the form we saved
+        Lead.objects.create(
+            organization=self.request.user.userprofile
+        )
+ 
+        return super(CategoryCreateView, self).form_valid(form)
+    
+    
+class CategoryUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
+    template_name = "leads/category-update.html"
+    context_object_name = 'category'
+    form_class = CategoryModelForm
+    # queryset = Lead.objects.all()
+
+    def get_success_url(self):
+        return reverse('leads:category-list')
+
+    def get_queryset(self):
+        user = self.request.user
+        # login in user - an organizer?
+        if user.is_organizer:
+            queryset = Lead.objects.filter(organization=user.userprofile)
+        else:
+            queryset = Lead.objects.filter(
+                organization=user.agent.organization)
+            # filter for the agent that is logged in
+            queryset = queryset.filter(agent__user=self.request.user)
+            # when returned django then evaluate what you filtered
+        return queryset
+
+class CategoryDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
+    template_name = 'leads/category-delete.html'
+
+    def get_success_url(self):
+        return reverse('leads:category-list')
+
+    def get_queryset(self):
+        # login in user - an organizer?
+        user = self.request.user
+        # initial queryset of leads for the organization
+        if user.is_organizer:
+            queryset = Category.objects.filter(
+                organization=user.userprofile)
+        else:
+            queryset = Category.objects.filter(
+                organization=user.agent.organization)
+
+        return queryset
+
+
+    
+

@@ -8,7 +8,8 @@ from .views import (
     LeadsCreateView, LeadsUpdateView,
     LeadsDeleteView, AgentAssignedView,
     CategoryListView, CategoryDetailView,
-    LeadCategoryUpdateView
+    LeadCategoryUpdateView, CategoryCreateView,
+     CategoryUpdateView, CategoryDeleteView
 
 
 )
@@ -34,16 +35,19 @@ urlpatterns = [
     path("<int:pk>/", LeadsDetailView.as_view(), name="lead-detail"),
     path("<int:pk>/update/", LeadsUpdateView.as_view(), name="lead-update"),
     path("<int:pk>/delete/", LeadsDeleteView.as_view(), name="lead-delete"),
+    
     path('categories/', CategoryListView.as_view(), name="category-list"),
+    path('category-create/', CategoryCreateView.as_view(), name="category-create"),
+    path('categories/<int:pk>/', CategoryDetailView.as_view(), name="category-detail"),
+    path('categories/<int:pk>/update/', CategoryUpdateView.as_view(), name="category-update"),
+    path('categories/int:pk>/delete/', CategoryDeleteView.as_view(), name="category-deleted"),
+
     path("<int:pk>/category/",
          LeadCategoryUpdateView.as_view(), name="lead-category-update"),
     path("<int:pk>/assigned-agent/",
          AgentAssignedView.as_view(), name="assign-agent"),
-    path('categories/<int:pk>/', CategoryDetailView.as_view(),
-         name="category-detail"),
 
-
-    # DRF with APIVIEW
+    # API 
     path('drf_test/', TestView.as_view(), name="drf-test"),
 
     # DRF with Generic classes

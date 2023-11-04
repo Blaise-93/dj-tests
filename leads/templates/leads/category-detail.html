@@ -11,6 +11,8 @@
       <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
         This are the leads under this category
       </p>
+      <a  class="hover:text-blue-500" href="{% url "leads:category-update" category.pk %}">Update </a>
+      <a  class="hover:text-blue-500" href="{% url "leads:category-deleted" category.pk %}">Delete </a>
     </div>
     <div class="lg:w-2/3 w-full mx-auto overflow-auto">
       <table class="table-auto w-full text-left whitespace-no-wrap">

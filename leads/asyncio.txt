@@ -121,3 +121,5 @@ https://stackoverflow.com/questions/41594266/asyncio-with-django
 https://docs.djangoproject.com/en/4.2/topics/async/
 
 https://testdriven.io/blog/django-async-views/
+
+8:48hr
