@@ -1,6 +1,5 @@
-from typing import Any
 from django.shortcuts import redirect
-from django.db import models
+from typing import Any
 from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.urls import reverse
@@ -8,15 +7,9 @@ from django.views import generic
 from leads.models import Agent
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from utils import password_setter, files
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
-import random
-import string
-
-
-def password_setter():
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
-
 
 class AgentListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
     template_name = 'agents/agent-list.html'

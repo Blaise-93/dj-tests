@@ -11,7 +11,7 @@ from .forms import (LeadModelForm,
                     AgentAssignedForm,
                     CustomUserForm
 )
-from django.core.exceptions import ObjectDoesNotExist
+
 from agents.mixins import OrgnizerAndLoginRequiredMixin, OrganizerAgentLoginRequiredMixin
 
 
@@ -227,9 +227,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
             .count(),
            # "contacted_count": category_id.count()
         })
-        
-     
-
+    
         return context
 
 

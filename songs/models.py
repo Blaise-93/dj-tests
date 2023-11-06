@@ -62,3 +62,13 @@ class Song(models.Model):
             expected_value = self.title
             self.slug = slugify(expected_value, allow_unicode=True)
         super().save(*args, **kwargs)
+
+
+class Subscribe(models.Model):
+    email = models.EmailField(unique=True, max_length=50)
+    date_subscribed = models.DateTimeField(auto_now_add=True)
+   
+    def __str__(self) -> str:
+        return self.email
+    
+    
