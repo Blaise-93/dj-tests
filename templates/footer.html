@@ -58,9 +58,9 @@
           <div class="flex xl:flex-nowrap md:flex-nowrap lg:flex-wrap flex-wrap justify-center items-end md:justify-start">
             <form method="post" action="{% url 'songs:footer' %}" class="relative w-40 sm:w-auto xl:mr-4 lg:mr-0 sm:mr-4 mr-2">
               {% csrf_token %}
-             
+              {{ form.email }}
               <label for="footer-field" class="leading-7 text-sm text-gray-600">Kindly submit your email</label>
-              <input type="text" id="footer-field" name="email" value=" {{ form.email }}" class="w-full bg-gray-100 bg-opacity-50 
+              <input type="text" id="footer-field" name="email"  class="w-full bg-gray-100 bg-opacity-50 
               rounded border border-gray-300 focus:bg-transparent focus:ring-2 
               focus:ring-indigo-200 focus:border-indigo-500
                text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">

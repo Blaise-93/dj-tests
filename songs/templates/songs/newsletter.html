@@ -1,0 +1,19 @@
+{% extends "base.html" %} {% load crispy_forms_tags %} {% block content %}
+<section class="content-section newsletters logout_section pt-5 px-5">
+  <h1 class="text-center p-2 text-info">NewsLetter to SubscribedUsers</h1>
+  <form method="POST" action="{% url 'songs:newsletter' %}">
+    {% csrf_token %} {{ form|crispy }} {{ form.media }}
+    <div class="form-group form_group">
+      {% if user.is_staff %}
+      <button class="btn btn-outline-primary submit_newsletter" type="submit">Send</button>
+    </div>
+    {% endif %}
+  </form>
+</section>
+
+ <!-- back to top button -->
+ <a href="#" aria-label="back-to-top icon"
+ class="shadow btn-primary rounded-circle back_to_top">
+<i class="fas fa-chevron-up"></i>
+</a>
+{% endblock content %}

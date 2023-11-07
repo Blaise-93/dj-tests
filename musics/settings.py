@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'compressor',
     'rest_framework',
     'rest_framework.authtoken',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
