@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from .models import Song, Category, Subscribe
 from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
-from django.core.mail import send_mail,EmailMessage
+from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
 from utils import files
 from django.http import Http404
@@ -49,15 +49,15 @@ def newsletter(request):
 
                 from_email = 'blaise@gmail.com',
                 mail = EmailMessage(
-                    subject, 
-                    email_message, 
+                    subject,
+                    email_message,
                     from_email,
                     f"DJ_TEST <{request.user.email}>",
                     bcc=receivers)
                 mail.content_subtype = 'html'
 
                 if mail.send():
-                    
+
                     messages.success(request, "Email sent succesfully")
                 else:
                     messages.error(request, "There was an error sending email")
@@ -69,12 +69,11 @@ def newsletter(request):
         form.fields['receivers'].initial = ','.join(
             [active.email for active in Subscribe.objects.all()])
 
-        return render(request=request, \
-            template_name='songs/newsletter.html', context={'form': form})
-    
+        return render(request=request,
+                      template_name='songs/newsletter.html', context={'form': form})
+
     except Http404:
         return render(request, "songs/404-page.html")
-        
 
 
 def user_unsubscribed_newsletter(request):
@@ -85,8 +84,9 @@ def user_unsubscribed_newsletter(request):
     }
     if request.method == 'POST':
         if form.is_valid():
-            #instance = form.save(commit=False)
-            if Subscribe.objects.filter(email=form.cleaned_data.get('email')).exists():
+            # instance = form.save(commit=False)
+            if Subscribe.objects.filter(
+                email=form.cleaned_data.get('email')).exists():
                 send_mail(
                     subject="Newsletter Subscription",
                     message=files('songs/mails/unsubscribed.txt'),
@@ -94,16 +94,16 @@ def user_unsubscribed_newsletter(request):
                     recipient_list=['kester@gmail.com', 'Onyedika@gmail.com'],
                     fail_silently=False
                 )
-                Subscribe.objects.filter(email=form.cleaned_data.get('email')).delete()
+                Subscribe.objects.filter(
+                    email=form.cleaned_data.get('email')).delete()
                 return redirect("leads:home-page")
-               
+
         else:
-            return messages.info(request, 'Sorry but we did not find your email address.')
+            return messages.info(request, 
+                    'Sorry but we did not find your email address.')
         return redirect("leads:home-page")
 
     return render(request, 'unsubscribed.html', context)
-   
-
 
 
 class CategoryListView(generic.ListView):

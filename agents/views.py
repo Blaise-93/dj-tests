@@ -49,7 +49,7 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             user=user,
             organization=self.request.user.userprofile
         )
-        
+        print(self.queryset)
         
         send_mail(
             subject='You are invited to be an agent in our organization',

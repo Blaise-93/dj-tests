@@ -170,7 +170,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'songs.User'
 
-MUSIC_TITLE_MAX_LENGTH = 50
+MUSIC_TITLE_MAX_LENGTH = os.getenv('MUSIC_TITLE_MAX_LENGTH')
 
 SITE_ID = 1
 

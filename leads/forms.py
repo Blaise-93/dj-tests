@@ -22,7 +22,8 @@ class LeadModelForm(forms.ModelForm):
             'phone_number',
             'description',
             'email',
-            'social_media_accounts'
+            'social_media_accounts',
+
 
 
         ]
@@ -36,9 +37,7 @@ class CustomUserForm(UserCreationForm):
 
 
 class AgentAssignedForm(forms.Form):
-    agent = forms.ModelChoiceField(
-        queryset=Agent.objects.none()
-    )
+    agent = forms.ModelChoiceField(queryset=Agent.objects.none())
 
     def __init__(self, *args, **kwargs):
 
@@ -55,10 +54,12 @@ class LeadCategoryUpdateForm(forms.ModelForm):
             'category'
         ]
 
+
 class CategoryModelForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = [
-              'name',
-           
+            'name',
+            'slug'
+
         ]

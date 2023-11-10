@@ -31,20 +31,22 @@ app_name = "leads"
 urlpatterns = [
 
     path('', LeadsListView.as_view(), name="home-page"),
-    path("lead-create/", LeadsCreateView.as_view(), name="lead-create"),
-    path("<int:pk>/", LeadsDetailView.as_view(), name="lead-detail"),
-    path("<int:pk>/update/", LeadsUpdateView.as_view(), name="lead-update"),
-    path("<int:pk>/delete/", LeadsDeleteView.as_view(), name="lead-delete"),
-    
     path('categories/', CategoryListView.as_view(), name="category-list"),
     path('category-create/', CategoryCreateView.as_view(), name="category-create"),
-    path('categories/<int:pk>/', CategoryDetailView.as_view(), name="category-detail"),
-    path('categories/<int:pk>/update/', CategoryUpdateView.as_view(), name="category-update"),
-    path( 'categories/<int:pk>/delete/', CategoryDeleteView.as_view(), name="category-delete"), #r"^leads/categories/(\d+)/delete/$"
-
-    path("<int:pk>/category/",
+    path("lead-create/", LeadsCreateView.as_view(), name="lead-create"),
+    path("<str:slug>/", LeadsDetailView.as_view(), name="lead-detail"),
+    path("<str:slug>/update/", LeadsUpdateView.as_view(), name="lead-update"), 
+    path("<str:slug>/delete/", LeadsDeleteView.as_view(), name="lead-delete"),
+    #"""  /leads/categories/contactedfk3k5w/update/ """,
+   
+   
+    path('categories/<str:slug>/', CategoryDetailView.as_view(), name="category-detail"), # /leads/rosayfuct0c/category/
+    path( 'categories/<str:slug>/delete/', CategoryDeleteView.as_view(), name="category-delete"),
+    path('categories/<str:slug>/update/', CategoryUpdateView.as_view(), name="category-update"),
+   
+    path("<str:slug>/category/",
          LeadCategoryUpdateView.as_view(), name="lead-category-update"),
-    path("<int:pk>/assigned-agent/",
+    path("<str:slug>/assigned-agent/",
          AgentAssignedView.as_view(), name="assign-agent"),
 
     # API 

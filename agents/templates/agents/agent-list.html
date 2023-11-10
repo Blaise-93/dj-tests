@@ -48,7 +48,7 @@
                 <p class="leading-relaxed text-base">
                   The assigned agent to this agent is {{ agent.user.username }}.
                 </p>
-                <a href=" {% url 'agents:agent-detail' agent.pk %}"
+                <a href=" {% url 'agents:agent-detail' agent.slug %}"
                 class="mt-3 text-indigo-500 inline-flex items-center"
                   >View agent
                   <svg

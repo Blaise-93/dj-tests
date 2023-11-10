@@ -8,11 +8,11 @@
       >
         {{ category.name }}
       </h1>
-      <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
+      <p class="lg:w-2/3 mx-auto leading-relaxed text-base"> 
         This are the leads under this category
       </p>
-      <a  class="hover:text-blue-500" href="{% url "leads:category-update" category.pk %}">Update </a>
-      <a  class="hover:text-blue-500" href="{% url "leads:category-delete" category.pk %}">Delete </a>
+      <a  class="hover:text-blue-500" href="{% url "leads:category-update" category.slug %}">Update </a>
+      <a  class="hover:text-blue-500" href="{% url "leads:category-delete" category.slug %}">Delete </a>
     </div>
     <div class="lg:w-2/3 w-full mx-auto overflow-auto">
       <table class="table-auto w-full text-left whitespace-no-wrap">
@@ -35,14 +35,15 @@
           {% for lead in leads %} {% comment %} Another way of getting the category {% endcomment %}
           <tr>
             <td class=" px-4 py-3">
-            {% if not leads.pk.exists %}
+            {% if not leads.slug.exists %}
               <a class="hover:text-blue-500"
-              href="{% url 'leads:lead-detail' lead.pk %}">
+              href="{{ lead.get_absolute_url }}">
               {{ lead.first_name }}</a>
             </td>
             <td class="px-4 py-3">{{ lead.last_name }}</td>
             {% else %}
-              <p class="text-2xl text-center">The lead detail you are looking for does not exist. Would you mind search for another 
+              <p class="text-2xl text-center">The lead detail you are looking for does not exist. 
+                Would you mind search for another 
                 one or probably contact the website owner for further information.
             {% endif %} 
           </tr>
