@@ -76,6 +76,8 @@ posts
 tailwind.config.js
 py
 
+pharm_views.py
+
 #node stuff
 autoprefixer
 package-lock.json

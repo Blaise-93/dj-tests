@@ -29,6 +29,7 @@ from .drf_views import (
 app_name = "leads"
 
 urlpatterns = [
+    # LEADS 
 
     path('', LeadsListView.as_view(), name="home-page"),
     path('categories/', CategoryListView.as_view(), name="category-list"),
@@ -48,6 +49,9 @@ urlpatterns = [
          LeadCategoryUpdateView.as_view(), name="lead-category-update"),
     path("<str:slug>/assigned-agent/",
          AgentAssignedView.as_view(), name="assign-agent"),
+
+    # Pharmaceuticals URLS
+
 
     # API 
     path('drf_test/', TestView.as_view(), name="drf-test"),

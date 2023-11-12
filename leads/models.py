@@ -36,7 +36,7 @@ class Lead(models.Model):
     # related_name => to do relationship modeling
 
     agent = models.ForeignKey(
-        "Agent", on_delete=models.SET_NULL, null=True, blank=True)
+        "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pharmacist')
     category = models.ForeignKey("Category", related_name='leads',
                                  on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -69,7 +69,7 @@ class Lead(models.Model):
 
     def get_absolute_url(self):
         return reverse("leads:lead-detail", kwargs={"slug": self.slug})
-    
+
     def get_lead_category_update_view(self):
         return reverse('leads:category-update', kwargs={
             'slug': self.slug
@@ -86,7 +86,7 @@ class Lead(models.Model):
 
 
 class Agent(models.Model):
-    """ Agent of our models """
+    """ Agent of our models. Agents are assigned to each leads or to our patients. """
     # Foreign (many-to-one) keys allow us to create many agents for one user
     # OneToOneField: one-to-one relationship - so no list of many agents of one user will be returned.
     # ManyToManyField:
@@ -101,7 +101,6 @@ class Agent(models.Model):
 
     def __str__(self) -> str:
         return self.user.username
-    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 
@@ -120,6 +119,7 @@ class Agent(models.Model):
     def get_category_absolute_url(self):
         return reverse("leads:category-update", kwargs={"slug": self.slug})
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -137,8 +137,7 @@ class Category(models.Model):
     name = models.CharField(max_length=30)
     organization = models.ForeignKey("Userprofile", on_delete=models.CASCADE)
     slug = models.SlugField()
-    
-    
+
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ['id']
@@ -157,8 +156,8 @@ class Category(models.Model):
 
     def get_category_absolute_url(self):
         return reverse("leads:category-update", kwargs={"slug": self.slug})
-    
-    #reverse('category-update', args=[category.slug])
+
+    # reverse('category-update', args=[category.slug])
 
 
 def post_user_created_signal(sender, instance, created, **kwargs):
@@ -170,3 +169,4 @@ def post_user_created_signal(sender, instance, created, **kwargs):
 
 
 post_save.connect(post_user_created_signal, sender=User)
+

@@ -26,6 +26,7 @@ urlpatterns = [
     path('song/', include('songs.urls', namespace='songs')),
     path('leads/', include("leads.urls", namespace='leads')),
     path("agents/", include("agents.urls", namespace='agents')),
+    path('pharmcare/', include('pharmcare.urls', namespace='pharmcare')),
 
     # Registration URL - inherited for django.contrib.auths views
     path('login/', LoginView.as_view(), name='login'),

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'leads',
     'posts',
     'agents',
+    'pharmcare',
 
     # third party packages
     'mptt',
@@ -63,7 +64,7 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
-ROOT_URLCONF = 'musics.urls'
+ROOT_URLCONF = 'pharmaceuticals.urls'
 
 TEMPLATES = [
     {
@@ -81,7 +82,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'musics.wsgi.application'
+WSGI_APPLICATION = 'pharmaceuticals.wsgi.application'
 
 
 # Database
