@@ -1,10 +1,10 @@
 from django import forms
-from .models import Song, Category, Subscribe
+from .models import Song, Category, SubscribedUsers
 from tinymce.widgets import TinyMCE
 
 class SubscribedModelForm(forms.ModelForm):
     class Meta:
-        model = Subscribe
+        model = SubscribedUsers
         fields = [
             'email'
         ]

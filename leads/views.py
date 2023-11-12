@@ -13,8 +13,10 @@ from .forms import (LeadModelForm,
                     CustomUserForm
                     )
 
-from agents.mixins import OrgnizerAndLoginRequiredMixin, OrganizerAgentLoginRequiredMixin
-
+from agents.mixins import (
+    OrgnizerAndLoginRequiredMixin,
+    OrganizerAgentLoginRequiredMixin
+)
 
 """ CRUD + L """
 

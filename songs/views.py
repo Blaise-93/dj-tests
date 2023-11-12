@@ -1,9 +1,7 @@
-
-from django.db.models.query import QuerySet
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from .models import Song, Category, Subscribe
+from .models import Song, Category, SubscribedUsers
 from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
 from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
@@ -20,14 +18,18 @@ def navigation(request):
 class FooterView(LoginRequiredMixin, generic.CreateView):
     template_name = 'songs/footer.html'
     form_class = SubscribedModelForm
-    model = Subscribe
+    model = SubscribedUsers
+    
+
+       
 
     def form_valid(self, form):
+        email = form.cleaned_data['email']
         send_mail(
             subject="Newsletter SUbscription",
             message=files('songs/mails/subscription.txt'),
             from_email='blaise@gmail.com',
-            recipient_list=['kester@gmail.com', 'Onyedika@gmail.com'],
+            recipient_list=[email, ],
             fail_silently=False
         )
         return super(FooterView, self).form_valid(form)
@@ -52,13 +54,15 @@ def newsletter(request):
                     subject,
                     email_message,
                     from_email,
-                    f"DJ_TEST <{request.user.email}>",
+                    to=[receivers, ],
                     bcc=receivers)
+                
                 mail.content_subtype = 'html'
 
                 if mail.send():
 
-                    messages.success(request, "Email sent succesfully")
+                    messages.info(request, "The message was sent successfully.")
+                 
                 else:
                     messages.error(request, "There was an error sending email")
 
@@ -67,10 +71,11 @@ def newsletter(request):
                     messages.error(request, error)
             return redirect('/')
         form.fields['receivers'].initial = ','.join(
-            [active.email for active in Subscribe.objects.all()])
+            [active.email for active in SubscribedUsers.objects.all()])
 
         return render(request=request,
-                      template_name='songs/newsletter.html', context={'form': form})
+                      template_name='songs/newsletter.html',
+                      context={'form': form})
 
     except Http404:
         return render(request, "songs/404-page.html")
@@ -84,17 +89,18 @@ def user_unsubscribed_newsletter(request):
     }
     if request.method == 'POST':
         if form.is_valid():
-            # instance = form.save(commit=False)
-            if Subscribe.objects.filter(
-                email=form.cleaned_data.get('email')).exists():
+            email = email=form.cleaned_data.get('email')
+            if SubscribedUsers.objects.filter(
+                
+                email= form.cleaned_data.get('email')).exists():
                 send_mail(
                     subject="Newsletter Subscription",
                     message=files('songs/mails/unsubscribed.txt'),
                     from_email='blaise@gmail.com',
-                    recipient_list=['kester@gmail.com', 'Onyedika@gmail.com'],
+                    recipient_list=[email, ],
                     fail_silently=False
                 )
-                Subscribe.objects.filter(
+                SubscribedUsers.objects.filter(
                     email=form.cleaned_data.get('email')).delete()
                 return redirect("leads:home-page")
 

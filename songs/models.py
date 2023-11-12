@@ -65,7 +65,9 @@ class Song(models.Model):
         super().save(*args, **kwargs)
 
 
-class Subscribe(models.Model):
+class SubscribedUsers(models.Model):
+    class Meta:
+        verbose_name_plural = 'SubscribedUsers'
     email = models.EmailField(unique=True, max_length=50)
     date_subscribed = models.DateTimeField(auto_now_add=True)
    

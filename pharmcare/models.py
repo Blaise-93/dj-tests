@@ -1,13 +1,22 @@
 from django.db import models
 from songs.models import User
-from leads.models import Lead, Agent
-
-
+from leads.models import Lead, Agent, UserProfile
+from django.db import models
+from django.conf import settings
+from django.urls import reverse
+from django.utils.text import slugify
+from utils import slug_modifier, generate_patient_unique_code
 
 
 # PHARMACEUTICALS MGMT - CARE PLAN TODO
 
 class PharmaceuticalCarePlan(models.Model):
+    """ 
+     A complex table with relationship mapping to other table to 
+     keep patients pharmacauticall care plan in our database.
+     Each patient is assigned to a unique patient code to better 
+     identify the records of the user.
+    """
     user = models.ForeignKey(User,
                              on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -26,7 +35,18 @@ class PharmaceuticalCarePlan(models.Model):
         'MonitoringPlan', on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
+    
+    
+    def save(self, *args, **kwargs):
+        """
+        Override the original save method to set the order number
+        if it hasn't been set already.
+        """
+        if not self.patient_unique_code:
 
+            self.patient_unique_code = generate_patient_unique_code()
+
+        super().save(*args, **kwargs)
 
 class Patient(models.Model):
 
@@ -39,8 +59,9 @@ class Patient(models.Model):
     patient_details = models.OneToOneField(
         'PatientDetail', on_delete=models.CASCADE)
 
-    medical_history = models.OneToOneField('MedicationHistory',
-                                           on_delete=models.SET_NULL, null=True, blank=True)
+    medical_history = models.OneToOneField(
+        'MedicationHistory',
+         on_delete=models.SET_NULL, null=True, blank=True)
 
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -49,6 +70,34 @@ class Patient(models.Model):
 
 
 class PatientDetail(models.Model):
+    
+    """
+    Patient detail model::
+    This helps us to set a table for each patients with a column for 
+    respective medical data specific for them for further query and examination 
+    in our organization.  
+    
+    For example, here we determine the gender of our patient, names,
+    patient class, BMI etc. However, if the client has already existed in our database on
+    our lead table, then we will collect their data from there without asking them some
+    basic useful information like names etc. 
+
+     Important information:
+        - Not all collected leads of our clients are actually patients, so that's why we 
+    have a separate model to better record our patients and give them all the medical
+    support they need during the pharmaceutical care process.
+        - Some clients can later turn to patient in the future so keeping the leads
+        record separately is great so that you can know who came in the pharmacy or the 
+        organization and at what time.
+        
+    
+    
+    """
+
+
+    class Meta:
+        ordering = ['id']
+
     GENDER_CHOICES = (
         ("Male", "Male"),
         ("Female", "Female"),
@@ -84,8 +133,9 @@ class PatientDetail(models.Model):
         max_length=20, choices=PATIENT_STATE, default='Adult')
     age = models.PositiveIntegerField()
     agent = models.ForeignKey(
-        Agent, on_delete=models.SET_NULL, null=True, 
+        Agent, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
+    organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
     height = models.CharField(max_length=20)
@@ -97,14 +147,26 @@ class PatientDetail(models.Model):
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
 
+    def get_absolute_url(self):
+        return reverse("leads:lead-detail", kwargs={"slug": self.slug})
+
     def __str__(self):
 
         return f'{self.first_name} {self.last_name[0:1]}. \
             : {self.age} old {self.gender} with {self.BMI} BMI. '
+    
+    def save(self, *args, **kwargs):
+        """ override the original save method to set the patient details 
+        according to if agent has phoned or not"""
+
+        self.slug = slugify(
+            f'{(self.first_name + slug_modifier())}')
+
+        super().save(*args, **kwargs)
 
 
 class MedicationHistory(models.Model):
-    
+
     class Meta:
         verbose_name_plural = 'Medication History'
     medication_list = models.CharField(max_length=600)
