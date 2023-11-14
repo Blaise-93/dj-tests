@@ -1,7 +1,5 @@
-from django.shortcuts import redirect
 from typing import Any
 from django.db.models.query import QuerySet
-from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 from leads.models import Agent
@@ -43,19 +41,18 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         user.set_password(password_setter())
         user.save()
 
-        
+        email = form.cleaned_data.get('email')
         # create the agent from the form we saved
         Agent.objects.create(
             user=user,
             organization=self.request.user.userprofile
         )
-        print(self.queryset)
         
         send_mail(
             subject='You are invited to be an agent in our organization',
-            message="You were added as an agent on DJ_Tests. Please come and login to start working",
+            message=files('agents/mails/agent-request-mail.txt'),
             from_email="tests@blaise.com",
-            recipient_list=["kenny@gmail", "ony@gmail.com"]
+            recipient_list=[email, ]
         )
         return super(AgentCreateView, self).form_valid(form)
 
@@ -99,7 +96,7 @@ class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         return Agent.objects.filter(organization=userprofile)
 
     def get_success_url(self):
-        return reverse("leads:lead-list")
+        return reverse("leads:home-page")
 
 
 """ Two types of users - Organizer (main superuser) and agent  """

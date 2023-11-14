@@ -1,22 +1,26 @@
 from django import forms
 from pharmcare.models import *
+from tinymce.widgets import admin_widgets
 
 class PatientDetailForm(forms.ModelForm):
     class Meta:
-        models = PatientDetail
+        
+       
+        model = PatientDetail
         fields = [
                 'first_name',
                 'last_name',
                 'marital_status', 
-                'patient_class,'
+                'patient_class',
                 'age',
-                'agent',
+                'pharmacist',
                 'gender',
                 'height',
                 'BMI',
                 'patient_history',
                 'past_medical_history',
                 'social_history',
-                'slug',
-                'date_created',
+                'slug'
+              
         ]
+        

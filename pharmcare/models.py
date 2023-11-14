@@ -132,7 +132,7 @@ class PatientDetail(models.Model):
     patient_class = models.CharField(
         max_length=20, choices=PATIENT_STATE, default='Adult')
     age = models.PositiveIntegerField()
-    agent = models.ForeignKey(
+    pharmacist = models.ForeignKey(
         Agent, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
@@ -148,7 +148,7 @@ class PatientDetail(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def get_absolute_url(self):
-        return reverse("leads:lead-detail", kwargs={"slug": self.slug})
+        return reverse("pharmcare:patient-detail", kwargs={"slug": self.slug})
 
     def __str__(self):
 

@@ -26,11 +26,9 @@ def files(file):
         data = f.read()
         return data
 
-
 def generate_patient_unique_code():
     """
     Generate a random, unique order number using UUID for our patients
     """
-    return uuid.uuid4().hex.upper()
-
-import argparse
+    code = uuid.uuid4().hex.upper()
+    return code[0:10]

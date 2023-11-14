@@ -36,6 +36,11 @@ class LandingPageView(generic.TemplateView):
 
 
 class LeadsListView(LoginRequiredMixin, generic.ListView):
+    """ Leads list view class: displays the model data as a request made by the client
+    on the server when needed. Any request made must pass certain conditions by the 
+    organization responsible for the management and assigning the leads to individual
+    agent. """
+    
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
     paginate_by = 10
@@ -152,7 +157,6 @@ class LeadsUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
 
 class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     template_name = 'leads/lead-delete.html'
-    success_url = '/leads/lead-list'
 
     def get_queryset(self):
         user = self.request.user
