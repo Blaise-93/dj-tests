@@ -163,7 +163,7 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         # initial queryset for entire organization?
         queryset = Lead.objects.filter(organization=user.userprofile)
 
-        return queryset.order_by('id')
+        return queryset
 
     def get_success_url(self):
         return reverse('leads:home-page')

@@ -1,7 +1,10 @@
 from typing import Any
 from django.db.models.query import QuerySet
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.core.mail import send_mail
+from django.contrib import messages
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -28,7 +31,6 @@ class PatientListView(LoginRequiredMixin, ListView):
     context_object_name = 'patients'
     paginate_by = 12
     template_name = 'pharmcare/pharmcare-list.html'
-    
 
     def get_queryset(self) -> QuerySet[Any]:
         """ override the queryset via strictly checking if the user is
@@ -76,7 +78,7 @@ class PatientCreateView(LoginRequiredMixin, CreateView):
 
     template_name = 'pharmcare/pharmcare-create.html'
     form_class = PatientDetailForm
-  
+    context_object_name = 'patient'
 
     def get_queryset(self):
         """  Since, it is rare to see a community pharmacy or hospital not managed by
@@ -90,25 +92,21 @@ class PatientCreateView(LoginRequiredMixin, CreateView):
         pharmacist = self.request.user
         if organization:
             queryset = PatientDetail.objects.filter(
-                organization=organization, organization__isnull=True)
+                organization=organization)
         else:
             queryset = PatientDetail.objects.filter(
-                pharmacist=pharmacist.organization, pharmacist__isnull=True
+                pharmacist=pharmacist.organization
             )
             queryset = queryset.filter(pharamacist__user=pharmacist)
 
         return queryset
-    
-    #patient_detail = get_object_or_404 (PatientDetail, slug)
-      #  lead = Lead()
-  
+
     def get_success_url(self) -> str:
         return reverse('pharmcare:patient')
 
-    
     def form_valid(self, form):
-        
-        # fetch and save organization or pharmacist id
+
+        # fetch and save organization or pharmacist id in our db
         patient = form.save(commit=False)
         if self.request.user.userprofile:
             patient.organization = self.request.user.userprofile
@@ -117,37 +115,90 @@ class PatientCreateView(LoginRequiredMixin, CreateView):
             patient.pharmacist = self.request.user.pharmacist.organization
             patient.save()
 
-        # create the agent from the form we saved
-        """     PatientDetail.objects.create(
-            organization=self.request.user.userprofile
-        )
-
-        send_mail(
-            subject='A lead has been created',
-            message='Go to the site to see the new lead',
-            from_email='blaise@gmail.com',
-            recipient_list=['test2@gmail.com']
-        ) """
+        messages.info(
+            self.request, f'Patient medical details was created successfully.')
         return super(PatientCreateView, self).form_valid(form)
 
 
 class PatientDetailView(LoginRequiredMixin, DetailView):
-
+    """ This class shows the pharmacist/organization a detailed information of the 
+    patient extracted from pharmcare_patientdetail table.
+    """
     template_name = "pharmcare/pharmcare-detail.html"
+    # queryset = PatientDetail.objects.all()
 
     def get_queryset(self):
         """  get the specific queryset of the user for pharmacist/organization 
         to view for further records. """
-        organization = self.request.user.userprofile
+        organization = self.request.user
         pharmacist = self.request.user
-        if organization:
+        if organization.is_organizer:
             queryset = PatientDetail.objects.filter(
-                organization=organization, organization__isnull=True)
+                organization=organization.userprofile)
         else:
             queryset = PatientDetail.objects.filter(
-                pharmacist=pharmacist.organization, pharmacist__isnull=True
+                organization=pharmacist.organization
             )
             queryset = queryset.filter(pharamacist__user=pharmacist)
 
         return queryset
 
+
+class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
+    """ View that handles users (pharmacists/organization) requests to
+    update the form input of our registered patients."""
+
+    template_name = 'pharmcare/pharmcare-update.html'
+    form_class = PatientDetailForm
+    context_object_name = 'patient'
+
+    def get_queryset(self):
+        """  get the specific queryset of the user for pharmacist/organization 
+        to view for further records. """
+
+        organization = self.request.user
+        pharmacist = self.request.user
+        if organization.is_organizer:
+            queryset = PatientDetail.objects.filter(
+                organization=organization.userprofile)
+        else:
+            queryset = PatientDetail.objects.filter(
+                organization=pharmacist.organization
+            )
+            queryset = queryset.filter(pharamacist__user=pharmacist)
+
+        return queryset
+    
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        patient_first_name = form.cleaned_data['first_name']
+        patient_last_name = form.cleaned_data['last_name']
+        messages.info(self.request, 
+            f'{patient_first_name} {patient_last_name} data was successfully updated! ')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('pharmcare:patient')
+
+
+class DeletePatientView(LoginRequiredMixin, DeleteView):
+    template_name = 'pharmcare/pharmcare-delete.html'
+
+    def get_queryset(self):
+        """  get the specific queryset of the user for pharmacist/organization 
+        to view for further records. """
+
+        organization = self.request.user
+        pharmacist = self.request.user
+        if organization.is_organizer:
+            queryset = PatientDetail.objects.filter(
+                organization=organization.userprofile)
+        else:
+            queryset = PatientDetail.objects.filter(
+                organization=pharmacist.organization
+            )
+            queryset = queryset.filter(pharamacist__user=pharmacist)
+
+        return queryset
+      
+    def get_success_url(self):
+        return reverse("pharmcare:patient")
