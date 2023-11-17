@@ -1,13 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from .models import Song, Category, SubscribedUsers
 from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
 from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
-from utils import files
+from utils import files, generate_patient_unique_code
 from django.http import Http404
 from django.views import generic
+from leads.models import Contact
+from leads.forms import ContactUsForm
 
 
 def navigation(request):
@@ -111,6 +114,43 @@ def user_unsubscribed_newsletter(request):
 
     return render(request, 'unsubscribed.html', context)
 
+
+
+class ContactView(LoginRequiredMixin, generic.CreateView):
+    """ A view class that handles all the complaint/requests made by the user. """
+    template_name = 'songs/contact.html'
+    form_class = ContactUsForm
+    queryset = Contact
+    
+    def get_success_url(self) -> str:
+        return reverse('landing-page')
+    
+    def form_valid(self, form):
+        
+        email = self.request.user.email
+        # assign and save user ticket/email to the database
+        contact = form.save(commit=False)
+        contact.email = email
+        contact.user_ticket = generate_patient_unique_code()
+            
+        context = {
+            'user':form.cleaned_data['full_name'],
+            'ticket': contact.user_ticket  
+                   }
+    
+        contact.save()
+
+       # send email to the user
+        send_mail(
+            subject="CRM Customer Services",
+            message=render_to_string('leads/complaint.html', context),
+            from_email='tests@gmail.com',
+            recipient_list=[email, ],
+            fail_silently=False
+            
+        )
+        return super().form_valid(form)
+    
 
 class CategoryListView(generic.ListView):
     model = Category

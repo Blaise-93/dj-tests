@@ -23,6 +23,8 @@ urlpatterns = [
     
     # Local apps
     path('', LandingPageView.as_view(), name='landing-page'),
+    path('*',
+         TemplateView.as_view(template_name='snippets/404.html'), name='page-not-found'),
     path('song/', include('songs.urls', namespace='songs')),
     path('leads/', include("leads.urls", namespace='leads')),
     path("agents/", include("agents.urls", namespace='agents')),

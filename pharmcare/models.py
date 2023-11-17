@@ -35,8 +35,7 @@ class PharmaceuticalCarePlan(models.Model):
         'MonitoringPlan', on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
-    
-    
+
     def save(self, *args, **kwargs):
         """
         Override the original save method to set the order number
@@ -47,6 +46,7 @@ class PharmaceuticalCarePlan(models.Model):
             self.patient_unique_code = generate_patient_unique_code()
 
         super().save(*args, **kwargs)
+
 
 class Patient(models.Model):
 
@@ -61,7 +61,7 @@ class Patient(models.Model):
 
     medical_history = models.OneToOneField(
         'MedicationHistory',
-         on_delete=models.SET_NULL, null=True, blank=True)
+        on_delete=models.SET_NULL, null=True, blank=True)
 
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -70,13 +70,13 @@ class Patient(models.Model):
 
 
 class PatientDetail(models.Model):
-    
+
     """
     Patient detail model::
     This helps us to set a table for each patients with a column for 
     respective medical data specific for them for further query and examination 
     in our organization.  
-    
+
     For example, here we determine the gender of our patient, names,
     patient class, BMI etc. However, if the client has already existed in our database on
     our lead table, then we will collect their data from there without asking them some
@@ -89,11 +89,10 @@ class PatientDetail(models.Model):
         - Some clients can later turn to patient in the future so keeping the leads
         record separately is great so that you can know who came in the pharmacy or the 
         organization and at what time.
-        
-    
-    
-    """
 
+
+
+    """
 
     class Meta:
         ordering = ['id']
@@ -127,6 +126,7 @@ class PatientDetail(models.Model):
 
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
+    email = models.CharField(max_length=20, null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, choices=MARITAL_STATUS, default='Single')
     patient_class = models.CharField(
@@ -140,10 +140,12 @@ class PatientDetail(models.Model):
         choices=GENDER_CHOICES, max_length=10)
     height = models.CharField(max_length=20)
     BMI = models.CharField(max_length=10)
-    patient_history = models.TextField(editable=True)
+    patient_history = models.TextField(editable=True, blank=False)
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
-    social_history = models.CharField(max_length=250)
+    phone_number = models.CharField(max_length=12, null=True, blank=True)
+    pharm_care_fee = models.PositiveBigIntegerField(null=True, blank=True)
+    social_history = models.CharField(max_length=250, editable=True)
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -154,7 +156,7 @@ class PatientDetail(models.Model):
 
         return f'{self.first_name} {self.last_name[0:1]}. \
             : {self.age} old {self.gender} with {self.BMI} BMI. '
-    
+
     def save(self, *args, **kwargs):
         """ override the original save method to set the patient details 
         according to if agent has phoned or not"""

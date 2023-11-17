@@ -7,6 +7,7 @@ from .models import (
     Agent, 
     Category,
     UserProfile,
+    Contact
 
     
     
@@ -16,6 +17,7 @@ from .models import (
 # Register your models here.
 
 admin.site.register(Agent)
+admin.site.register(Contact)
 admin.site.register(UserProfile)
 admin.site.register(Lead)
 admin.site.register(Category)

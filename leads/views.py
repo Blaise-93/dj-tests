@@ -1,16 +1,19 @@
 from typing import Any
 from django.db.models.query import QuerySet
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, render
 from django.core.mail import send_mail
+from utils import files, generate_patient_unique_code
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Lead, Category
+from .models import Lead, Category, Contact
 from .forms import (LeadModelForm,
                     CategoryModelForm,
                     LeadCategoryUpdateForm,
                     AgentAssignedForm,
-                    CustomUserForm
+                    CustomUserForm,
+                    ContactUsForm
                     )
 
 from agents.mixins import (
@@ -20,8 +23,7 @@ from agents.mixins import (
 
 """ CRUD + L """
 
-# Registration
-
+# Registration 
 
 class SignUpView(generic.CreateView):
     template_name = 'registration/signup.html'
@@ -33,14 +35,15 @@ class SignUpView(generic.CreateView):
 
 class LandingPageView(generic.TemplateView):
     template_name = "leads/landing-page.html"
+    
 
-
+# Leads
 class LeadsListView(LoginRequiredMixin, generic.ListView):
     """ Leads list view class: displays the model data as a request made by the client
     on the server when needed. Any request made must pass certain conditions by the 
     organization responsible for the management and assigning the leads to individual
     agent. """
-    
+
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
     paginate_by = 10
@@ -280,7 +283,7 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
 
 
 class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
-    template_name = 'leads/category-update.html'
+    template_name = 'leads/lead-category-update.html'
     form_class = LeadCategoryUpdateForm
 
     def get_queryset(self):
@@ -339,7 +342,7 @@ class CategoryUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
 
     def get_success_url(self):
         slug = self.get_object().id
-        return reverse('leads:category-list', kwargs={"slug": slug})
+        return (reverse('leads:category-update', kwargs={"slug": slug}))
 
     def get_queryset(self):
         user = self.request.user

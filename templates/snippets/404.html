@@ -1,0 +1,31 @@
+{% extends "base.html" %} {% block content %}
+<section class="text-gray-600 body-font">
+  <div
+    class="container mx-auto flex px-5 py-24 items-center justify-center flex-col"
+  >
+    <img
+      class="lg:w-2/6 md:w-3/6 w-5/6 mb-10 object-cover object-center rounded"
+      alt="hero"
+      src="https://dummyimage.com/720x600"
+    />
+    <div class="text-center lg:w-2/3 w-full">
+      <h1 class="display-1">404</h1>
+      <h1
+        class="title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900"
+      >
+      Oops! Page Not Found
+      </h1>
+      <p class="mb-4 mb-8 leading-relaxed">
+        We're sorry, the page you have looked for does not exist in our
+        website! Maybe go to our home page or try to contact the service provider (admin)?
+      </p>
+      <a
+        class="btn btn-primary rounded-pill py-3 px-5"
+        href="{% url 'account_login' %}"
+        >Go Back To Home</a
+      >
+   </div>
+  </div>
+</section>
+
+{% endblock content %}

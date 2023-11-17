@@ -10,6 +10,7 @@ __pycache__/
 # C extensions
 *.so
 rough
+leads/asyncio.txt
 cars/static
 cars/test_template.py
 # Distribution / packaging

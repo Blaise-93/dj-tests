@@ -1,7 +1,7 @@
 from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
-
+from django.views.generic import TemplateView
 from .views import (
 
     LeadsListView, LeadsDetailView,
@@ -9,9 +9,7 @@ from .views import (
     LeadsDeleteView, AgentAssignedView,
     CategoryListView, CategoryDetailView,
     LeadCategoryUpdateView, CategoryCreateView,
-     CategoryUpdateView, CategoryDeleteView
-
-
+    CategoryUpdateView, CategoryDeleteView,
 )
 
 
@@ -21,7 +19,8 @@ from .drf_views import (
     LeadUpdateView,
     LeadListView,
     LeadDeleteView,
-    LeadRetrieveView
+    LeadRetrieveView,
+    
 
 )
 
@@ -29,31 +28,33 @@ from .drf_views import (
 app_name = "leads"
 
 urlpatterns = [
-    # LEADS 
+    # LEADS
 
     path('', LeadsListView.as_view(), name="home-page"),
+ 
+    path('alert/', TemplateView.as_view(template_name='snippets/alert.html'), name='alert'),
     path('categories/', CategoryListView.as_view(), name="category-list"),
     path('category-create/', CategoryCreateView.as_view(), name="category-create"),
     path("lead-create/", LeadsCreateView.as_view(), name="lead-create"),
     path("<str:slug>/", LeadsDetailView.as_view(), name="lead-detail"),
-    path("<str:slug>/update/", LeadsUpdateView.as_view(), name="lead-update"), 
+    path("<str:slug>/update/", LeadsUpdateView.as_view(), name="lead-update"),
     path("<str:slug>/delete/", LeadsDeleteView.as_view(), name="lead-delete"),
-    #"""  /leads/categories/contactedfk3k5w/update/ """,
-   
-   
-    path('categories/<str:slug>/', CategoryDetailView.as_view(), name="category-detail"), # /leads/rosayfuct0c/category/
-    path( 'categories/<str:slug>/delete/', CategoryDeleteView.as_view(), name="category-delete"),
-    path('categories/<str:slug>/update/', CategoryUpdateView.as_view(), name="category-update"),
-   
-    path("<str:slug>/category/",
-         LeadCategoryUpdateView.as_view(), name="lead-category-update"),
+    path("<str:slug>/category/", LeadCategoryUpdateView.as_view(),
+         name="lead-category-update"),
+
+    path('categories/<str:slug>/',
+         CategoryDetailView.as_view(), name="category-detail"),
+    path('categories/<str:slug>/delete/',
+         CategoryDeleteView.as_view(), name="category-delete"),
+    path('categories/<str:slug>/update/',
+         CategoryUpdateView.as_view(), name="category-update"),
     path("<str:slug>/assigned-agent/",
          AgentAssignedView.as_view(), name="assign-agent"),
 
     # Pharmaceuticals URLS
 
 
-    # API 
+    # API
     path('drf_test/', TestView.as_view(), name="drf-test"),
 
     # DRF with Generic classes

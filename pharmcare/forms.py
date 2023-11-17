@@ -10,6 +10,7 @@ class PatientDetailForm(forms.ModelForm):
         fields = [
                 'first_name',
                 'last_name',
+                'email',
                 'marital_status', 
                 'patient_class',
                 'age',
@@ -20,7 +21,9 @@ class PatientDetailForm(forms.ModelForm):
                 'patient_history',
                 'past_medical_history',
                 'social_history',
-                'slug'
+                'slug',
+                'phone_number',
+                'pharm_care_fee'
               
         ]
         

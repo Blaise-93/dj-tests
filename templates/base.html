@@ -67,10 +67,13 @@
       crossorigin="anonymous"
     ></script>
   </head>
+  
   <body>
     {% block extra_head %} {% endblock %}
     <div class="max-w-7xl mx-auto">
-      {% include 'songs/navigation.html'%} {% block content%} {% endblock %}
+      {% include 'songs/navigation.html'%} 
+
+      {% block content%} {% endblock %}
     </div>
     {% include 'footer.html' %} {% block extra_scripts %} {% endblock extra_scripts %} 
     {% include 'scripts.html' %}

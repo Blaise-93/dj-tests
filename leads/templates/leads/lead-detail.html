@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
   <div class="container px-5 py-24 mx-auto">
@@ -6,75 +6,82 @@
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Leads</h1>
+        <h1 class="text-3xl text-gray-800">
+          {{ lead.first_name|title }} lead's Information
+        </h1>
       </div>
       <div class="text-gray-500 hover:text-blue-500">
         <a href="{% url 'leads:lead-create' %}">Go to Lead Create Page</a>
       </div>
     </div>
-    <div class="lg:w-4/5 mx-auto flex flex-wrap">
-      <div class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
-        <h2 class="text-sm title-font text-gray-500 tracking-widest">
-          <i class="text-gray-400"> lead </i>
-        </h2>
-        <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">
-          Detailed page of {{ user.username}} lead
-        </h1>
-        <div class="flex mb-4">
-          <a
-            href="{{ lead.get_absolute_url }}"
-            class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
-            >Overview</a
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr class="hover:text-gray-600">
+            <th scope="col" class="p-4">
+              <div class="flex items-center">
+                <span>S/N</span>
+              </div>
+            </th>
+
+            <th scope="col" class="px-6 py-3">Full name</th>
+            <th scope="col" class="px-6 py-3">Email</th>
+            <th scope="col" class="px-6 py-3">Phone number</th>
+            <th scope="col" class="px-6 py-3">Age</th>
+            <th scope="col" class="px-6 py-3">Phoned</th>
+            <th scope="col" class="px-6 py-3">Description</th>
+            <th scope="col" class="px-6 py-3">Social media account</th>
+            <th scope="col" class="px-6 py-3">Address</th>
+            <th scope="col" class="px-6 py-3">Files</th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
-          <a
-            href="{% url 'leads:lead-category-update' lead.slug %}"
-            class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
-            >Category</a
-          >
-          <a
-            href="{{ lead.get_absolute_url }}update"
-            class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg px-1"
-            >Update Detail</a
-          >
-        </div>
-        <p class="leading-relaxed mb-4">
-          Your lead details about the customer.
-        </p>
-        <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Age</span>
-          <span class="ml-auto text-gray-900">{{ lead.age }}</span>
-        </div>
-        <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Address</span>
-          <span class="ml-auto text-gray-900">{{ lead.address }}</span>
-        </div>
-        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
-          <span class="text-gray-500">Phone Number</span>
-          <span class="ml-auto text-gray-900">{{ lead.phone_number }}</span>
-        </div>
-        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
-          <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">{{ lead.email }}</span>
-        </div>
-        <div class="flex lead-detail">
-          <a
-            href="{{ lead.get_absolute_url }}update"
-            class="flex mr-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-500 rounded"
-            >Update Lead
-          </a>
-          <a
-            href="{{ lead.get_absolute_url }}delete"
-            class="flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-red-500 rounded"
-          >
-            Delete Lead
-          </a>
-        </div>
-      </div>
-      <img
-        alt="ecommerce"
-        class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
-        src="https://dummyimage.com/400x400"
-      />
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                <span>{{lead.id }}</span>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              {{ lead.first_name }} {{ lead.last_name }}
+            </td>
+            <td class="px-6 py-4">{{ lead.email }}</td>
+            <td class="px-6 py-4">{{ lead.phone_number }}</td>
+            <td class="px-6 py-4">{{ lead.age }}yr</td>
+            <td class="px-6 py-4">{{ lead.phoned }}</td>
+            <td class="px-6 py-4">{{ lead.description }}</td>
+            <td class="px-6 py-4">{{ lead.social_media_account }}</td>
+            <td class="px-6 py-4">{{ lead.address }}</td>
+            <td class="px-6 py-4">{{ lead.files }}</td>
+
+            <td class="flex items-center px-6 py-4">
+              <a
+                href="{% url 'leads:lead-update' lead.slug %}"
+                class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                >Edit</a
+              >
+              <a
+                href=" {% url 'leads:lead-delete' lead.slug %}"
+                class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
+                >Remove</a
+              >
+              <a
+                href="{% url 'leads:lead-category-update' lead.slug %}"
+                class="pr-2 font-medium text-blue-600 dark:text-blue-500 mx-2 hover:underline"
+                >Category</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>

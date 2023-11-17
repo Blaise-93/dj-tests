@@ -1,5 +1,5 @@
 from django import forms
-from leads.models import Lead, Agent, Category
+from leads.models import Lead, Agent, Category, Contact
 from songs.models import User
 from django.contrib.auth.forms import UserCreationForm, UsernameField
 
@@ -23,9 +23,24 @@ class LeadModelForm(forms.ModelForm):
             'description',
             'email',
             'social_media_accounts',
+            'address',
+            'files',
+            'slug'
 
 
 
+        ]
+
+class ContactUsForm(forms.ModelForm):
+    """ A prepopulated contact form to handle all
+    the form submission by our users/patients."""
+    class Meta:
+        model = Contact
+        fields = [
+            'full_name',
+            'country',
+            'subject',
+            'message'
         ]
 
 

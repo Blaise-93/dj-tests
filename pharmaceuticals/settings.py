@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'tailwind',
+    'django_countries',
     'sass_processor',
     # 'themw',
     'crispy_forms',
@@ -163,6 +164,8 @@ STATIC_ROOT = 'static_root'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+TEMPLATE_DEBUG = True
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

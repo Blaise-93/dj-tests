@@ -1,24 +1,21 @@
-
-{% extends "base.html" %} {% block extra_css%}
-
-{% endblock extra_css%} {% block content %}
-{% load tailwind_filters %}
+{% extends "base.html" %} {% block extra_css%} {% endblock extra_css%} {% block content %} {% load tailwind_filters %}
 <main class="max-w-lg mx-auto mb-3">
-    
-  <a class="hover:text-blue-500" href="{% url 'leads:category-list' %}">Go back to category page</a>
-  <div class="py-3 border-t border-gray-200">  
-    <h1 class="text-4xl text-gray-800 ">Update {{ object.name }}</h1 >
+  <a class="hover:text-blue-500" href="{% url 'leads:category-list' %}"
+    >Go back to category page</a
+  >
+  <div class="py-3 border-t border-gray-200">
+    <h1 class="text-4xl text-gray-800">Update {{ object.name }}</h1>
   </div>
-  <form method="post" class="mt-5" action="{% url 'leads:category-update'category.slug %}">
-          {% csrf_token %}
-          {{ form|crispy }}
-          <button
-            class="w-full hover:text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-md"
-            type="submit"
-          >Submit</button>
+  {% comment %} {% url 'leads:category-update' lead.slug %} {{
+  lead.get_lead_category_update_view }} {% endcomment %}
+<form method="post" action=".">
+    {% csrf_token %} {{ form|crispy }}
+    <button href=" {% url 'leads:category-update' lead.slug %}"
+      class="w-full flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
+      focus:outline-none hover:bg-indigo-600 rounded"
+      >
+      Submit
+    </button >
   </form>
-
 </main>
 {% endblock content %}
-
-

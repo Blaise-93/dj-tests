@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from utils import slug_modifier
 from django.conf import settings
 from django.views.generic import View
+from django_countries.fields import CountryField
 from songs.models import User
 
 
@@ -70,7 +71,7 @@ class Lead(models.Model):
     def get_absolute_url(self):
         return reverse("leads:lead-detail", kwargs={"slug": self.slug})
 
-    def get_lead_category_update_view(self):
+    def get_lead_category_update_url(self):
         return reverse('leads:category-update', kwargs={
             'slug': self.slug
         })
@@ -170,3 +171,20 @@ def post_user_created_signal(sender, instance, created, **kwargs):
 
 post_save.connect(post_user_created_signal, sender=User)
 
+
+
+class Contact(models.Model):
+    """ Contact us model to handle user's related complaints  """
+    full_name = models.CharField(max_length=30)
+    email = models.EmailField()
+    country = CountryField( blank_label="--Select a Country-- *",
+        null=False,
+        blank=False)
+    subject = models.CharField(max_length=100)
+    message = models.TextField()
+    user_ticket = models.CharField(max_length=60)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name
+   

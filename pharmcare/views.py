@@ -153,7 +153,7 @@ class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
     context_object_name = 'patient'
 
     def get_queryset(self):
-        """  get the specific queryset of the user for pharmacist/organization 
+        """ function that gets the specific queryset of the user for pharmacist/organization 
         to view for further records. """
 
         organization = self.request.user
