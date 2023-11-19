@@ -1,0 +1,25 @@
+
+{% extends "base.html" %} {% block extra_css%}
+
+{% endblock extra_css%} {% block content %}
+{% load tailwind_filters %}
+<main class="max-w-lg mx-auto mb-3">
+  <a class="hover:text-blue-500" href="{% url 'leads:home-page' %}">Go back to home page</a>
+  <div class="py-3 border-t border-gray-200">  
+    <h1 class="text-4xl text-gray-800 ">Update {{ lead.first_name }}'s category.</h1 >
+    <a href="{% url 'leads:lead-category-update' lead.slug  %}" class="text-4xl text-gray-800 ">Category</a>
+  </div>
+  <form method="post" action=".">
+    {% csrf_token %} {{ form|crispy }}
+    <button href="{% url 'leads:lead-detail' lead.slug %}"
+      class="w-full flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
+      focus:outline-none hover:bg-indigo-600 rounded"
+      >
+      Submit
+    </button >
+  </form>
+
+</main>
+{% endblock content %}
+
+

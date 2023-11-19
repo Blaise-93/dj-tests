@@ -1,0 +1,18 @@
+<section class="alert_section">
+  {% if messages %} {% for message in messages %}
+  <div
+    class=" alert-messages alert alert-{{ message.tags }} 
+    alert-dismissible mt-5 fade show"
+    role="alert"
+    style="margin-top: 5.4rem"
+  >
+    {{ message }}
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  {% endfor %} {% endif %}
+</section>

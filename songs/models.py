@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
+
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.auth.models import AbstractUser
 
@@ -15,11 +16,11 @@ class User(AbstractUser):
 
 class Category(MPTTModel):
     name = models.CharField(
-        max_length=settings.MUSIC_TITLE_MAX_LENGTH, unique=True)
+        max_length=int(settings.MUSIC_TITLE_MAX_LENGTH), unique=True)
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True)
     slug = models.SlugField(
-        max_length=settings.MUSIC_TITLE_MAX_LENGTH, null=True, blank=True)
+        max_length=int(settings.MUSIC_TITLE_MAX_LENGTH), null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     class MPTTMeta:
@@ -43,10 +44,10 @@ class Category(MPTTModel):
 
 
 class Song(models.Model):
-    title = models.CharField(max_length=settings.MUSIC_TITLE_MAX_LENGTH)
+    title = models.CharField(max_length=int(settings.MUSIC_TITLE_MAX_LENGTH))
     category = TreeForeignKey(
         'Category', on_delete=models.CASCADE, null=True, blank=True)
-    slug = models.SlugField(max_length=settings.MUSIC_TITLE_MAX_LENGTH)
+    slug = models.SlugField(max_length=int(settings.MUSIC_TITLE_MAX_LENGTH))
     user = models.ForeignKey(User,
                              on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -64,7 +65,9 @@ class Song(models.Model):
         super().save(*args, **kwargs)
 
 
-class Subscribe(models.Model):
+class SubscribedUsers(models.Model):
+    class Meta:
+        verbose_name_plural = 'SubscribedUsers'
     email = models.EmailField(unique=True, max_length=50)
     date_subscribed = models.DateTimeField(auto_now_add=True)
    

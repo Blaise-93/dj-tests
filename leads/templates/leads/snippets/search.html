@@ -1,0 +1,23 @@
+<nav class="navbar navbar-light bg-light mt-5">
+    <div class="container-fluid">
+      <a class="navbar-brand text-secondary pt-3">All Categories</a>
+      <form class="d-flex" method="get" action="{% url 'leads:home-page' %}">
+        <input
+          class="form-control me-2"
+          type="text"
+          placeholder="search product..."
+          aria-label="Search"
+          name="q"
+          value="{{ request.GET.q }}"
+        />
+        <button
+          title="search button of our products"
+          class="btn btn-outline-success"
+          type="search"
+        >
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+    </div>
+  </nav>
+  

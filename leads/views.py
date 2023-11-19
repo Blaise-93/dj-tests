@@ -1,24 +1,29 @@
 from typing import Any
 from django.db.models.query import QuerySet
 from django.urls import reverse
+from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, render
 from django.core.mail import send_mail
+from utils import files, generate_patient_unique_code
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Lead, Category
-from .forms import (LeadModelForm, 
+from .models import Lead, Category, Contact
+from .forms import (LeadModelForm,
                     CategoryModelForm,
                     LeadCategoryUpdateForm,
                     AgentAssignedForm,
-                    CustomUserForm
+                    CustomUserForm,
+                    ContactUsForm
+                    )
+
+from agents.mixins import (
+    OrgnizerAndLoginRequiredMixin,
+    OrganizerAgentLoginRequiredMixin
 )
-
-from agents.mixins import OrgnizerAndLoginRequiredMixin, OrganizerAgentLoginRequiredMixin
-
 
 """ CRUD + L """
 
-# Registration
-
+# Registration 
 
 class SignUpView(generic.CreateView):
     template_name = 'registration/signup.html'
@@ -30,9 +35,15 @@ class SignUpView(generic.CreateView):
 
 class LandingPageView(generic.TemplateView):
     template_name = "leads/landing-page.html"
+    
 
-
+# Leads
 class LeadsListView(LoginRequiredMixin, generic.ListView):
+    """ Leads list view class: displays the model data as a request made by the client
+    on the server when needed. Any request made must pass certain conditions by the 
+    organization responsible for the management and assigning the leads to individual
+    agent. """
+
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
     paginate_by = 10
@@ -155,7 +166,7 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         # initial queryset for entire organization?
         queryset = Lead.objects.filter(organization=user.userprofile)
 
-        return queryset.order_by('id')
+        return queryset
 
     def get_success_url(self):
         return reverse('leads:home-page')
@@ -164,9 +175,11 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     template_name = 'agents/agent-assigned.html'
     form_class = AgentAssignedForm
+   # kwargs = 'slug'
 
     def get_form_kwargs(self, **kwargs):
-        kwargs = super(AgentAssignedView, self).get_form_kwargs(**kwargs)
+        kwargs = super(AgentAssignedView, self)\
+            .get_form_kwargs(**kwargs)
         kwargs.update({
             'request': self.request
         })
@@ -180,8 +193,9 @@ class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         agent = form.cleaned_data['agent']
 
         # get key from pk in the URL
-        lead = Lead.objects.get(id=self.kwargs['pk'])
-        # assign the leads to exact agent selected
+       # lw = get_object_or_404(Lead, slug=self.kwargs)
+        lead = Lead.objects.get(slug=self.kwargs['slug'])
+        # assign the leads to exact agent selected fgyhjhgfds
         lead.agent = agent
         lead.save()
         return super(AgentAssignedView, self).form_valid(form)
@@ -204,13 +218,13 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         else:
             queryset = Category.objects.filter(
                 organization=user.agent.organization).order_by('id')
-          
 
         return queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super(CategoryListView, self).get_context_data(**kwargs)
         user = self.request.user
+       # lead = get_object_or_404(Lead, slug=slug)
         if user.is_organizer:
             queryset = Lead.objects.filter(
                 organization=user.userprofile
@@ -219,15 +233,16 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization)
-          
+
         # leads that are not yet assigned by the oragnizer to the agents
         # to category.  Unassigned leads
+        category_id = queryset.filter(
+            category__isnull=True)
         context.update({
-            'unasssigned_lead_count': queryset.filter(category__isnull=True)
-            .count(),
-           # "contacted_count": category_id.count()
+            'unasssigned_lead_count': queryset.filter(category__isnull=False).count(),
+            # "contacted_count": category_id.count()
         })
-    
+
         return context
 
 
@@ -268,7 +283,7 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
 
 
 class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
-    template_name = 'leads/category-update.html'
+    template_name = 'leads/lead-category-update.html'
     form_class = LeadCategoryUpdateForm
 
     def get_queryset(self):
@@ -315,18 +330,19 @@ class CategoryCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         Lead.objects.create(
             organization=self.request.user.userprofile
         )
- 
+
         return super(CategoryCreateView, self).form_valid(form)
-    
-    
+
+
 class CategoryUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     template_name = "leads/category-update.html"
     context_object_name = 'category'
     form_class = CategoryModelForm
-    # queryset = Lead.objects.all()
+    slug_url_kwarg = 'slug'
 
     def get_success_url(self):
-        return reverse('leads:category-list')
+        slug = self.get_object().id
+        return (reverse('leads:category-update', kwargs={"slug": slug}))
 
     def get_queryset(self):
         user = self.request.user
@@ -340,6 +356,7 @@ class CategoryUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
             queryset = queryset.filter(agent__user=self.request.user)
             # when returned django then evaluate what you filtered
         return queryset
+
 
 class CategoryDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     template_name = 'leads/category-delete.html'
@@ -359,7 +376,3 @@ class CategoryDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
                 organization=user.agent.organization)
 
         return queryset
-
-
-    
-

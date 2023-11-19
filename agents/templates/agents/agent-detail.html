@@ -21,14 +21,14 @@
           Detailed page of {{ agent.first_name }} {{ agent.last_name }} agent
         </h1>
         <div class="flex mb-4">
-          <a href="{% url "agents:agent-detail" agent.pk %}"
+          <a href="{% url "agents:agent-detail" agent.slug %}"
             class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
             >Overview</a
           >
           <a class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
             >Reviews</a
           >
-          <a href="{% url "agents:agent-update" agent.pk %}" 
+          <a href="{% url "agents:agent-update" agent.slug %}" 
           class="flex-grow text-blue-500 border-b-2 border-indigo-500 py-2 text-lg px-1"
             >Update Detail</a
           >
@@ -46,19 +46,19 @@
         </div>
   
         <div class="flex">
-          <a  href="{% url "agents:agent-update" agent.pk %}" 
+          <a  href="{% url "agents:agent-update" agent.slug %}" 
           class="flex mr-auto text-white bg-blue-500 border-0 py-2 px-6 
           focus:outline-none hover:bg-indigo-500 rounded
           
             
           "
-            >Update Lead </a 
+            >Update Agent </a 
           >
-          <a href="{% url 'agents:agent-delete' agent.pk %}"
+          <a href="{% url 'agents:agent-delete' agent.slug %}"
             class="flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
             focus:outline-none hover:bg-red-600 rounded-md"
           >
-            Delete Lead
+            Delete Agent
           </a >
         </div>
       </div>

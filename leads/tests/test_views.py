@@ -15,3 +15,4 @@ class LandingPageTest(TestCase):
         response = self.client.get(reverse('landing-page'))
         # TODO some sort of test
         self.assertTemplateUsed(response, 'leads/landing-page.html')
+ 

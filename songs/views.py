@@ -1,15 +1,16 @@
-
-from django.db.models.query import QuerySet
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from .models import Song, Category, Subscribe
+from django.template.loader import render_to_string
+from .models import Song, Category, SubscribedUsers
 from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
-from django.core.mail import send_mail,EmailMessage
+from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
-from utils import files
+from utils import files, generate_patient_unique_code
 from django.http import Http404
 from django.views import generic
+from leads.models import Contact
+from leads.forms import ContactUsForm
 
 
 def navigation(request):
@@ -20,14 +21,18 @@ def navigation(request):
 class FooterView(LoginRequiredMixin, generic.CreateView):
     template_name = 'songs/footer.html'
     form_class = SubscribedModelForm
-    model = Subscribe
+    model = SubscribedUsers
+    
+
+       
 
     def form_valid(self, form):
+        email = form.cleaned_data['email']
         send_mail(
             subject="Newsletter SUbscription",
             message=files('songs/mails/subscription.txt'),
             from_email='blaise@gmail.com',
-            recipient_list=['kester@gmail.com', 'Onyedika@gmail.com'],
+            recipient_list=[email, ],
             fail_silently=False
         )
         return super(FooterView, self).form_valid(form)
@@ -49,16 +54,18 @@ def newsletter(request):
 
                 from_email = 'blaise@gmail.com',
                 mail = EmailMessage(
-                    subject, 
-                    email_message, 
+                    subject,
+                    email_message,
                     from_email,
-                    f"DJ_TEST <{request.user.email}>",
+                    to=[receivers, ],
                     bcc=receivers)
+                
                 mail.content_subtype = 'html'
 
                 if mail.send():
-                    
-                    messages.success(request, "Email sent succesfully")
+
+                    messages.info(request, "The message was sent successfully.")
+                 
                 else:
                     messages.error(request, "There was an error sending email")
 
@@ -67,14 +74,14 @@ def newsletter(request):
                     messages.error(request, error)
             return redirect('/')
         form.fields['receivers'].initial = ','.join(
-            [active.email for active in Subscribe.objects.all()])
+            [active.email for active in SubscribedUsers.objects.all()])
 
-        return render(request=request, \
-            template_name='songs/newsletter.html', context={'form': form})
-    
+        return render(request=request,
+                      template_name='songs/newsletter.html',
+                      context={'form': form})
+
     except Http404:
         return render(request, "songs/404-page.html")
-        
 
 
 def user_unsubscribed_newsletter(request):
@@ -85,26 +92,65 @@ def user_unsubscribed_newsletter(request):
     }
     if request.method == 'POST':
         if form.is_valid():
-            #instance = form.save(commit=False)
-            if Subscribe.objects.filter(email=form.cleaned_data.get('email')).exists():
+            email = email=form.cleaned_data.get('email')
+            if SubscribedUsers.objects.filter(
+                
+                email= form.cleaned_data.get('email')).exists():
                 send_mail(
                     subject="Newsletter Subscription",
                     message=files('songs/mails/unsubscribed.txt'),
                     from_email='blaise@gmail.com',
-                    recipient_list=['kester@gmail.com', 'Onyedika@gmail.com'],
+                    recipient_list=[email, ],
                     fail_silently=False
                 )
-                Subscribe.objects.filter(email=form.cleaned_data.get('email')).delete()
+                SubscribedUsers.objects.filter(
+                    email=form.cleaned_data.get('email')).delete()
                 return redirect("leads:home-page")
-               
+
         else:
-            return messages.info(request, 'Sorry but we did not find your email address.')
+            return messages.info(request, 
+                    'Sorry but we did not find your email address.')
         return redirect("leads:home-page")
 
     return render(request, 'unsubscribed.html', context)
-   
 
 
+
+class ContactView(LoginRequiredMixin, generic.CreateView):
+    """ A view class that handles all the complaint/requests made by the user. """
+    template_name = 'songs/contact.html'
+    form_class = ContactUsForm
+    queryset = Contact
+    
+    def get_success_url(self) -> str:
+        return reverse('landing-page')
+    
+    def form_valid(self, form):
+        
+        email = self.request.user.email
+        # assign and save user ticket/email to the database
+        contact = form.save(commit=False)
+        contact.email = email
+        contact.user_ticket = generate_patient_unique_code()
+            
+        context = {
+            'user':form.cleaned_data['full_name'],
+            'ticket': contact.user_ticket  
+                   }
+    
+        contact.save()
+
+       # send email to the user
+        send_mail(
+            subject="CRM Customer Services",
+            message=render_to_string('leads/complaint.html', context),
+            from_email='tests@gmail.com',
+            recipient_list=[email, ],
+            fail_silently=False
+            
+        )
+        return super().form_valid(form)
+    
 
 class CategoryListView(generic.ListView):
     model = Category

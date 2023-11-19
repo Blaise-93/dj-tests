@@ -1,6 +1,6 @@
 themw
 env
-
+fixtures.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -10,6 +10,7 @@ __pycache__/
 # C extensions
 *.so
 rough
+leads/asyncio.txt
 cars/static
 cars/test_template.py
 # Distribution / packaging
@@ -75,6 +76,8 @@ Rough
 posts
 tailwind.config.js
 py
+
+pharm_views.py
 
 #node stuff
 autoprefixer
