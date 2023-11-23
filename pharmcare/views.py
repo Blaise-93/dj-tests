@@ -3,13 +3,14 @@ from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
+from utils import files
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.contrib import messages
 from django.views.generic import (
     CreateView,
     DetailView,
     ListView,
-    TemplateView,
     DeleteView,
     UpdateView)
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -49,6 +50,26 @@ class PatientListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(pharamacist__user=self.request.user)
 
         return queryset.order_by(self.ordering)
+
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
+        if query is None:
+            messages.info(self.request, files(
+                '/pharmcare/mails/patient-list.txt'))
+            return render(self.request, self.template_name)
+
+        med_history = PatientDetail.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(gender__icontains=query) |
+            Q(age__icontains=query)
+
+        ).distinct()
+
+        context = {
+            'medhistory': med_history
+        }
+        return render(self.request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split patients that have not been 
@@ -168,12 +189,12 @@ class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
             queryset = queryset.filter(pharamacist__user=pharmacist)
 
         return queryset
-    
+
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         patient_first_name = form.cleaned_data['first_name']
         patient_last_name = form.cleaned_data['last_name']
-        messages.info(self.request, 
-            f'{patient_first_name} {patient_last_name} data was successfully updated! ')
+        messages.info(self.request,
+                      f'{patient_first_name} {patient_last_name} data was successfully updated! ')
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -199,6 +220,83 @@ class DeletePatientView(LoginRequiredMixin, DeleteView):
             queryset = queryset.filter(pharamacist__user=pharmacist)
 
         return queryset
-      
+
     def get_success_url(self):
         return reverse("pharmcare:patient")
+
+
+class MedicationHistoryListView(LoginRequiredMixin, ListView):
+    template_name = 'pharmcare/patient-medication-history.html'
+    ordering = 'id'
+    queryset = MedicationHistory.objects.all().order_by(ordering)
+    paginate_by = 12
+    context_object_name = 'med_history'
+
+    def get(self, *args, **kwargs):
+        query = self.request.GET['q', '']
+        if query is None:
+            messages.info(self.request,
+                          files('/pharmcare/mails/medhistory.txt'))
+            return render(self.request, self.template_name)
+
+        med_history = MedicationHistory.objects.filter(
+            Q(medication_list__icontains=query) |
+            Q(indication_and_evidence__icontains=query)
+
+        ).distinct()
+
+        context = {
+            'medhistory': med_history
+        }
+        return render(self.request, self.template_name, context)
+
+
+class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
+    template_name = 'pharmcare/medication-history-create.html'
+    form_class = MedicationHistoryForm
+    queryset = MedicationHistory.objects.all()
+
+
+class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
+    """ View responsible to display patient's detail medication records if the admin/pharmacists wants. """
+    template_name = 'pharmcare/medication-history-detail.html'
+    queryset = MedicationHistory.objects.all()
+    
+
+class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
+    """ View responsible for updating patient's medication records if the admin/pharmacists wants. """
+    form_class = MedicationHistoryForm
+    template_name = 'pharmcare/medication-history-update.html'
+    queryset = MedicationHistory.objects.all()
+    context_object_name = 'medication-history'
+    
+    def get_success_url(self) -> str:
+        return reverse('pharmcare:patient-medication-history')
+    
+class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
+    """ View responsible to delete patient's medication records if the admin/pharmacists wants. """
+    template_name = 'pharmcare/medication-history-delete.html'
+    queryset = MedicationHistory.objects.all()
+    
+    def get_success_url(self) -> str:
+        return reverse('pharmcare:patient-medication-history')
+
+
+class MedicationChangesView(LoginRequiredMixin, ListView):
+
+    pass
+
+
+class AnalysisOfClinicalProblemView(LoginRequiredMixin, ListView):
+
+    pass
+
+
+class MonitoringPlanView(LoginRequiredMixin, ListView):
+
+    pass
+
+
+class FollowUpPlanView(LoginRequiredMixin, ListView):
+
+    pass

@@ -12,6 +12,7 @@ class LeadForm(forms.Form):
 
 class LeadModelForm(forms.ModelForm):
     class Meta:
+ 
         model = Lead
         fields = [
             "first_name",
@@ -26,16 +27,33 @@ class LeadModelForm(forms.ModelForm):
             'address',
             'files',
             'slug'
-
-
-
         ]
+
+        labels = {
+
+            "first_name": "Enter your first name",
+            "last_name": "Enter your last name",
+            "age": 'Enter your age',
+            'phone_number': 'Enter your phone number',
+            'description': 'Enter your discription',
+            'email': 'Enter your email',
+            'address': " Enter your address",
+            'slug': "Enter your client's first name as the slug",
+        }
+
 
 class ContactUsForm(forms.ModelForm):
     """ A prepopulated contact form to handle all
     the form submission by our users/patients."""
     class Meta:
         model = Contact
+
+        help_texts = {
+            'full_name': "Enter your full name",
+            'subject': "Kindly enter your request subject...",
+            'message': 'Kindly express your words to us...'
+        }
+
         fields = [
             'full_name',
             'country',
@@ -73,6 +91,11 @@ class LeadCategoryUpdateForm(forms.ModelForm):
 class CategoryModelForm(forms.ModelForm):
     class Meta:
         model = Category
+        labels = {
+            'name': 'Enter the category name',
+            'slug': "Enter the category's slug"
+        }
+        
         fields = [
             'name',
             'slug'
