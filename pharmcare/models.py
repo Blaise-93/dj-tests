@@ -49,7 +49,9 @@ class PharmaceuticalCarePlan(models.Model):
 
 
 class Patient(models.Model):
-
+    """ Patient model which has a many to many attribute to dynamically map out each
+    patients/user details in our db """
+    
     medical_charge = models.PositiveBigIntegerField(blank=True, null=True)
     notes = models.TextField(null=True, blank=True)
     user = models.ForeignKey(User,
@@ -61,12 +63,27 @@ class Patient(models.Model):
 
     medical_history = models.OneToOneField(
         'MedicationHistory',
-        on_delete=models.SET_NULL, null=True, blank=True)
+        on_delete=models.CASCADE)
+    total = models.PositiveBigIntegerField(editable=True)
+
+   
 
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.username
+    
+    def get_total_charge(self):
+        total = 0
+        # check whether there is additional charges like drug price to be added
+        # if yes, then add medical charges to the total
+        if self.medical_charge:
+            amount_charged = self.patient_details.consultation + self.medical_charge
+            total += amount_charged
+            return total
+        total += self.patient_details.consultation 
+        return total
+        
 
 
 class PatientDetail(models.Model):
@@ -144,7 +161,7 @@ class PatientDetail(models.Model):
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=12, null=True, blank=True)
-    pharm_care_fee = models.PositiveBigIntegerField(null=True, blank=True)
+    consultation = models.PositiveBigIntegerField(null=True, blank=True)
     social_history = models.CharField(max_length=250, editable=True)
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
@@ -168,29 +185,48 @@ class PatientDetail(models.Model):
 
 
 class MedicationHistory(models.Model):
-
+    """ A model that handles all our patients detail medical history """
     class Meta:
         verbose_name_plural = 'Medication History'
+        ordering = ['id',]
+        
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
+    slug = models.SlugField(blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        medical_history = self.medication_list[:25]
-        return f'patient history in abbreviated format: {medical_history}'
+        medical_history = self.medication_list[:50]
+        return f'patient history in abbreviated format: {medical_history}...'
 
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier() 
+        super().save(*args, **kwargs)
+        
+    
+    def get_absolute_url(self):
+        return reverse("pharmcare:medication-history-detail",
+                       kwargs={"slug": self.slug})
 
 class ProgressNote(models.Model):
+    class Meta:
+        ordering = ['id',]
+        
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
-
+    slug = models.SlugField(null=True, blank=True)
+    
     def __str__(self) -> str:
         notes = self.notes[:30]
-        return f'patient notes in abbreviated format: {notes}'
+        return f'patient notes in abbreviated format: {notes}...'
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier() 
+        super().save(self, *args, **kwargs)
 
 
 class MedicationChanges(models.Model):
-
+    """ a model class for patients posology """
     class Meta:
         verbose_name_plural = 'Medication Changes'
 
@@ -198,6 +234,7 @@ class MedicationChanges(models.Model):
     dose = models.CharField(max_length=30)
     frequency = models.CharField(max_length=30, default='BD')
     route = models.CharField(max_length=20, default='Oral')
+    slug = models.SlugField(null=True, blank=True)
     indication = models.CharField(max_length=200, null=True, blank=True)
     start_or_continued_date = models.CharField(
         max_length=50, verbose_name='Start/Continued Date')
@@ -206,26 +243,46 @@ class MedicationChanges(models.Model):
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
-
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(self, *args, **kwargs)
 
 class MonitoringPlan(models.Model):
+    """ Monitoring plan is our model class schema that handles all the required data used
+    to monitor patients plan and justification of the patient wellbeing."""
+    
+    class Meta:
+        ordering = ['id',]
     parameter_used = models.CharField(max_length=100)
     justification = models.CharField(max_length=300)
     frequency = models.CharField(
         max_length=100, default='On admission and then 6 hours after',
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
-    has_improved = models.BooleanField(default=False)
+    slug = models.SlugField(null=True, blank=True)
+    has_improved = models.BooleanField(default=False, 
+                verbose_name="has improved (tick good, if yes, otherwise don't.)")
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.parameter_used
+    
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(self, *args, **kwargs)
+    
+    
 
 
 class AnalysisOfClinicalProblem(models.Model):
-
+    """ Analysis of clinical Problem is a model class schema that handles clinical challanges 
+    encountered during the course of the treatment of our patient."""
+    
     class Meta:
         verbose_name_plural = 'Analysis of Clinical Problems'
+        ordering = ['id',]
 
     PRORITY_CHOICES = (
         ('High', 'High'),
@@ -236,15 +293,27 @@ class AnalysisOfClinicalProblem(models.Model):
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
     priority = models.CharField(max_length=50, choices=PRORITY_CHOICES)
+    slug = models.SlugField(null=True, blank=True)
     action_taken_or_future_plan = models.CharField(
         max_length=500, verbose_name='Action Taken/Future Plan')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
+    
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(self, *args, **kwargs)
 
 
 class FollowUpPlan(models.Model):
+    """ Follow up plan model class collates all the basic information a
+    pharmacist needs to further follow up the case if needs be."""
+    
+    class Meta:
+        ordering = ['id',]
+        
     user = models.ForeignKey(User,
                              on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_requirement = models.CharField(max_length=100)
@@ -253,6 +322,7 @@ class FollowUpPlan(models.Model):
     state_of_improvement_by_score = models.CharField(max_length=4,
                                                      default='70%')
     has_improved_than_before = models.BooleanField(default=False)
+    slug = models.SlugField(null=True, blank=True)
     adhered_to_medications_given = models.BooleanField(default=False)
     referral = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -262,3 +332,8 @@ class FollowUpPlan(models.Model):
             {self.user.username} state of improvement by score is
             {self.state_of_improvement_by_score}
         '''
+
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(self, *args, **kwargs)

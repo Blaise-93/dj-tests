@@ -128,16 +128,17 @@ class ContactView(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         
         email = self.request.user.email
+        # full_name = self.request.user.get_
         # assign and save user ticket/email to the database
         contact = form.save(commit=False)
         contact.email = email
         contact.user_ticket = generate_patient_unique_code()
             
         context = {
-            'user':form.cleaned_data['full_name'],
-            'ticket': contact.user_ticket  
-                   }
-    
+                'user':form.cleaned_data['full_name'],
+                'ticket': contact.user_ticket
+                }
+        
         contact.save()
 
        # send email to the user

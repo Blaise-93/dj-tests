@@ -79,9 +79,15 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'builtins': [
+                'crispy_forms.templatetags.crispy_forms_tags',
+                'crispy_forms.templatetags.crispy_forms_field'
+            ]
         },
+         
     },
 ]
+
 
 WSGI_APPLICATION = 'pharmaceuticals.wsgi.application'
 
@@ -116,6 +122,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
     'sass_processor.finders.CssFinder',
+    'compressor.finders.CompressorFinder',
 )
 
 COMPRESS_OFFLINE = True 
@@ -123,6 +130,12 @@ COMPRESS_OFFLINE = True
 SASS_PROCESSOR_INCLUDE_DIRS = [
     BASE_DIR / 'node_modules',
 ]
+
+COMPRESS_ROOT = BASE_DIR / 'static'
+
+COMPRESS_ENABLED = True
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

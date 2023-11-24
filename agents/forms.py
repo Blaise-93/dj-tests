@@ -9,10 +9,18 @@ class AgentModelForm(forms.ModelForm):
     class Meta:
         model = User
         fields = [
-            'email',
+       
             'username',
             'first_name',
             "last_name",
-             
+            'email',
+               
         ]
+        
+        labels = {
+            "username": "Enter your username",
+            "first_name": "Enter your first name",
+            "last_name": "Enter your last name",
+            'email': 'Enter your email',
+        }
         

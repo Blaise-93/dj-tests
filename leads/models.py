@@ -122,6 +122,7 @@ class Agent(models.Model):
 
 
 class UserProfile(models.Model):
+    """ model that create user one to one field  """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
@@ -172,19 +173,18 @@ def post_user_created_signal(sender, instance, created, **kwargs):
 post_save.connect(post_user_created_signal, sender=User)
 
 
-
 class Contact(models.Model):
     """ Contact us model to handle user's related complaints  """
-    full_name = models.CharField(max_length=30)
-    email = models.EmailField()
-    country = CountryField( blank_label="--Select a Country-- *",
-        null=False,
-        blank=False)
-    subject = models.CharField(max_length=100)
-    message = models.TextField()
+    full_name = models.CharField(
+        max_length=30, help_text='Enter your full name')
+    email = models.EmailField(help_text='Input your Email')
+    country = CountryField(blank_label="--Select a Country-- *",
+               null=False, blank=False)
+    subject = models.CharField(
+        max_length=100, help_text='Kindly enter your request subject...')
+    message = models.TextField(help_text="Kindly express your words to us...")
     user_ticket = models.CharField(max_length=60)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.full_name
-   

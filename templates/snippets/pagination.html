@@ -1,4 +1,5 @@
 {% if products.has_other_pages %}
+
 <nav
   class="d-flex justify-content-center wow fadeIn buy-online-page"
   aria-label="buy-online pagination for our products"
@@ -11,16 +12,15 @@
         class="page-link page_links"
         href="?page={{ products.previous_page_number }}"
         aria-label="Previous"
+        >Previous</a
       >
-        Previous
-      </a>
     </li>
     {% endif %}
     <span class="mx-3 text-center text-primary pt-3">
       Page {{ products.number }} of {{ products.paginator.num_pages }}
     </span>
     <li class="page-item page_items">
-      <a class="page-link page_links" href="?page={{ products.number}}">
+      <a class="page-link page_links" href="?page={{ products.number }}">
         {{ products.number }}
       </a>
       <span class="sr-only">(current)</span>
@@ -49,3 +49,5 @@
 
   {% endif %}
 </nav>
+
+{% endif %}

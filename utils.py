@@ -16,7 +16,7 @@ def slug_modifier():
     mask it from the user or any other person viewing the URI. 
     So, we don't want the set slug to be easily identified.
     """
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
 
 
 def files(file):

@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "description": "This project is a basic CRM website that allow the organization to manage their leads, and client's can have access to musics of their choice.",
   "main": "index.js",
-
   "scripts": {
-    
     "dev": "tailwindcss -i ./input.css -o  ../tailwind.css --watch",
-   
     "build": "tailwindcss -i ./input.css -o ../tailwind.css --minify"
   },
   "repository": {
@@ -32,6 +29,10 @@
   "devDependencies": {
     "tailwindcss": "^3.3.5"
   },
-  "content": ["../templates/**/*.{html,js}"]
-
+  "content": [
+    "../templates/**/*.{html,js}"
+  ],
+  "dependencies": {
+    "flowbite": "^2.1.1"
+  }
 }

@@ -1,10 +1,10 @@
-{% load sass_tags%} {% load static %}
+{% load sass_tags%} {% load compress %} {% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {% comment %}
+
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
@@ -28,29 +28,20 @@
       integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
       crossorigin="anonymous"
     ></script>
-    {% endcomment %}
+  
     <link
       href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css"
-    />
+
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script
-      type="text/javascript"
-      charset="utf8"
-      src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"
-    ></script>
-    
+
     <link href="{% static 'css/main.css' %}" rel="stylesheet" />
     <link rel="stylesheet" href="{% sass_src 'css/tailwind.css' %}" />
 
-    <link rel="stylesheet" href="{% static "css/tailwind.css" %}"> {% comment %}
-    {% tailwind_css %} {% endcomment %} {% block extra_css%} 
-    {% endblock extra_css%}
+    {% compress css %} <link rel="stylesheet" href="{% static "css/tailwind.css" %}">
+     {% endcompress %} {% comment %} {% tailwind_css %} {% endcomment %} {% block extra_css%} {% endblock extra_css%}
     <title>Lead Management System</title>
     <link
       href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp"
@@ -66,16 +57,15 @@
       src="https://kit.fontawesome.com/0eaf613524.js"
       crossorigin="anonymous"
     ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.1.1/flowbite.min.js"></script>
   </head>
-  
+
   <body>
     {% block extra_head %} {% endblock %}
     <div class="max-w-7xl mx-auto">
-      {% include 'songs/navigation.html'%} 
-
-      {% block content%} {% endblock %}
+      {% include 'songs/navigation.html'%} {% block content%} {% endblock %}
     </div>
-    {% include 'footer.html' %} {% block extra_scripts %} {% endblock extra_scripts %} 
-    {% include 'scripts.html' %}
+    {% include 'footer.html' %} 
+    {% block extra_scripts %} {% endblock extra_scripts %} {% include 'scripts.html' %}
   </body>
 </html>

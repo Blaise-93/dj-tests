@@ -10,8 +10,10 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     """ User model helps us gather users in our database and categorize
     their respective tasks in our organization. """
-    is_organizer = models.BooleanField(default=True)
-    is_agent = models.BooleanField(default=False)
+    is_organizer = models.BooleanField(default=True, verbose_name="is an organizer?")
+    is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
+    is_pharmacist = models.BooleanField(default=False, verbose_name="is pharmacist?") 
+
 
 
 class Category(MPTTModel):

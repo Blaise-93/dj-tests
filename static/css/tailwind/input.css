@@ -1,3 +1,5 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* npx tailwindcss -i ./static/css/tailwind/input.css -o ./static/css/tailwind.css --watch */
