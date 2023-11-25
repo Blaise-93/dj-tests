@@ -4,6 +4,7 @@ from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
 from utils import files
+from agents.mixins import OrganizerAgentLoginRequiredMixin
 from django.core.mail import send_mail
 from django.db.models import Q
 from django.contrib import messages
@@ -16,7 +17,22 @@ from django.views.generic import (
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pharmcare.models import *
 from pharmcare.forms import *
+from django.core.paginator import Paginator, EmptyPage
 
+
+class P_Paginator(Paginator):
+    def validate_number(self, number):
+        try:
+            return super().validate_number(number)
+        except EmptyPage:
+            if int(number) > 1:
+                # return the last page
+                return self.num_pages
+            elif int(number) < 1:
+                # return the first page
+                return 1
+            else:
+                raise
 
 class PatientListView(LoginRequiredMixin, ListView):
     """ Patient view class: display the model data as a request made by the client
@@ -30,8 +46,9 @@ class PatientListView(LoginRequiredMixin, ListView):
    # queryset = Patient.objects.all()
     ordering = 'id'
     context_object_name = 'patients'
-    paginate_by = 12
+    paginate_by = 6
     template_name = 'pharmcare/pharmcare-list.html'
+    paginator_class = P_Paginator 
 
     def get_queryset(self) -> QuerySet[Any]:
         """ override the queryset via strictly checking if the user is
@@ -40,36 +57,33 @@ class PatientListView(LoginRequiredMixin, ListView):
         pharmaceutical care plan s/he needs."""
 
         user = self.request.user
-        if user.is_organizer:
-            queryset = PatientDetail.objects.filter(
-                organization=user.userprofile, pharmacist__isnull=False)
-        else:
-            queryset = PatientDetail.objects.filter(
-                organization=user.pharmacist.organization, pharmacist__isnull=False)
 
-            queryset = queryset.filter(pharamacist__user=self.request.user)
-
-        return queryset.order_by(self.ordering)
-
-    def get(self, *args, **kwargs):
         query = self.request.GET.get('q', '')
         if query is None:
             messages.info(self.request, files(
                 '/pharmcare/mails/patient-list.txt'))
             return render(self.request, self.template_name)
 
-        med_history = PatientDetail.objects.filter(
+        if user.is_organizer:
+            queryset = PatientDetail.objects.filter(
+                organization=user.userprofile, pharmacist__isnull=False)
+
+        else:
+            queryset = PatientDetail.objects.filter(
+                organization=user.pharmacist.organization, pharmacist__isnull=False)
+
+            queryset = queryset.filter(pharamacist__user=self.request.user)
+
+          #  print(queryset)
+
+        return queryset.order_by(self.ordering).filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
             Q(gender__icontains=query) |
-            Q(age__icontains=query)
+            Q(age__icontains=query) |
+            Q(email__icontains=query)
 
         ).distinct()
-
-        context = {
-            'medhistory': med_history
-        }
-        return render(self.request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split patients that have not been 
@@ -83,11 +97,19 @@ class PatientListView(LoginRequiredMixin, ListView):
             queryset = PatientDetail.objects.filter(
                 organization=user.userprofile, pharmacist__isnull=True
             )
+            
+        # update the pagination of our queryset -> patientdetail model
+            page = self.request.GET.get('page', 1)
+            paginator = self.paginator_class(queryset, self.paginate_by)
+            
+            queryset = paginator.page(page)
 
             context.update({
-                "unassigned_patients": queryset
+                "unassigned_patients": queryset,
+                'patients': queryset
             })
-
+            
+            # context['patients'] = queryset
           #  print(context['unassigned_patients'])
 
         return context
@@ -225,30 +247,31 @@ class DeletePatientView(LoginRequiredMixin, DeleteView):
         return reverse("pharmcare:patient")
 
 
-class MedicationHistoryListView(LoginRequiredMixin, ListView):
-    template_name = 'pharmcare/patient-medication-history.html'
+class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
+    template_name = 'pharmcare/medication-history-list.html'
     ordering = 'id'
     queryset = MedicationHistory.objects.all().order_by(ordering)
     paginate_by = 12
     context_object_name = 'med_history'
 
-    def get(self, *args, **kwargs):
-        query = self.request.GET['q', '']
-        if query is None:
-            messages.info(self.request,
-                          files('/pharmcare/mails/medhistory.txt'))
-            return render(self.request, self.template_name)
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
 
-        med_history = MedicationHistory.objects.filter(
-            Q(medication_list__icontains=query) |
-            Q(indication_and_evidence__icontains=query)
+        if user.is_pharmacist and user.is_agent:
+            query = self.request.GET.get('q', '')
+            if query is None:
+                messages.info(self.request,
+                              files('/pharmcare/mails/medhistory.txt'))
+                return render(self.request, self.template_name)
 
-        ).distinct()
+            self.queryset = MedicationHistory.objects.filter(
+                Q(medication_list__icontains=query) |
+                Q(indication_and_evidence__icontains=query)
 
-        context = {
-            'medhistory': med_history
-        }
-        return render(self.request, self.template_name, context)
+            ).distinct()
+
+           # print(self.queryset)
+        return self.queryset
 
 
 class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
@@ -258,26 +281,30 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
 
 
 class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
-    """ View responsible to display patient's detail medication records if the admin/pharmacists wants. """
+    """ View responsible to display patient's detail medication records 
+    if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-detail.html'
     queryset = MedicationHistory.objects.all()
-    
+
 
 class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
-    """ View responsible for updating patient's medication records if the admin/pharmacists wants. """
+    """ View responsible for updating patient's medication records if the
+    admin/pharmacists wants. """
     form_class = MedicationHistoryForm
     template_name = 'pharmcare/medication-history-update.html'
     queryset = MedicationHistory.objects.all()
     context_object_name = 'medication-history'
-    
+
     def get_success_url(self) -> str:
         return reverse('pharmcare:patient-medication-history')
-    
+
+
 class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
-    """ View responsible to delete patient's medication records if the admin/pharmacists wants. """
+    """ View responsible to delete patient's medication records if
+    the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-delete.html'
     queryset = MedicationHistory.objects.all()
-    
+
     def get_success_url(self) -> str:
         return reverse('pharmcare:patient-medication-history')
 

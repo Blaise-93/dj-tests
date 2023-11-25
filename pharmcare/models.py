@@ -2,7 +2,6 @@ from django.db import models
 from songs.models import User
 from leads.models import Lead, Agent, UserProfile
 from django.db import models
-from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
@@ -50,40 +49,70 @@ class PharmaceuticalCarePlan(models.Model):
 
 class Patient(models.Model):
     """ Patient model which has a many to many attribute to dynamically map out each
-    patients/user details in our db """
-    
-    medical_charge = models.PositiveBigIntegerField(blank=True, null=True)
+    patients/user details, medication history and customer leads in our db 
+
+    Methods & arguments it has are:
+         `get_total_charge()`: is a function that sums up the pharmacist's consultation fee
+        if any and add it up to the drug cost price (amount paid) made by the patient.
+        However, it checks whether the conditions are met before it does the summation as 
+        you can see below.
+        
+        ```python
+         def get_total_charge(self) -> int:
+            total = 0
+            # check whether there is additional charges like drug price to be added
+            # if yes, then add medical charges to the total
+            if self.medical_charge:
+                amount_charged = self.patient.consultation + self.medical_charge
+                total += amount_charged
+                return total
+            total += self.patient.consultation
+            return total
+                
+        ```
+        
+        `save()` : commit and overide the total if the user did not sum it up prior to 
+        saving the patient data.
+    """
+
+    medical_charge = models.PositiveBigIntegerField(blank=True, null=True,
+                                                    verbose_name="amount paid (medical charge if any)")
     notes = models.TextField(null=True, blank=True)
-    user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
     leads = models.ForeignKey(
         Lead, on_delete=models.SET_NULL, null=True, blank=True)
-    patient_details = models.OneToOneField(
+    pharmacist = models.ForeignKey(
+        Agent, on_delete=models.SET_NULL, null=True,
+        blank=True, verbose_name='Pharmacist')
+    patient = models.OneToOneField(
         'PatientDetail', on_delete=models.CASCADE)
 
     medical_history = models.OneToOneField(
         'MedicationHistory',
         on_delete=models.CASCADE)
-    total = models.PositiveBigIntegerField(editable=True)
-
-   
+    total = models.PositiveBigIntegerField(editable=True, blank=True,
+                                           null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.username
-    
-    def get_total_charge(self):
+        return self.patient.first_name
+ 
+    def get_total_charge(self) -> int:
         total = 0
         # check whether there is additional charges like drug price to be added
         # if yes, then add medical charges to the total
         if self.medical_charge:
-            amount_charged = self.patient_details.consultation + self.medical_charge
+            amount_charged = self.patient.consultation + self.medical_charge
             total += amount_charged
             return total
-        total += self.patient_details.consultation 
+        total += self.patient.consultation
         return total
-        
+
+    def save(self, *args, **kwargs):
+        #commit and overide the total if the user did not sum it up prior to 
+       # saving the patient data.
+        self.total = self.get_total_charge()
+        super().save(self, *args, **kwargs)
 
 
 class PatientDetail(models.Model):
@@ -189,7 +218,7 @@ class MedicationHistory(models.Model):
     class Meta:
         verbose_name_plural = 'Medication History'
         ordering = ['id',]
-        
+
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
     slug = models.SlugField(blank=True, null=True)
@@ -200,28 +229,28 @@ class MedicationHistory(models.Model):
         return f'patient history in abbreviated format: {medical_history}...'
 
     def save(self, *args, **kwargs):
-        self.slug = slug_modifier() 
+        self.slug = slug_modifier()
         super().save(*args, **kwargs)
-        
-    
+
     def get_absolute_url(self):
         return reverse("pharmcare:medication-history-detail",
                        kwargs={"slug": self.slug})
 
+
 class ProgressNote(models.Model):
     class Meta:
         ordering = ['id',]
-        
+
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(null=True, blank=True)
-    
+
     def __str__(self) -> str:
         notes = self.notes[:30]
         return f'patient notes in abbreviated format: {notes}...'
-    
+
     def save(self, *args, **kwargs):
-        self.slug = slug_modifier() 
+        self.slug = slug_modifier()
         super().save(self, *args, **kwargs)
 
 
@@ -243,15 +272,16 @@ class MedicationChanges(models.Model):
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
-    
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(self, *args, **kwargs)
 
+
 class MonitoringPlan(models.Model):
     """ Monitoring plan is our model class schema that handles all the required data used
     to monitor patients plan and justification of the patient wellbeing."""
-    
+
     class Meta:
         ordering = ['id',]
     parameter_used = models.CharField(max_length=100)
@@ -261,25 +291,22 @@ class MonitoringPlan(models.Model):
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
     slug = models.SlugField(null=True, blank=True)
-    has_improved = models.BooleanField(default=False, 
-                verbose_name="has improved (tick good, if yes, otherwise don't.)")
+    has_improved = models.BooleanField(default=False,
+                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.parameter_used
-    
-    
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(self, *args, **kwargs)
-    
-    
 
 
 class AnalysisOfClinicalProblem(models.Model):
-    """ Analysis of clinical Problem is a model class schema that handles clinical challanges 
-    encountered during the course of the treatment of our patient."""
-    
+    """ Analysis of clinical Problem is a model class schema that handles 
+    clinical challanges encountered during the course of the treatment of our patient."""
+
     class Meta:
         verbose_name_plural = 'Analysis of Clinical Problems'
         ordering = ['id',]
@@ -300,8 +327,7 @@ class AnalysisOfClinicalProblem(models.Model):
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
-    
-    
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(self, *args, **kwargs)
@@ -310,10 +336,10 @@ class AnalysisOfClinicalProblem(models.Model):
 class FollowUpPlan(models.Model):
     """ Follow up plan model class collates all the basic information a
     pharmacist needs to further follow up the case if needs be."""
-    
+
     class Meta:
         ordering = ['id',]
-        
+
     user = models.ForeignKey(User,
                              on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_requirement = models.CharField(max_length=100)
@@ -333,7 +359,6 @@ class FollowUpPlan(models.Model):
             {self.state_of_improvement_by_score}
         '''
 
-    
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(self, *args, **kwargs)
