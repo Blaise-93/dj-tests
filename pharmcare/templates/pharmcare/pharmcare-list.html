@@ -64,7 +64,7 @@
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-           
+            {% if patients.exists %}
             <tbody>
               {% for patient in patients %}
               <tr
@@ -96,7 +96,12 @@
             </tr>
             </tbody>
             {% endfor %}
+            {% else %}
+            <p>There are currently no patient with such search you entered in our database. Kindly input a correct 
+              data or contact the site owner. Thank you, {{ request.user.username }}!</p>
+          
           </table>
+          {% endif %}
         </div>
         {% if unassigned_patients.exists %}
         <div class="mt-5 flex flex-wrap -m-4">

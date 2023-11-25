@@ -1,4 +1,4 @@
-{% if  patient.has_other_pages %}
+{% comment %} {% if  patient.has_other_pages %}
 
 <nav
   class="d-flex justify-content-center wow fadeIn buy-online-page"
@@ -51,38 +51,105 @@
 </nav>
 
 {% endif %}
-
+ {% endcomment %}
 
 
 {% for patient in patients %}
-{% if patients.has_other_pages %}
-<nav aria-label="Page navigation example">
+  {% if patients.has_other_pages %}
+<nav aria-label="Page navigation">
+    {% if  patient.has_previous %}
   <ul class="inline-flex -space-x-px text-sm">
+
     <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+      <a href="?page={{  patient.previous_page_number }}" 
+          aria-label="Previous page"
+          class="flex items-center justify-center px-3 h-8 ms-0 
+            leading-tight text-gray-500 bg-white border border-e-0 
+            border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 
+            dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400
+            dark:hover:bg-gray-700 dark:hover:text-white">
+            Previous
+       </a>
     </li>
+    {% endif %}
+    <span class="mx-3 text-center text-primary pt-3">
+      Page {{  patient.number }} of {{  patient.paginator.num_pages }}
+    </span>
     <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
+      
+      <a href="?page={{  patient.number }}" 
+      aria-label="Next"
+      class="flex items-center justify-center px-3 h-8 
+      leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 
+      hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 
+      dark:hover:bg-gray-700 dark:hover:text-white">    {{  patient.number }} </a>
     </li>
+    <span class="sr-only">(current)</span>
+    
+    {% if  patient.has_next %}
     <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
+      <a  href="?page={{  patient.next_page_number }}"
+      aria-label="Next page"
+       class="flex items-center justify-center px-3 h-8 
+       leading-tight text-gray-500 bg-white border border-gray-300 
+       rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700
+      dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
     </li>
+    {% endif %}
     <li>
-      <a href="#" aria-current="page" class="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
-    </li>
-    <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
-    </li>
-    <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
-    </li>
-    <li>
-      <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+      <a href="{{  patient.next_page_number }}" 
+      aria-label="Last page"
+      class="flex items-center justify-center px-3 h-8 
+      leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg 
+      hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 
+      dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Last</a>
     </li>
   </ul>
 </nav>
-{% endif %}
-
+  {% endif %}
 {% endfor%}
 
 
+{% comment %} 
+
+{% for contact in page_obj %}
+    {# Each "contact" is a Contact model object. #}
+    {{ contact.full_name|upper }}<br>
+    ...
+{% endfor %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+
+
+View:
+from django.core.paginator import Paginator
+from django.shortcuts import render
+
+from myapp.models import Contact
+
+
+def listing(request):
+    contact_list = Contact.objects.all()
+    paginator = Paginator(contact_list, 25)  # Show 25 contacts per page.
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "list.html", {"page_obj": page_obj})
+{% endcomment %}
