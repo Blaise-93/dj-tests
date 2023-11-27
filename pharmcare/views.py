@@ -17,22 +17,9 @@ from django.views.generic import (
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pharmcare.models import *
 from pharmcare.forms import *
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
-class P_Paginator(Paginator):
-    def validate_number(self, number):
-        try:
-            return super().validate_number(number)
-        except EmptyPage:
-            if int(number) > 1:
-                # return the last page
-                return self.num_pages
-            elif int(number) < 1:
-                # return the first page
-                return 1
-            else:
-                raise
 
 class PatientListView(LoginRequiredMixin, ListView):
     """ Patient view class: display the model data as a request made by the client
@@ -46,9 +33,9 @@ class PatientListView(LoginRequiredMixin, ListView):
    # queryset = Patient.objects.all()
     ordering = 'id'
     context_object_name = 'patients'
-    paginate_by = 6
+
     template_name = 'pharmcare/pharmcare-list.html'
-    paginator_class = P_Paginator 
+   
 
     def get_queryset(self) -> QuerySet[Any]:
         """ override the queryset via strictly checking if the user is
@@ -76,7 +63,7 @@ class PatientListView(LoginRequiredMixin, ListView):
 
           #  print(queryset)
 
-        return queryset.order_by(self.ordering).filter(
+        self.queryset = queryset.order_by(self.ordering).filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
             Q(gender__icontains=query) |
@@ -84,6 +71,23 @@ class PatientListView(LoginRequiredMixin, ListView):
             Q(email__icontains=query)
 
         ).distinct()
+        
+        # Paginate Pharmcare list
+        search = Paginator(self.queryset, 5)
+        page = self.request.GET.get('page')
+            
+        try:
+            self.queryset = search.get_page(page)
+            
+        except PageNotAnInteger:
+            self.queryset = search.get_page(1)
+            
+        except EmptyPage:
+            self.queryset = search.get_page(search.num_pages)
+        
+        return self.queryset
+            
+            
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split patients that have not been 
@@ -98,17 +102,11 @@ class PatientListView(LoginRequiredMixin, ListView):
             queryset = PatientDetail.objects.filter(
                 organization=user.userprofile, pharmacist__isnull=True
             )
-            
-        # update the pagination of our queryset -> patientdetail model
-            page = self.request.GET.get('page', 1)
-            paginator = self.paginator_class(queryset, self.paginate_by)
-            
-            queryset = paginator.page(page)
-            print(queryset)
+    
 
             context.update({
                 "unassigned_patients": queryset,
-                'patient': queryset
+                
             })
           
             # context['patients'] = queryset
@@ -253,7 +251,7 @@ class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
     template_name = 'pharmcare/medication-history-list.html'
     ordering = 'id'
     queryset = MedicationHistory.objects.all().order_by(ordering)
-    paginate_by = 12
+    #paginate_by = 12
     context_object_name = 'med_history'
 
     def get_queryset(self, *args, **kwargs):
@@ -271,8 +269,20 @@ class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
                 Q(indication_and_evidence__icontains=query)
 
             ).distinct()
-
-           # print(self.queryset)
+            
+            # Pagination - of Medication History Page
+            
+            search = Paginator(self.queryset, 5)
+            page = self.request.GET.get('page')
+            
+            try:
+                self.queryset = search.get_page(page)
+                
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+                
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
         return self.queryset
 
 
