@@ -55,7 +55,7 @@
                 <td class="px-6 py-4"> {{ med.indication_and_evidence|truncatechars:100 }} </td>
                 <td class="flex items-center px-6 py-4">
                   <a
-                    href="{% url "pharmcare:medication-history-detail" med.slug %}"
+                    href="{% url "pharmcare:medication-history-detail" med.pk %}"
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     >For further Details</a
                   >

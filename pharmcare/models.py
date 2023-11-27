@@ -56,7 +56,7 @@ class Patient(models.Model):
         if any and add it up to the drug cost price (amount paid) made by the patient.
         However, it checks whether the conditions are met before it does the summation as 
         you can see below.
-        
+
         ```python
          def get_total_charge(self) -> int:
             total = 0
@@ -68,9 +68,9 @@ class Patient(models.Model):
                 return total
             total += self.patient.consultation
             return total
-                
+
         ```
-        
+
         `save()` : commit and overide the total if the user did not sum it up prior to 
         saving the patient data.
     """
@@ -96,7 +96,7 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.patient.first_name
- 
+
     def get_total_charge(self) -> int:
         total = 0
         # check whether there is additional charges like drug price to be added
@@ -109,7 +109,7 @@ class Patient(models.Model):
         return total
 
     def save(self, *args, **kwargs):
-        #commit and overide the total if the user did not sum it up prior to 
+        # commit and overide the total if the user did not sum it up prior to
        # saving the patient data.
         self.total = self.get_total_charge()
         super().save(self, *args, **kwargs)
@@ -234,7 +234,7 @@ class MedicationHistory(models.Model):
 
     def get_absolute_url(self):
         return reverse("pharmcare:medication-history-detail",
-                       kwargs={"slug": self.slug})
+                       kwargs={"pk": self.pk})
 
 
 class ProgressNote(models.Model):

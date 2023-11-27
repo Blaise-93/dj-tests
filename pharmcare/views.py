@@ -93,6 +93,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         user = self.request.user
 
         if user.is_organizer:
+            
             # agent__isnull= True -> to check whether a foreign key is null.
             queryset = PatientDetail.objects.filter(
                 organization=user.userprofile, pharmacist__isnull=True
@@ -103,12 +104,13 @@ class PatientListView(LoginRequiredMixin, ListView):
             paginator = self.paginator_class(queryset, self.paginate_by)
             
             queryset = paginator.page(page)
+            print(queryset)
 
             context.update({
                 "unassigned_patients": queryset,
-                'patients': queryset
+                'patient': queryset
             })
-            
+          
             # context['patients'] = queryset
           #  print(context['unassigned_patients'])
 
@@ -275,9 +277,14 @@ class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
 
 
 class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
+    """ View responsible to display patient's create medication records 
+    if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-create.html'
     form_class = MedicationHistoryForm
     queryset = MedicationHistory.objects.all()
+    
+    def get_success_url(self) -> str:
+        return reverse('pharmcare:medication-history')
 
 
 class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
@@ -293,11 +300,11 @@ class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
     form_class = MedicationHistoryForm
     template_name = 'pharmcare/medication-history-update.html'
     queryset = MedicationHistory.objects.all()
-    context_object_name = 'medication-history'
+  
 
     def get_success_url(self) -> str:
-        return reverse('pharmcare:patient-medication-history')
-
+        return reverse('pharmcare:medication-history')
+    
 
 class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's medication records if
@@ -306,7 +313,7 @@ class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
     queryset = MedicationHistory.objects.all()
 
     def get_success_url(self) -> str:
-        return reverse('pharmcare:patient-medication-history')
+        return reverse('pharmcare:medication-history')
 
 
 class MedicationChangesView(LoginRequiredMixin, ListView):

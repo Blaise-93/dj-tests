@@ -40,6 +40,7 @@
       </div>
       <div class="flex flex-wrap m-4 pb-3">
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+          {% for patient in patients %}
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
@@ -64,9 +65,10 @@
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-            {% if patients.exists %}
+             
             <tbody>
-              {% for patient in patients %}
+              
+           
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -95,17 +97,24 @@
                 </td>
             </tr>
             </tbody>
-            {% endfor %}
-            {% else %}
-            <p>There are currently no patient with such search you entered in our database. Kindly input a correct 
-              data or contact the site owner. Thank you, {{ request.user.username }}!</p>
-          
-          </table>
-          {% endif %}
+           </table>
+         {% empty %}
+           <p class="p-4 w-full text-3xl text-blue-800">
+            Apologies, there is currently no patient with such 
+            search you entered in our database. Kindly input a correct 
+             data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+           {% endfor %}
+           <div> {% include 'snippets/pagination.html' %}</div>
         </div>
+      
+      
         {% if unassigned_patients.exists %}
-        <div class="mt-5 flex flex-wrap -m-4">
-          {% for patient in unassigned_patients%}
+
+      
+          {% for patients in unassigned_patients %}
+        
+      <div class="mt-5 flex flex-wrap -m-4">
+         
           <div class="p-4 w-full text-3xl text-gray-800">
             <h1>Unassigned Patients</h1>
           </div>
@@ -134,9 +143,8 @@
                   <th scope="col" class="px-6 py-3">Action</th>
                 </tr>
               </thead>
-             
+        
               <tbody>
-                {% for patient in patients %}
                 <tr
                   class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                   hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -165,7 +173,6 @@
                   </td>
               </tr>
               </tbody>
-              {% endfor %}
             </table>
           </div>
           {% empty %}
@@ -173,9 +180,7 @@
           {% endfor %}
         </div>
         {% endif %}
-      </div>
-      <div class="p-4"> {% include "snippets/pagination.html" %}</div>
-    </div>
+      
   </section>
   
 

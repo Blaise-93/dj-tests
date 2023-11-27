@@ -10,7 +10,7 @@
   <div class="py-3 border-t border-gray-200">  
     <h1 class="text-4xl text-gray-800 ">Update {% comment %} {{ patient.first_name }}'s {% endcomment %}patient's medication history data.</h1 >
   </div>
-  <form method="post" class="mt-5" action="{% url 'pharmcare:medication-history-update' med_history.slug %}">
+  <form method="post" class="mt-5" action=".">
           {% csrf_token %}
           {{ form|crispy }}
           <button

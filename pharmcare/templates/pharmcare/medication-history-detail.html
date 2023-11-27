@@ -7,10 +7,12 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Patient Information </h1>
+        <h1 class="text-3xl text-gray-800">Patient Information</h1>
       </div>
       <div class="text-gray-500 hover:text-blue-500">
-        <a href="{% url 'pharmcare:patient-create' %}">Go to Patient Create Page</a>
+        <a href="{% url 'pharmcare:patient-create' %}"
+          >Go to Patient Create Page</a
+        >
       </div>
     </div>
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -28,6 +30,7 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
             </th>
             <th scope="col" class="px-6 py-3">Medication list</th>
             <th scope="col" class="px-6 py-3">Indication and evidence</th>
+            <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -37,24 +40,24 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
           >
             <td class="w-4 p-4">
               <div class="flex items-center">
-                <span>{{med_history.id }}</span>
+                <span>{{object.id }}</span>
               </div>
             </td>
-            <td class="px-6 py-4">{{ med_history.medication_list }}</td>
-            <td class="px-6 py-4"> {{ med_history.indication_and_evidence}} </td>
+            <td class="px-6 py-4">{{ object.medication_list }}</td>
+            <td class="px-6 py-4">{{ object.indication_and_evidence}}</td>
             <td class="flex items-center px-6 py-4">
               <a
-                href=" {% url 'pharmcare:patient-update' med_history.slug %}"
+                href="{{ med.get_absolute_url }}medication-history-update"
                 class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                 >Edit</a
               >
               <a
-                href=" {% url 'pharmcare:patient-delete' med_history.slug %}"
+                href="{{ med.get_absolute_url }}medication-history-delete/"
                 class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
                 >Remove</a
               >
             </td>
-        </tr>
+          </tr>
         </tbody>
       </table>
     </div>
