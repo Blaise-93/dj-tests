@@ -9,9 +9,6 @@
    
 {% block content %}
 
-{% comment %} https://flowbite.com/docs/components/tables/  {% endcomment %}
-
-
 <section class="text-gray-600 body-font overflow-hidden mt-0">
 
   <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
@@ -24,7 +21,7 @@
         <ul class="  pharmcare-info d-flex text-gray-500 hover:text-blue-500 ">
           <li><a href="{% url 'pharmcare:medication-history' %}">View Medication History</a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Medication Changes</a></li>
-          <a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View  Patient </a></li>
+          <a href=" {% url 'pharmcare:patients' %}">View  Patient </a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Progress Note </a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Analysis of Clinical Problem</a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Monitoring Plan</a></li>

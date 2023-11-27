@@ -93,6 +93,9 @@ class Patient(models.Model):
                                            null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.patient.first_name
@@ -111,8 +114,15 @@ class Patient(models.Model):
     def save(self, *args, **kwargs):
         # commit and overide the total if the user did not sum it up prior to
        # saving the patient data.
-        self.total = self.get_total_charge()
+        self.total = self.get_total_charge() 
         super().save(self, *args, **kwargs)
+        
+    def get_cummulative(self):
+        total = 0
+        
+        total += self.get_total_charge 
+        
+        return total
 
 
 class PatientDetail(models.Model):

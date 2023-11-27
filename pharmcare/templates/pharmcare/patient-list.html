@@ -1,0 +1,115 @@
+
+
+{% extends 'base.html' %} 
+
+{% load static %}
+{% block extra_css %} 
+
+{% endblock %}
+   
+{% block content %}
+
+
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+
+  <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
+  <div class="container px-5 py-20 mx-auto">
+    <div
+      class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
+    >
+
+    <div>
+        <h1 class="text-3xl text-gray-800">Patient's Account Information</h1>
+      </div>
+
+        {% if request.user.is_organizer or request.user.is_agent %}
+        <div class="text-gray-500 hover:text-blue-500">
+          <a href="{% url 'pharmcare:patients-create' %}">Go to Patient's Account Page</a> 
+        </div>
+        {% endif %}
+      </div>
+      </div>
+      <div class="flex flex-wrap m-4 pb-3">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+          {% for patients in patient_list %}
+          <table
+            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+          >
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+            >
+              <tr class="hover:text-gray-600">
+                <th scope="col" class="p-4">
+                  <div class="flex items-center">
+                    <span>S/N</span>
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-3">Patient name</th>
+                <th scope="col" class="px-6 py-3">Email</th>
+                <th scope="col" class="px-6 py-3">Gender</th>
+                <th scope="col" class="px-6 py-3">Phone number</th>
+                <th scope="col" class="px-6 py-3">Medical Charges</th>
+                <th scope="col" class="px-6 py-3">Total</th>
+                <th scope="col" class="px-6 py-3">Notes</th>
+                
+                <th scope="col" class="px-6 py-3">Action</th>
+              </tr>
+            </thead>
+             
+            <tbody>
+              
+           
+              <tr
+                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
+                hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                <td class="w-4 p-4">
+                  <div class="flex items-center">
+                    <span>{{patients.id }}</span>
+                  </div>
+                </td>
+                
+                <td class="px-6 py-4">{{ patients.patient.first_name }} {{ patients.patient.last_name|slice:'0:1'}}.</td>
+                <td class="px-6 py-4">{{ patients.patient.email }}</td>
+                <td class="px-6 py-4">{{ patients.patient.gender }}</td>
+                <td class="px-6 py-4">{{ patients.patient.phone_number }}</td>
+                <td class="px-6 py-4">{{ patients.medical_charge }}</td>
+                <td class="px-6 py-4">{{ patients.total }}</td>
+                <td class="px-6 py-4"> {{ patients.notes }} </td>
+                <td class="flex items-center px-6 py-4">
+                  <a
+                    href="{% url "pharmcare:patients-detail" patients.pk %}"
+                    class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >For further Details</a
+                  >
+                </td>
+            </tr>
+            <tr>
+                <td class="flex items-center pl-3">Cumulative Total</td>
+                 
+                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4">{{ patients.total }}</td>
+                <td class="px-6 py-4"> </td>
+            
+            </tr>
+            </tbody>
+           </table>
+         {% empty %}
+           <p class="p-4 w-full text-3xl text-blue-800">
+            Apologies, there is currently no patients with such 
+            search you entered in our database. Kindly input a correct 
+             data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+           {% endfor %}
+          
+        </div>
+        <div class="py-4"> {% include 'snippets/pagination.html' %}</div>
+      
+ </section>
+  
+
+
+{% endblock content %} 

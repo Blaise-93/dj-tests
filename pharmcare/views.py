@@ -21,7 +21,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 
-class PatientListView(LoginRequiredMixin, ListView):
+class PatientDetailListView(LoginRequiredMixin, ListView):
     """ Patient view class: display the model data as a request made by the client
     on the server when needed.
 
@@ -93,7 +93,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         """function that helps us to filter and split patients that have not been 
         assigned yet to an agent """
 
-        context = super(PatientListView, self).get_context_data()
+        context = super( PatientDetailListView, self).get_context_data()
         user = self.request.user
 
         if user.is_organizer:
@@ -115,7 +115,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         return context
 
 
-class PatientCreateView(LoginRequiredMixin, CreateView):
+class PatientDetailCreateView(LoginRequiredMixin, CreateView):
     """ View that handles creating a patient details in our database by the 
     assigned pharmacists or the admin."""
 
@@ -160,7 +160,7 @@ class PatientCreateView(LoginRequiredMixin, CreateView):
 
         messages.info(
             self.request, f'Patient medical details was created successfully.')
-        return super(PatientCreateView, self).form_valid(form)
+        return super(PatientDetailCreateView, self).form_valid(form)
 
 
 class PatientDetailView(LoginRequiredMixin, DetailView):
@@ -223,7 +223,8 @@ class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
         return reverse('pharmcare:patient')
 
 
-class DeletePatientView(LoginRequiredMixin, DeleteView):
+class DeletePatientDetailView(LoginRequiredMixin, DeleteView):
+    """ Handles all the delete entry request made by the registered user """
     template_name = 'pharmcare/pharmcare-delete.html'
 
     def get_queryset(self):
@@ -324,6 +325,78 @@ class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
+    
+class PatientListView(OrganizerAgentLoginRequiredMixin, ListView):
+    """ Handles request-response cycle made by the admin/pharmacists regarding the patients record
+    in our db"""
+    template_name = 'pharmcare/patient-list.html'
+    queryset = Patient.objects.all()
+    context_object_name ='patient_list'
+    
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+
+        if user.is_pharmacist and user.is_agent:
+            query = self.request.GET.get('q', '')
+            if query is None:
+                messages.info(self.request,
+                              files('/pharmcare/mails/patient.txt'))
+                return render(self.request, self.template_name)
+
+            self.queryset = Patient.objects.filter(
+                Q(total__icontains=query) |
+                Q(medical_charge__icontains=query)
+
+            ).distinct()
+            
+            # Pagination - of Medication History Page
+            
+            search = Paginator(self.queryset, 5)
+            page = self.request.GET.get('page')
+            
+            try:
+                self.queryset = search.get_page(page)
+                
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+                
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
+        return self.queryset
+
+    
+class  PatientCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
+    """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
+    template_name = 'pharmcare/patient-list.html'
+    model = Patient
+    
+    print(model)
+    
+class PatientsDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
+    """ Handles request-response cycle made by the admin/pharmacists to view each patient record."""
+    template_name = 'pharmcare/patient-detail.html'
+    model = Patient
+    
+    
+    def get_success_url(self):
+        
+        return reverse("pharmcare:patient-list")
+    
+
+
+    
+class PatientUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
+    """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
+    template_name = 'pharmcare/patient-list.html'
+    model = Patient
+    
+class PatientDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
+    """ Handles request-response cycle made by the admin/pharmacists to delete a patient record"""
+    template_name = 'pharmcare/patient-list.html'
+    model = Patient
+    
+
+
 
 
 class MedicationChangesView(LoginRequiredMixin, ListView):

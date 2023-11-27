@@ -1,0 +1,5 @@
+Apologies, the patient you are searching does not exist. 
+
+Kindly input the correct medical history record!
+
+Thank you.
