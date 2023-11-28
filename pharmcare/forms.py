@@ -121,7 +121,7 @@ class MedicationChangesForm(forms.ModelForm):
             'frequency': " Enter the frequency of the dose",
             'route': " Enter the route of administration of the drug ",
             'indication': " Enter the drug(s) indication",
-            'start_or_continued_date': " (Optional) If the time is left blank, it will be automatically generated",
+            'start_or_continued_date': " (Optional) If the time is left blank, it will automatically generated",
             'stop_date': " Enter the time the patient is meant to stop the drug",
 
         }
@@ -145,7 +145,7 @@ class AnalysisOfClinicalProblemForm(forms.ModelForm):
 
         labels = {
             "clinical_problem": " Enter the patient's clinical problem(s)",
-            "assessment": 'Enter your clinical assessment about patient ',
+            "assessment": 'Enter your clinical assessment about patient',
             "priority": "Choose the priority",
             "action_taken_or_future_plan": "Enter action to be taken concerning the patient",
 

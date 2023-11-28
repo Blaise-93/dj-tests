@@ -21,7 +21,8 @@ class PharmaceuticalCarePlan(models.Model):
 
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(max_length=20)
-
+    has_improved = models.BooleanField(default=False,
+                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
@@ -93,7 +94,7 @@ class Patient(models.Model):
                                            null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['id']
 
@@ -114,14 +115,14 @@ class Patient(models.Model):
     def save(self, *args, **kwargs):
         # commit and overide the total if the user did not sum it up prior to
        # saving the patient data.
-        self.total = self.get_total_charge() 
+        self.total = self.get_total_charge()
         super().save(self, *args, **kwargs)
-        
+
     def get_cummulative(self):
         total = 0
-        
-        total += self.get_total_charge 
-        
+
+        total += self.get_total_charge
+
         return total
 
 
@@ -268,6 +269,7 @@ class MedicationChanges(models.Model):
     """ a model class for patients posology """
     class Meta:
         verbose_name_plural = 'Medication Changes'
+        ordering = ['id']
 
     medication_list = models.CharField(max_length=50)
     dose = models.CharField(max_length=30)
@@ -301,8 +303,6 @@ class MonitoringPlan(models.Model):
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
     slug = models.SlugField(null=True, blank=True)
-    has_improved = models.BooleanField(default=False,
-                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

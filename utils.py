@@ -1,5 +1,6 @@
 import string
 import random
+from datetime import datetime
 import uuid
 
 
@@ -32,3 +33,4 @@ def generate_patient_unique_code():
     """
     code = uuid.uuid4().hex.upper()
     return code[0:10]
+
