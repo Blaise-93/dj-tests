@@ -20,8 +20,8 @@
         <h1 class="text-3xl pb-2 text-gray-800">Pharmcare</h1>
         <ul class="  pharmcare-info d-flex text-gray-500 hover:text-blue-500 ">
           <li><a href="{% url 'pharmcare:medication-history' %}">View Medication History</a></li>
-          <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Medication Changes</a></li>
           <a href=" {% url 'pharmcare:patients' %}">View  Patient </a></li>
+          <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Medication Changes</a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Progress Note </a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Analysis of Clinical Problem</a></li>
           <li><a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Monitoring Plan</a></li>
@@ -37,7 +37,7 @@
       </div>
       <div class="flex flex-wrap m-4 pb-3">
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-          {% for patient in patients %}
+     
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
@@ -62,11 +62,12 @@
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-             
+  {% for patient in patients %}
             <tbody>
               
            
               <tr
+             
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
               >
@@ -94,14 +95,15 @@
                 </td>
             </tr>
             </tbody>
-           </table>
-         {% empty %}
-           <p class="p-4 w-full text-3xl text-blue-800">
-            Apologies, there is currently no patient with such 
-            search you entered in our database. Kindly input a correct 
-             data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+            {% empty %}
+            <p class="p-4 w-full text-3xl text-blue-800">
+             Apologies, there is currently no patient with such 
+             search you entered in our database. Kindly input a correct 
+              data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
            {% endfor %}
-          
+           
+           </table>
+     
         </div>
         <div class="py-4"> {% include 'snippets/pagination.html' %}</div>
       

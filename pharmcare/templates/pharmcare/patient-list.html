@@ -45,13 +45,14 @@
                   </div>
                 </th>
                 <th scope="col" class="px-6 py-3">Patient name</th>
-                <th scope="col" class="px-6 py-3">Email</th>
                 <th scope="col" class="px-6 py-3">Gender</th>
                 <th scope="col" class="px-6 py-3">Phone number</th>
                 <th scope="col" class="px-6 py-3">Medical Charges</th>
                 <th scope="col" class="px-6 py-3">Total</th>
+                <th scope="col" class="px-6 py-3">Medication list
+                 </th>
+                <th scope="col" class="px-6 py-3">Indication and evidence</th>
                 <th scope="col" class="px-6 py-3">Notes</th>
-                
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
@@ -70,11 +71,12 @@
                 </td>
                 
                 <td class="px-6 py-4">{{ patients.patient.first_name }} {{ patients.patient.last_name|slice:'0:1'}}.</td>
-                <td class="px-6 py-4">{{ patients.patient.email }}</td>
                 <td class="px-6 py-4">{{ patients.patient.gender }}</td>
                 <td class="px-6 py-4">{{ patients.patient.phone_number }}</td>
                 <td class="px-6 py-4">{{ patients.medical_charge }}</td>
                 <td class="px-6 py-4">{{ patients.total }}</td>
+                <td class="px-6 py-4">{{ patients.medical_history.medication_list }}</td>
+                <td class="px-6 py-4">{{ patients.medical_history.indication_and_evidence }}</td>
                 <td class="px-6 py-4"> {{ patients.notes }} </td>
                 <td class="flex items-center px-6 py-4">
                   <a
@@ -91,7 +93,7 @@
                 <td class="px-6 py-4"></td>
                 <td class="px-6 py-4"></td>
                 <td class="px-6 py-4"></td>
-                <td class="px-6 py-4"></td>
+                
                 <td class="px-6 py-4">{{ patients.total }}</td>
                 <td class="px-6 py-4"> </td>
             
@@ -106,7 +108,7 @@
            {% endfor %}
           
         </div>
-        <div class="py-4"> {% include 'snippets/pagination.html' %}</div>
+        <div class="py-4"> {% include 'pharmcare/snippets/paginate-patients.html' %}</div>
       
  </section>
   
