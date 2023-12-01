@@ -1,0 +1,106 @@
+
+
+{% extends 'base.html' %} 
+
+{% load static %}
+{% block extra_css %} 
+
+{% endblock %}
+   
+{% block content %}
+
+
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+
+  <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
+  <div class="container px-5 py-20 mx-auto">
+    <div
+      class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
+    >
+
+    <div>
+        <h1 class="text-3xl text-gray-800">Patient's Account Information</h1>
+      </div>
+
+        {% if request.user.is_organizer or request.user.is_agent %}
+        <div class="text-gray-500 hover:text-blue-500">
+          <a href="{% url 'pharmcare:medication-changes-create' %}">
+            Go to Patient's Medication Changes Page</a> 
+        </div>
+        {% endif %}
+      </div>
+      </div>
+      <div class="flex flex-wrap m-4 pb-3">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        
+          <table
+            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+          >
+          
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+            >
+              <tr class="hover:text-gray-600">
+                <th scope="col" class="p-4">
+                  <div class="flex items-center">
+                    <span>S/N</span>
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-3">Medication list</th>
+                <th scope="col" class="px-6 py-3">Dose</th>
+                <th scope="col" class="px-6 py-3">Frequency</th>
+                <th scope="col" class="px-6 py-3">Route</th>
+                <th scope="col" class="px-6 py-3">Indication</th>
+                <th scope="col" class="px-6 py-3">Start or continued date
+            
+                </th>
+                <th scope="col" class="px-6 py-3">Stop date
+                </th>
+                <th scope="col" class="px-6 py-3">Action</th>
+              </tr>
+            </thead>
+            {% for med_change in med_changes %}
+            <tbody>
+              <tr
+                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
+                hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                <td class="w-4 p-4">
+                  <div class="flex items-center">
+                    <span>{{med_change.id }}</span>
+                  </div>
+                </td>
+                
+                <td class="px-6 py-4">{{ med_change.medication_list }}</td>
+                <td class="px-6 py-4">{{ med_change.dose }}</td>
+                <td class="px-6 py-4">{{ med_change.frequency  }}</td>
+                <td class="px-6 py-4">{{ med_change.route }}</td>
+                <td class="px-6 py-4">{{ med_change.indication }}</td>
+                <td class="px-6 py-4">{{ med_change.start_or_continued_date}}</td>
+                <td class="px-6 py-4">{{ med_change.stop_date }}</td>
+                <td class="flex items-center px-6 py-4">
+                  <a
+                    href="{% url "pharmcare:medication-changes-detail" med_change.pk %}" 
+                    class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >For further Details</a
+                  >
+                </td>
+            </tr>
+            {% empty %}
+            <p class="p-4 w-full text-3xl text-blue-800">
+             Apologies, there is currently no med_change with such 
+             search you entered in our database. Kindly input a correct 
+              data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+            {% endfor %}           
+            </tbody>
+           
+           </table>
+        
+        </div>
+        <div class="py-4"> {% include 'pharmcare/snippets/paginate-med_change.html' %}</div>
+      
+ </section>
+  
+
+
+{% endblock content %} 

@@ -12,7 +12,7 @@
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
 
-  <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
+  <div class="hero pt-5 px-5 ">{% include "pharmcare/snippets/search-patient.html" %}</div>
   <div class="container px-5 py-20 mx-auto">
     <div
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
@@ -30,11 +30,17 @@
       </div>
       </div>
       <div class="flex flex-wrap m-4 pb-3">
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-          {% for patients in patient_list %}
+        {% if patient_list|length == 0 %}
+          <p class="p-4 w-full text-3xl text-blue-800">
+            Apologies, there is currently no patients with such 
+            search you entered in our database. Kindly input a correct 
+            data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+          {% else %}
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
+          
             <thead
               class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
             >
@@ -56,10 +62,8 @@
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-             
+            {% for patients in patient_list %}
             <tbody>
-              
-           
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -86,6 +90,9 @@
                   >
                 </td>
             </tr>
+            {% empty %}
+            
+          {% for patient in patient_list %}
             <tr>
                 <td class="flex items-center pl-3">Cumulative Total</td>
                  
@@ -93,21 +100,19 @@
                 <td class="px-6 py-4"></td>
                 <td class="px-6 py-4"></td>
                 <td class="px-6 py-4"></td>
-                
-                <td class="px-6 py-4">{{ patients.total }}</td>
+                <td class="px-6 py-4 " id='get-cummulative'>{{ patient.get_cummulative }}</td>
                 <td class="px-6 py-4"> </td>
             
             </tr>
-            </tbody>
-           </table>
-         {% empty %}
-           <p class="p-4 w-full text-3xl text-blue-800">
-            Apologies, there is currently no patients with such 
-            search you entered in our database. Kindly input a correct 
-             data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+        
            {% endfor %}
-          
-        </div>
+           
+            </tbody>
+           
+           </table>
+        
+       </div>
+       {% endif %}
         <div class="py-4"> {% include 'pharmcare/snippets/paginate-patients.html' %}</div>
       
  </section>

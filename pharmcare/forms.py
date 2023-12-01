@@ -16,10 +16,9 @@ class PatientDetailForm(forms.ModelForm):
             'marital_status',
             'patient_class',
             'age',
-            'pharmacist',
+            "weight",
             'gender',
             'height',
-            'BMI',
             'patient_history',
             'past_medical_history',
             'social_history',
@@ -34,8 +33,9 @@ class PatientDetailForm(forms.ModelForm):
             'last_name': 'Enter your patient\'s last name',
             'email': ' Enter your patient\'s email',
             'age': ' Enter your patient\'s age',
-            'height': "Enter your patient's height",
-            'BMI': " Enter your patient\'s BMI",
+            'height': "Enter your patient's height in (feet)",
+            'weight': "Enter your patient's weight in (kg)",
+         #   'BMI': " Enter your patient\'s BMI",
             'patient_history':  "Enter your patient's medical history",
             'past_medical_history': "Enter your patient's past medical history",
             'social_history': 'Enter the social history of your patient if any',
@@ -111,8 +111,8 @@ class MedicationChangesForm(forms.ModelForm):
             'frequency',
             'route',
             'indication',
-            'start_or_continued_date',
             'stop_date',
+            
         ]
 
         labels = {

@@ -6,6 +6,7 @@ from .models import Song, Category, SubscribedUsers
 from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
 from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
+from django.db import IntegrityError
 from utils import files, generate_patient_unique_code
 from django.http import Http404
 from django.views import generic
@@ -123,34 +124,50 @@ class ContactView(LoginRequiredMixin, generic.CreateView):
     queryset = Contact
     
     def get_success_url(self) -> str:
-        return reverse('landing-page')
+        return reverse('/')
     
     def form_valid(self, form):
         
-        email = self.request.user.email
-        # full_name = self.request.user.get_
-        # assign and save user ticket/email to the database
-        contact = form.save(commit=False)
-        contact.email = email
-        contact.user_ticket = generate_patient_unique_code()
+        try:
+            email = self.request.user.email
+            # full_name = self.request.user.get_
+            # assign and save user ticket/email to the database
+            contact = form.save(commit=False)
+            contact.email = email
+            contact.user_ticket = generate_patient_unique_code()
+                
+            context = {
+                    'user':form.cleaned_data['full_name'],
+                    'ticket': contact.user_ticket
+                    }
             
-        context = {
-                'user':form.cleaned_data['full_name'],
-                'ticket': contact.user_ticket
-                }
-        
-        contact.save()
+            contact.save()
 
-       # send email to the user
-        send_mail(
-            subject="CRM Customer Services",
-            message=render_to_string('leads/complaint.html', context),
-            from_email='tests@gmail.com',
-            recipient_list=[email, ],
-            fail_silently=False
-            
-        )
-        return super().form_valid(form)
+        # send email to the user
+            send_mail(
+                subject="CRM Customer Services",
+                message=render_to_string('leads/complaint.html', context),
+                recipient_list=[email, ],
+                fail_silently=False
+                
+            )
+            return super().form_valid(form)
+        
+        except IntegrityError:
+                subject = 'NewsLetter Subscription'
+                message = render_to_string('songs/has-subscribed.html', context)
+                print(message)
+                #email_from = settings.EMAIL_HOST_USER 
+                email_from = 'tests@gmail.com'
+                recipient_list = [email, ]
+                send_mail(
+                    subject,
+                    message,
+                    email_from,
+                    recipient_list,  
+                    fail_silently=False                
+                    )
+                return redirect('/') 
     
 
 class CategoryListView(generic.ListView):

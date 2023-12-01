@@ -2,6 +2,8 @@ from django.db import models
 from songs.models import User
 from leads.models import Lead, Agent, UserProfile
 from django.db import models
+from datetime import datetime, timedelta
+from functools import reduce
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
@@ -27,7 +29,8 @@ class PharmaceuticalCarePlan(models.Model):
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
         'MedicationChanges', on_delete=models.SET_NULL, blank=True, null=True)
-
+    pharmacist = models.ForeignKey(
+        Agent, on_delete=models.CASCADE, verbose_name='Pharmacist')
     analysis_of_clinical_problem = models.ForeignKey(
         'AnalysisOfClinicalProblem', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -118,12 +121,11 @@ class Patient(models.Model):
         self.total = self.get_total_charge()
         super().save(self, *args, **kwargs)
 
-    def get_cummulative(self):
-        total = 0
-
-        total += self.get_total_charge
-
-        return total
+    def sum_number(acc, total): return acc + total  # sum numbers fn
+    """  def get_cummulative(self):
+        cumm_total = reduce(self.sum_number, self.get_total_charge())
+        print(cumm_total)
+        return cumm_total  """
 
 
 class PatientDetail(models.Model):
@@ -150,9 +152,6 @@ class PatientDetail(models.Model):
 
 
     """
-
-    class Meta:
-        ordering = ['id']
 
     GENDER_CHOICES = (
         ("Male", "Male"),
@@ -183,7 +182,7 @@ class PatientDetail(models.Model):
 
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
-    email = models.CharField(max_length=20, null=True, blank=True)
+    email = models.CharField(max_length=30, null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, choices=MARITAL_STATUS, default='Single')
     patient_class = models.CharField(
@@ -195,16 +194,66 @@ class PatientDetail(models.Model):
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
-    height = models.CharField(max_length=20)
+    height = models.IntegerField( null=True, blank=True, editable=True,
+                                 help_text="must be provided in ft",
+                                 error_messages="Kindly provide the patient's")
+    weight = models.IntegerField(null=True, blank=True,
+                                 help_text="must be provided in kg",
+                                 editable=True, error_messages="Kindly provide the patient's weight")
     BMI = models.CharField(max_length=10)
     patient_history = models.TextField(editable=True, blank=False)
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=12, null=True, blank=True)
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
-    social_history = models.CharField(max_length=250, editable=True)
+    social_history = models.CharField(max_length=250, editable=True, null=True, blank=True)
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['first_name']
+
+    def get_email(self):
+        if self.email is not None:
+            return self.email
+        return 'No email provided'
+
+    def get_west_african_time(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_created.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=1)
+        print(lagos_time)
+        return lagos_time
+
+    def get_patient_weight(self):
+        if self.weight is not None:
+            return self.weight
+        return 'No weight provided'
+
+    def get_patient_height(self):
+
+        if self.height is not None:
+            return self.height
+        return 'No weight provided'
+
+    def patients_bmi(self) -> int:
+
+        # check whether the user input the correct units
+        # of weight and height.
+        if self.height and self.weight is not None:
+            # check if the said height of a patient is greater than 0 foot
+            if self.height > 0:
+                square_foot = 0.3048  # in m2 based on metric conversion
+                in_meter_square = (self.height * square_foot)
+                bmi = round((self.weight) /
+                            (in_meter_square * in_meter_square), 2)
+
+                return f'{bmi}kg/m2'
+
+        return f"Not provided"
 
     def get_absolute_url(self):
         return reverse("pharmcare:patient-detail", kwargs={"slug": self.slug})
@@ -217,7 +266,7 @@ class PatientDetail(models.Model):
     def save(self, *args, **kwargs):
         """ override the original save method to set the patient details 
         according to if agent has phoned or not"""
-
+        self.BMI = self.patients_bmi()
         self.slug = slugify(
             f'{(self.first_name + slug_modifier())}')
 
@@ -249,6 +298,7 @@ class MedicationHistory(models.Model):
 
 
 class ProgressNote(models.Model):
+    """ Model class that handles the progress note of each patient. """
     class Meta:
         ordering = ['id',]
 
@@ -272,7 +322,7 @@ class MedicationChanges(models.Model):
         ordering = ['id']
 
     medication_list = models.CharField(max_length=50)
-    dose = models.CharField(max_length=30)
+    dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
     route = models.CharField(max_length=20, default='Oral')
     slug = models.SlugField(null=True, blank=True)
@@ -287,7 +337,12 @@ class MedicationChanges(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
+        self.start_or_continued_date = datetime.now().date()
         super().save(self, *args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("pharmcare:medication-changes-detail",
+                       kwargs={"pk": self.pk})
 
 
 class MonitoringPlan(models.Model):

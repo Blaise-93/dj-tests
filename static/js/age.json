@@ -1,0 +1,29 @@
+[
+    {
+        "name": "Blaise",
+        "course": "English",
+        "age": 20
+    },
+    {
+        "name": "Uche",
+        "course": "Math",
+        "age": 40
+    },
+    {
+        "name": "Onyi",
+        "course": "Physics",
+        "age": 30
+    },
+    {
+        "name": "Kennedy",
+        "course": "English",
+        "age": 34
+    },
+    {
+        "name": "John",
+        "course": "Biology",
+        "age": 20
+    }
+]
+
+
