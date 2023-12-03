@@ -19,8 +19,7 @@ class PharmaceuticalCarePlan(models.Model):
      identify the records of the user.
     """
     user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
-
+                             on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(max_length=20)
     has_improved = models.BooleanField(default=False,
@@ -38,6 +37,9 @@ class PharmaceuticalCarePlan(models.Model):
         'MonitoringPlan', on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.monitoring_plan.frequency
 
     def save(self, *args, **kwargs):
         """
@@ -227,7 +229,7 @@ class PatientDetail(models.Model):
         date_time = datetime.strptime(
             str(self.date_created.date()), '%Y-%m-%d')
         lagos_time = date_time + timedelta(hours=2)
-        
+
         return lagos_time
 
     def get_patient_weight(self):
@@ -306,12 +308,11 @@ class ProgressNote(models.Model):
 
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
 
     def __str__(self) -> str:
         notes = self.notes[:30]
         return f'patient notes in abbreviated format: {notes}...'
-
 
     def get_west_african_time(self):
         """ converts the utc time to West African time for the user 
@@ -324,6 +325,7 @@ class ProgressNote(models.Model):
         print(lagos_time)
         return lagos_time
 
+
 class MedicationChanges(models.Model):
     """ a model class for patients posology """
     class Meta:
@@ -334,7 +336,7 @@ class MedicationChanges(models.Model):
     dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
     route = models.CharField(max_length=20, default='Oral')
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     indication = models.CharField(max_length=200, null=True, blank=True)
     start_or_continued_date = models.CharField(blank=False,
                                                max_length=50, verbose_name='Start/Continued Date')
@@ -357,15 +359,11 @@ class MonitoringPlan(models.Model):
         max_length=100, default='On admission and then 6 hours after',
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.parameter_used
-
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
 
 
 class AnalysisOfClinicalProblem(models.Model):
@@ -396,30 +394,54 @@ class AnalysisOfClinicalProblem(models.Model):
 
 class FollowUpPlan(models.Model):
     """ Follow up plan model class collates all the basic information a
-    pharmacist needs to further follow up the case if needs be."""
+    pharmacist needs to further follow up the case if needs be.
+
+    NB:
+        `patient` -> a nullable foriegn key variable is left nullable in case
+    the pharmacist decide not to record the patient he/she is following up 
+    at the moment which he/she must select when handling pharmaceutical schema. 
+    """
 
     class Meta:
         ordering = ['id',]
 
-    user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
+    patient = models.ForeignKey(PatientDetail,
+                                on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_requirement = models.CharField(max_length=100)
     action_taken_and_future_plan = models.CharField(max_length=100,
                                                     verbose_name="Action Taken/Future Plan")
     state_of_improvement_by_score = models.CharField(max_length=4,
-                                                     default='70%')
+                                                     default='for example -> 70%')
     has_improved_than_before = models.BooleanField(default=False)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     adhered_to_medications_given = models.BooleanField(default=False)
     referral = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
+
         return f'''
-            {self.user.username} state of improvement by score is
+            state of improvement by score is
             {self.state_of_improvement_by_score}
         '''
 
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
+class Team(models.Model):
+    """ Team model in our db """
+    class Meta:
+        verbose_name_plural = 'Med-Connect Staff'
+    full_name = models.CharField( max_length=50, verbose_name="Full name")
+    position = models.CharField(max_length=25)
+    image = models.ImageField()
+    description = models.CharField(max_length=200)
+    alt_description = models.CharField(max_length=60)
+    facebook_aria_label = models.CharField(max_length=30)
+    twitter_aria_label = models.CharField(max_length=30)
+    instagram_aria_label = models.CharField(max_length=30)
+    facebook_link = models.CharField(max_length=150, unique=True)
+    instagram_link = models.CharField(max_length=150, unique=True)
+    twitter_link = models.CharField(max_length=150, unique=True)
+    chat = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.full_name}'
+     

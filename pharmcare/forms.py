@@ -160,7 +160,7 @@ class MonitoringPlanForm(forms.ModelForm):
     of the form prior to it's submission of our patient's monitoring plan retrieved from the model. """
 
     class Meta:
-        models = MonitoringPlan
+        model = MonitoringPlan
         fields = '__all__'
 
 
@@ -172,7 +172,7 @@ class FollowUpPlanForm(forms.ModelForm):
         model = FollowUpPlan
 
         fields = [
-            'user',
+     
             'follow_up_requirement',
             'action_taken_and_future_plan',
             'state_of_improvement_by_score',

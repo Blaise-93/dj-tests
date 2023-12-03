@@ -38,10 +38,10 @@
             data or contact the site owner. Thank you, Pharm {{ request.user.username |title }}!</p> 
          <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         {% else %}
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
-          
             <thead
               class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
             >
@@ -75,10 +75,10 @@
                   </div>
                 </td>
                 
-                <td class="px-6 py-4">{{ patients.patient.first_name }} {{ patients.patient.last_name|slice:'0:1'}}.</td>
+                <td class="px-6 py-4">{{ patients.patients.patient.first_name }} {{ patients.patient.last_name|slice:'0:1'}}.</td>
                 <td class="px-6 py-4">{{ patients.patient.gender }}</td>
                 <td class="px-6 py-4">{{ patients.patient.phone_number }}</td>
-                <td class="px-6 py-4">{{ patients.medical_charge }}</td>
+                <td class="px-6 py-4">{{ patients.has_improved }}</td>
                 <td class="px-6 py-4">{{ patients.total }}</td>
                 <td class="px-6 py-4">{{ patients.medical_history.medication_list }}</td>
                 <td class="px-6 py-4">{{ patients.medical_history.indication_and_evidence }}</td>

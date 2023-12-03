@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from utils import files, slug_modifier
+from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerAgentLoginRequiredMixin
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
@@ -294,7 +295,7 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
-    
+
     def form_valid(self, form):
         form = form.save(commit=False)
         form.date_created = timezone.now()
@@ -331,88 +332,6 @@ class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
-
-
-class PatientListView(OrganizerAgentLoginRequiredMixin, ListView):
-    """ Handles request-response cycle made by the admin/pharmacists regarding the patients record
-    in our db"""
-    template_name = 'pharmcare/patient-list.html'
-    queryset = Patient.objects.all()
-    context_object_name = 'patient_list'
-
-    def get_queryset(self, *args, **kwargs):
-        user = self.request.user
-
-        if user.is_pharmacist and user.is_agent:
-            query = self.request.GET.get('q', '')
-            if query is None:
-                messages.info(self.request,
-                              files('/pharmcare/mails/patient.txt'))
-                return render(self.request, self.template_name)
-
-            self.queryset = Patient.objects.filter(
-                Q(total__icontains=query) |
-                Q(medical_charge__icontains=query)
-
-            ).distinct()
-
-            # Pagination - of Medication History Page
-
-            search = Paginator(self.queryset, 10)
-            page = self.request.GET.get('page')
-
-            try:
-                self.queryset = search.get_page(page)
-
-            except PageNotAnInteger:
-                self.queryset = search.get_page(1)
-
-            except EmptyPage:
-                self.queryset = search.get_page(search.num_pages)
-        return self.queryset
-
-
-class PatientCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
-    """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
-    template_name = 'pharmcare/patient-create.html'
-    models = Patient
-    form_class = PatientModelForm
-    print(form_class)
-
-    def get_success_url(self) -> str:
-        return reverse('patients')
-
-    def form_valid(self, form):
-        user = self.request.user
-
-        form = form.save(commit=False)
-        # fetch and save the current user
-        form.pharmacist = user
-        print(form.pharmacist)
-        form.save()
-        super().form_valid(self, form)
-
-
-class PatientsDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
-    """ Handles request-response cycle made by the admin/pharmacists to view each patient record."""
-    template_name = 'pharmcare/patient-detail.html'
-    model = Patient
-
-    def get_success_url(self):
-
-        return reverse("pharmcare:patient-list")
-
-
-class PatientUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
-    """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
-    template_name = 'pharmcare/patient-list.html'
-    model = Patient
-
-
-class PatientDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
-    """ Handles request-response cycle made by the admin/pharmacists to delete a patient record"""
-    template_name = 'pharmcare/patient-list.html'
-    model = Patient
 
 
 class MedicationChangesListView(OrganizerAgentLoginRequiredMixin, ListView):
@@ -569,7 +488,7 @@ class AnalysisOfClinicalProblemCreateView(OrganizerAgentLoginRequiredMixin, Crea
         messages.info(
             self.request, 'Medication changes was created successfully.')
         return reverse('pharmcare:analysis-of-cp')
-    
+
     def form_valid(self, form):
         form = form.save(commit=False)
         form.slug = slug_modifier()
@@ -629,8 +548,7 @@ class MonitoringPlanListView(OrganizerAgentLoginRequiredMixin, ListView):
             self.queryset = MonitoringPlan.objects.filter(
 
                 Q(parameter_used__icontains=query) |
-                Q(frequency__icontains=query) |
-                Q(slug__icontains=query)
+                Q(frequency__icontains=query)
 
             ).distinct()
 
@@ -662,16 +580,18 @@ class MonitoringPlanCreateView(LoginRequiredMixin, CreateView):
             self.request, 'Patient\'s monitoring plan was created successfully.')
         return reverse('pharmcare:monitoring-plan')
 
+    def form_valid(self, form):
+        form = form.save(commit=False)
+        form.slug = slug_modifier()
+        form.save()
+        return super(MonitoringPlanCreateView, self).form_valid(form)
+
 
 class MonitoringPlanDetailView(LoginRequiredMixin, DetailView):
     """ View responsible to display patient's  monitoring plan detail medication records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/monitoring-plan-detail.html'
-    # queryset = MedicationChanges.objects.all()
-
-    def get(self, pk):
-        med_changes = MonitoringPlan.objects.get(id=pk)
-        return render(self.request, self.template_name, {'med_changes': med_changes})
+    queryset = MonitoringPlan.objects.all()
 
 
 class MonitoringPlanUpdateView(LoginRequiredMixin, UpdateView):
@@ -702,7 +622,7 @@ class FollowUpPlanListView(OrganizerAgentLoginRequiredMixin, ListView):
     ordering = 'id'
     queryset = FollowUpPlan.objects.all().order_by(ordering)
 
-    context_object_name = 'follow-up-plans'
+    context_object_name = 'follow_up_plans'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -718,11 +638,11 @@ class FollowUpPlanListView(OrganizerAgentLoginRequiredMixin, ListView):
             # filter by frqeuncy, slug an parameter_used based on user's search
             self.queryset = FollowUpPlan.objects.filter(
 
-                Q(has_improved_than_before__icontains=query) |
+                Q(state_of_improvement_by_score__icontains=query) |
                 Q(adhered_to_medications_given__icontains=query) |
                 Q(referral__icontains=query)
 
-            ).distinct()
+            )
 
             # Pagination - of Medication History Page
 
@@ -750,7 +670,13 @@ class FollowUpPlanCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         messages.info(
             self.request, 'Patient\'s follow up plan was created successfully.')
-        return reverse('pharmcare:')
+        return reverse('pharmcare:follow-up-plan')
+
+    def form_valid(self, form):
+        form = form.save(commit=False)
+        form.slug = slug_modifier()
+        form.save()
+        return super(FollowUpPlanCreateView, self).form_valid(form)
 
 
 class FollowUpPlanDetailView(LoginRequiredMixin, DetailView):
@@ -861,7 +787,6 @@ class ProgressNoteUpdateView(LoginRequiredMixin, UpdateView):
     queryset = ProgressNote.objects.all()
 
     def get_success_url(self) -> str:
-        """ , kwargs={'slug':slug} """
         return reverse('pharmcare:progress-notes')
 
 
@@ -873,3 +798,88 @@ class ProgressNoteDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:progress-notes')
+    
+class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, ListView):
+    """ Handles request-response cycle made by the admin/pharmacists regarding 
+    the patients pharmacautical care record in our db"""
+    template_name = 'pharmcare/patient-list.html'
+    queryset = PharmaceuticalCarePlan.objects.all()
+    context_object_name = 'patient_list'
+    ordering = 'id'
+    print(queryset)
+    
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+
+        if user.is_pharmacist and user.is_agent:
+            query = self.request.GET.get('q', '')
+            if query is None:
+                messages.info(self.request,
+                              files('/pharmcare/mails/patient.txt'))
+                return render(self.request, self.template_name)
+
+            self.queryset = PharmaceuticalCarePlan.objects.filter(
+                Q(has_improved__icontains=query) 
+             #   Q(analysis_of_clinical_problem__icontains=query)
+
+            ).order_by(self.ordering).distinct()
+            
+            print(self.queryset)
+            # Pagination - of Medication History Page
+
+            search = Paginator(self.queryset, 10)
+            page = self.request.GET.get('page')
+
+            try:
+                self.queryset = search.get_page(page)
+
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
+        return self.queryset
+
+        
+class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
+    """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
+    template_name = 'pharmcare/patient-create.html'
+    models = Patient
+    form_class = PatientModelForm
+    print(form_class)
+
+    def get_success_url(self) -> str:
+        return reverse('patients')
+
+    def form_valid(self, form):
+        user = self.request.user
+
+        form = form.save(commit=False)
+        # fetch and save the current user
+        form.pharmacist = user
+        print(form.pharmacist)
+        form.save()
+        super().form_valid(self, form)
+
+
+class PatientSummaryDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
+    """ Handles request-response cycle made by the admin/pharmacists to view each patient record."""
+    template_name = 'pharmcare/patient-detail.html'
+    model = Patient
+
+    def get_success_url(self):
+
+        return reverse("pharmcare:patient-list")
+
+
+class PatientSummaryUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
+    """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
+    template_name = 'pharmcare/patient-list.html'
+    model = Patient
+
+
+class PatientSummaryDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
+    """ Handles request-response cycle made by the admin/pharmacists to delete a patient record"""
+    template_name = 'pharmcare/patient-list.html'
+    model = Patient
+

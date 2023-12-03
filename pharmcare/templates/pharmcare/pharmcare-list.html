@@ -35,9 +35,6 @@
                 <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication History</a>
               </li>
               <li>
-                <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient</a>
-              </li>
-              <li>
                 <a href="{% url 'pharmcare:medication-changes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication Changes</a>
               </li>
               <li>
@@ -54,7 +51,7 @@
                 <a href="{% url 'pharmcare:follow-up-plan' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Follow Up Plan</a>
               </li>
               <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient Pharmaceutical Plan</a>
+                <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient Pharmaceutical Care Plan</a>
               </li>
             </ul>
           </div>
@@ -74,7 +71,6 @@
             data or contact the site owner. Thank you,  {{ request.user.username|title }}!</p> 
         {% else %}
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-     
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >

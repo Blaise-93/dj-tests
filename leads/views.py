@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
+from pharmcare.models import Team
 from .models import Lead, Category
 from .forms import (LeadModelForm,
                     CategoryModelForm,
@@ -36,9 +37,11 @@ class LandingPageView(generic.TemplateView):
     template_name = "leads/landing-page.html"
 
     def get(self, *args, **kwargs):
-
+        team = Team.objects.all()
+        
         context = {
-            'WHATSAPP_LINK': settings.WHATSAPP_LINK
+            'WHATSAPP_LINK': settings.WHATSAPP_LINK,
+            'teams': team
         }
     
         return render(self.request, self.template_name, context)
