@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'songs',
     'leads',
     'posts',
@@ -84,7 +84,7 @@ TEMPLATES = [
                 'crispy_forms.templatetags.crispy_forms_field'
             ]
         },
-         
+
     },
 ]
 
@@ -125,7 +125,7 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-COMPRESS_OFFLINE = True 
+COMPRESS_OFFLINE = True
 
 SASS_PROCESSOR_INCLUDE_DIRS = [
     BASE_DIR / 'node_modules',
@@ -134,7 +134,6 @@ SASS_PROCESSOR_INCLUDE_DIRS = [
 COMPRESS_ROOT = BASE_DIR / 'static'
 
 COMPRESS_ENABLED = True
-
 
 
 # Password validation
@@ -211,3 +210,6 @@ LOGOUT_REDIRECT_URL = '/leads'
 
 CRISPY_TEMPLATE_PACK = 'tailwind'
 CRISPY_ALLOWED_TEMPLATE_PACK = 'tailwind'
+
+# WHATSAPP
+WHATSAPP_LINK = os.getenv('WHATSAPP_LINK')

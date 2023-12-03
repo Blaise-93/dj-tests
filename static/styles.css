@@ -5,3 +5,9 @@
     float: left;
     padding-left: 0.4em;
 }
+
+@media (min-width:200px) and (max-width:670px) {
+    .create-pt{
+        margin: 0 9em
+    }
+}

@@ -75,7 +75,9 @@
           
                       <td class="flex items-center px-6 py-4">
                         <a
-                        href="{{ lead.get_absolute_url }}"
+                        href="{{ lead.get_absolute_url }}
+                          {% comment %} {% url 'leads:lead-detail' lead.slug %} {% endcomment %}
+                        "
                         class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                         >For more details</a
                         >

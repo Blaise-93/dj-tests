@@ -1,0 +1,95 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+  
+  <div class="hero pt-5 px-5 ">{% include "pharmcare/snippets/search-progress-note.html" %}</div>
+  <div class="container px-5 py-24 mx-auto">
+    <div
+      class="leads w-full mb-6 py-4 border-b border-gray-200 justify-between items-center"
+    >
+      <div>
+        <h1 class="text-3xl text-gray-800">Patients Information</h1>
+      </div>
+
+        {% if request.user.is_organizer or request.user.is_agent %}
+        <div class="text-gray-500 hover:text-blue-500">
+          <a href="{% url 'pharmcare:progress-note-create' %}">Go to Patient Progress Notes</a> 
+        </div>
+        {% endif %}
+      </div>
+      {% if progress_notes|length == 0 %}
+          {% if request.user.is_agent %}
+            <p class="px-4 w-full text-2xl text-blue-800">
+               The information you are searched does not exist in our database.
+              Kindly input correct data, Pharm {{request.user|title }}.
+            </p>
+          {% else %}
+          <p class="px-4 w-full text-2xl text-blue-800"> 
+            The patient information you are searched does not exist in our database.
+            Kindly input correct data, Sir {{request.user|title }}.
+          </p>
+          {% endif %}
+      {% else %}
+      <div class="flex flex-wrap m-4 pb-3 ">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+          <table
+            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+          >
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+            >
+              <tr class="hover:text-gray-600">
+                <th scope="col" class="p-4">
+                  <div class="flex items-center">
+                    <span>S/N</span>
+                  </div>
+                </th>
+
+                <th scope="col" class="px-6 py-3">Notes </th>
+                <th scope="col" class="px-6 py-3">Slug</th>
+                <th scope="col" class="px-6 py-3">Date created</th>
+                <th scope="col" class="px-6 py-3">Action</th>
+               
+              </tr>
+            </thead>
+           
+            <tbody>
+              {% for note in progress_notes %}
+              <tr
+                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
+                hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                <td class="w-4 p-4">
+                  <div class="flex items-center">
+                    <span>{{note.id }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">{{ note.notes|truncatechars:200 }}</td>
+                <td class="px-6 py-4"> {{ note.slug}} </td>
+                <td class="px-6 py-4"> {{ note.get_west_african_time }} </td>
+                <td class="flex items-center px-6 py-4">
+                  <a
+                    href="{% url "pharmcare:progress-note-detail" note.slug %}
+                      {% comment %} {{ note.get_medication_absolute_url }} {% endcomment %}
+                    "
+                    class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >For further Details</a
+                  >
+                </td>
+            </tr>
+            </tbody>
+           
+            {% endfor %}
+          </table>
+        </div>
+        
+        
+      </div>
+      <div class="px-3"> {% include 'pharmcare/snippets/paginate-progress-note.html' %}</div>
+    </div>
+    {% endif %}
+  </section>
+  
+
+
+{% endblock content %} 

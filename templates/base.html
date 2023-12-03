@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link href="{% static 'css/main.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/responsive.css' %}" rel="stylesheet" />
     <link href="{% static 'styles.css' %}" rel="stylesheet" />
     <link
       href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
@@ -47,8 +48,7 @@
     </div>
     <div>{% include 'footer.html' %}</div>
 
-    {% block extra_scripts %} {% endblock extra_scripts %} {% include
-    'scripts.html' %}
+    {% block extra_scripts %} {% endblock extra_scripts %} {% include 'scripts.html' %}
     <script src="{% static  'js/main.js' %}"></script>
   </body>
 </html>

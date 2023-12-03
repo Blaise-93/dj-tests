@@ -19,11 +19,13 @@
       </div>
       {% if med_history|length == 0 %}
           {% if request.user.is_agent %}
-            <p class="text-2xl text-gray-800 mb-0"> The information you are searched does not exist in our database.
+            <p class="px-4 w-full text-2xl text-blue-800">
+               The information you are searched does not exist in our database.
               Kindly input correct data, Pharm {{request.user|title }}.
             </p>
           {% else %}
-          <p class="text-2xl text-gray-800 mb-0"> The information you are searched does not exist in our database.
+          <p class="px-4 w-full text-2xl text-blue-800"> 
+            The patient information you are searched does not exist in our database.
             Kindly input correct data, Sir {{request.user|title }}.
           </p>
           {% endif %}
@@ -65,7 +67,9 @@
                 <td class="px-6 py-4"> {{ med.indication_and_evidence|truncatechars:100 }} </td>
                 <td class="flex items-center px-6 py-4">
                   <a
-                    href="{% url "pharmcare:medication-history-detail" med.pk %}"
+                    href="{% url "pharmcare:medication-history-detail" med.pk %}
+                      {% comment %} {{ med.get_medication_absolute_url }} {% endcomment %}
+                    "
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     >For further Details</a
                   >

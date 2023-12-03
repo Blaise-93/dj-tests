@@ -3,9 +3,11 @@ from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
-from utils import files
+from django.utils import timezone
+from utils import files, slug_modifier
 from agents.mixins import OrganizerAgentLoginRequiredMixin
 from django.core.mail import send_mail
+from django.db.utils import IntegrityError
 from django.db.models import Q
 from django.contrib import messages
 from django.views.generic import (
@@ -33,7 +35,6 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
     ordering = 'first_name'
     context_object_name = 'patients'
     template_name = 'pharmcare/pharmcare-list.html'
-   
 
     def get_queryset(self) -> QuerySet[Any]:
         """ override the queryset via strictly checking if the user is
@@ -50,24 +51,23 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
             return render(self.request, self.template_name)
 
         if user.is_organizer:
-            queryset = PatientDetail.objects.filter(
-                organization=user.userprofile, pharmacist__isnull=False)
+            self.queryset = PatientDetail.objects.filter(
+                organization=user.userprofile, pharmacist__isnull=True)
 
         else:
-            queryset = PatientDetail.objects.filter(
-                organization=user.pharmacist.organization, pharmacist__isnull=False)
+            self.queryset = PatientDetail.objects.filter(
+                organization=user.pharmacist.organization, pharmacist__isnull=True)
 
-            queryset = queryset.filter(pharamacist__user=self.request.user)
+            self.queryset = self.queryset.filter(
+                pharamacist__user=self.request.user)
 
-        self.queryset = queryset.order_by(self.ordering).filter(
+        self.queryset = self.queryset.order_by(self.ordering).filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
-            Q(gender__icontains=query) |
-            #Q(age__icontains=query) |
-            #Q(email__icontains=query)|
-            Q(marital_status__icontains=query)
+            Q(gender__icontains=query)
 
         ).distinct()
+        print(query)
 
         # Paginate Pharmcare list
         search = Paginator(self.queryset, 10)
@@ -81,7 +81,6 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
 
         except EmptyPage:
             self.queryset = search.get_page(search.num_pages)
-        #print(self.queryset)
 
         return self.queryset
 
@@ -92,7 +91,7 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
         context = super(PatientDetailListView, self).get_context_data()
         user = self.request.user
 
-        if user.is_organizer:
+        if user.is_organizer or user.is_agent:
 
             # agent__isnull= True -> to check whether a foreign key is null.
             self.queryset = PatientDetail.objects.filter(
@@ -101,13 +100,11 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
 
             context.update({
                 "unassigned_patients": self.queryset,
-                "patients": self.queryset
 
             })
 
             # context['patients'] = queryset
-          #  print(context['unassigned_patients'])
-        print(self.queryset)
+
         return context
 
 
@@ -212,6 +209,9 @@ class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         patient_first_name = form.cleaned_data['first_name']
         patient_last_name = form.cleaned_data['last_name']
+        form = form.save(commit=False)
+        form.date_created = timezone.now()
+        form.save()
         messages.info(self.request,
                       f'{patient_first_name} {patient_last_name} data was successfully updated! ')
         return super().form_valid(form)
@@ -269,7 +269,6 @@ class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
 
             ).distinct()
 
-            
             # Pagination - of Medication History Page
 
             search = Paginator(self.queryset, 10)
@@ -295,6 +294,12 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
+    
+    def form_valid(self, form):
+        form = form.save(commit=False)
+        form.date_created = timezone.now()
+        form.save()
+        return super(MedicationHistoryCreateView, self).form_valid(form)
 
 
 class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
@@ -302,6 +307,7 @@ class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-detail.html'
     queryset = MedicationHistory.objects.all()
+    context_object_name = 'med_history'
 
 
 class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
@@ -310,6 +316,7 @@ class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
     form_class = MedicationHistoryForm
     template_name = 'pharmcare/medication-history-update.html'
     queryset = MedicationHistory.objects.all()
+    context_object_name = 'med_history'
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
@@ -320,6 +327,7 @@ class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
     the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-delete.html'
     queryset = MedicationHistory.objects.all()
+    context_object_name = 'med_history'
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-history')
@@ -462,6 +470,16 @@ class MedicationChangesCreateView(LoginRequiredMixin, CreateView):
             self.request, 'Medication changes was created successfully.')
         return reverse('pharmcare:medication-changes')
 
+    def form_valid(self, form):
+        """ instantously create and save patient's slug and start_or_continued
+        date to our db prior to saving every entry provided that form is valid."""
+        form = form.save(commit=False)
+        form.slug = slug_modifier()
+        form.date_created = timezone.now()
+        form.start_or_continued_date = timezone.now().date()
+        form.save()
+        return super(MedicationChangesCreateView, self).form_valid(form)
+
 
 class MedicationChangesDetailView(LoginRequiredMixin, DetailView):
     """ View responsible to display patient's changes detail medication records 
@@ -473,12 +491,17 @@ class MedicationChangesDetailView(LoginRequiredMixin, DetailView):
 class MedicationChangesUpdateView(LoginRequiredMixin, UpdateView):
     """ View responsible for updating patient's medication changes records if the
     admin/pharmacists wants. """
-    form_class = MonitoringPlanForm
+    form_class = MedicationChangesForm
     template_name = 'pharmcare/medication-changes-update.html'
     queryset = MedicationChanges.objects.all()
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:medication-changes')
+
+    """ def get_success_url(self) -> str:
+        # call self.get_object() to return the actual lead
+        pk = self.get_object().id
+        return reverse('pharmcare:medication-changes', kwargs={"pk": pk}) """
 
 
 class MedicationChangesDeleteView(LoginRequiredMixin, DeleteView):
@@ -546,13 +569,19 @@ class AnalysisOfClinicalProblemCreateView(OrganizerAgentLoginRequiredMixin, Crea
         messages.info(
             self.request, 'Medication changes was created successfully.')
         return reverse('pharmcare:analysis-of-cp')
+    
+    def form_valid(self, form):
+        form = form.save(commit=False)
+        form.slug = slug_modifier()
+        form.save()
+        return super(AnalysisOfClinicalProblemCreateView, self).form_valid(form)
 
 
 class AnalysisOfClinicalProblemDetailView(LoginRequiredMixin, DetailView):
     """ View responsible to display patient's changes detai analysis of clinical problem records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/analysis-of-clinical-problem-detail.html'
-    queryset = MedicationChanges.objects.all()
+    queryset = AnalysisOfClinicalProblem.objects.all()
 
 
 class AnalysisOfClinicalProblemUpdateView(LoginRequiredMixin, UpdateView):
@@ -582,6 +611,7 @@ class MonitoringPlanListView(OrganizerAgentLoginRequiredMixin, ListView):
     template_name = 'pharmcare/monitoring-plan-list.html'
     ordering = 'id'
     queryset = MonitoringPlan.objects.all().order_by(ordering)
+    has_improved = models.BooleanField(default=False)
 
     context_object_name = 'monitoring_plan'
 
@@ -805,7 +835,15 @@ class ProgressNoteCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         messages.info(
             self.request, 'Patient\'s progress note was created successfully.')
-        return reverse('pharmcare:progress-note')
+        return reverse('pharmcare:progress-notes')
+
+    def form_valid(self, form):
+        """ dynamically create and save patient's slug identifier in our db. """
+        progress_note = form.save(commit=False)
+        progress_note.slug = slug_modifier()
+        progress_note.date_created = timezone.now()
+        progress_note.save()
+        return super(ProgressNoteCreateView, self).form_valid(form)
 
 
 class ProgressNoteDetailView(LoginRequiredMixin, DetailView):
@@ -823,7 +861,8 @@ class ProgressNoteUpdateView(LoginRequiredMixin, UpdateView):
     queryset = ProgressNote.objects.all()
 
     def get_success_url(self) -> str:
-        return reverse('pharmcare:progress-note')
+        """ , kwargs={'slug':slug} """
+        return reverse('pharmcare:progress-notes')
 
 
 class ProgressNoteDeleteView(LoginRequiredMixin, DeleteView):
@@ -833,4 +872,4 @@ class ProgressNoteDeleteView(LoginRequiredMixin, DeleteView):
     queryset = ProgressNote.objects.all()
 
     def get_success_url(self) -> str:
-        return reverse('pharmcare:progress-note')
+        return reverse('pharmcare:progress-notes')

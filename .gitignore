@@ -6,6 +6,7 @@ fixtures.py
 __pycache__/
 *.py[cod]
 *$py.class
+medication_changes
 
 # C extensions
 *.so

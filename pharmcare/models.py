@@ -93,6 +93,7 @@ class Patient(models.Model):
     medical_history = models.OneToOneField(
         'MedicationHistory',
         on_delete=models.CASCADE)
+
     total = models.PositiveBigIntegerField(editable=True, blank=True,
                                            null=True, verbose_name="Total (auto-add)")
 
@@ -194,7 +195,7 @@ class PatientDetail(models.Model):
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
-    height = models.IntegerField( null=True, blank=True, editable=True,
+    height = models.IntegerField(null=True, blank=True, editable=True,
                                  help_text="must be provided in ft",
                                  error_messages="Kindly provide the patient's")
     weight = models.IntegerField(null=True, blank=True,
@@ -206,7 +207,8 @@ class PatientDetail(models.Model):
         max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=12, null=True, blank=True)
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
-    social_history = models.CharField(max_length=250, editable=True, null=True, blank=True)
+    social_history = models.CharField(
+        max_length=250, editable=True, null=True, blank=True)
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -224,8 +226,8 @@ class PatientDetail(models.Model):
         UTC+0 time integrity."""
         date_time = datetime.strptime(
             str(self.date_created.date()), '%Y-%m-%d')
-        lagos_time = date_time + timedelta(hours=1)
-        print(lagos_time)
+        lagos_time = date_time + timedelta(hours=2)
+        
         return lagos_time
 
     def get_patient_weight(self):
@@ -292,7 +294,7 @@ class MedicationHistory(models.Model):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
 
-    def get_absolute_url(self):
+    def get_medication_absolute_url(self):
         return reverse("pharmcare:medication-history-detail",
                        kwargs={"pk": self.pk})
 
@@ -310,10 +312,17 @@ class ProgressNote(models.Model):
         notes = self.notes[:30]
         return f'patient notes in abbreviated format: {notes}...'
 
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
 
+    def get_west_african_time(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            # work on this - 2023-12-03 02:00:00 -> strip the hour
+            str(self.date_created.date().today()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+        print(lagos_time)
+        return lagos_time
 
 class MedicationChanges(models.Model):
     """ a model class for patients posology """
@@ -321,28 +330,19 @@ class MedicationChanges(models.Model):
         verbose_name_plural = 'Medication Changes'
         ordering = ['id']
 
-    medication_list = models.CharField(max_length=50)
+    medication_list = models.CharField(max_length=100)
     dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
     route = models.CharField(max_length=20, default='Oral')
     slug = models.SlugField(null=True, blank=True)
     indication = models.CharField(max_length=200, null=True, blank=True)
-    start_or_continued_date = models.CharField(
-        max_length=50, verbose_name='Start/Continued Date')
+    start_or_continued_date = models.CharField(blank=False,
+                                               max_length=50, verbose_name='Start/Continued Date')
     stop_date = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
-
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        self.start_or_continued_date = datetime.now().date()
-        super().save(self, *args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse("pharmcare:medication-changes-detail",
-                       kwargs={"pk": self.pk})
 
 
 class MonitoringPlan(models.Model):
@@ -385,17 +385,13 @@ class AnalysisOfClinicalProblem(models.Model):
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
     priority = models.CharField(max_length=50, choices=PRORITY_CHOICES)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     action_taken_or_future_plan = models.CharField(
         max_length=500, verbose_name='Action Taken/Future Plan')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
-
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
 
 
 class FollowUpPlan(models.Model):

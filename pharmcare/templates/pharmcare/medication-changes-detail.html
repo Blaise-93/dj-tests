@@ -28,8 +28,12 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
                 <span>S/N</span>
               </div>
             </th>
-            <th scope="col" class="px-6 py-3">Medication list</th>
-            <th scope="col" class="px-6 py-3">Indication and evidence</th>
+         
+            <th scope="col" class="px-6 py-3">Dose</th>
+            <th scope="col" class="px-6 py-3">Frequency</th>
+            <th scope="col" class="px-6 py-3">Route</th>
+            <th scope="col" class="px-6 py-3">Indication</th>
+            <th scope="col" class="px-6 py-3">Stop datde</th>
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
@@ -43,16 +47,20 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
                 <span>{{object.id }}</span>
               </div>
             </td>
-            <td class="px-6 py-4">{{ object.medication_list }}</td>
-            <td class="px-6 py-4">{{ object.indication_and_evidence}}</td>
+            <td class="px-6 py-4">{{ object.dose }}</td>
+  
+            <td class="px-6 py-4">{{ object.frequency}}</td>
+            <td class="px-6 py-4">{{ object.route}}</td>
+            <td class="px-6 py-4">{{ object.indication}}</td>
+            <td class="px-6 py-4">{{ object.stop_date}}</td>
             <td class="flex items-center px-6 py-4">
               <a
-                href="{{ med.get_absolute_url }}medication-history-update/"
+                href="{{ med.get_absolute_url }}update/"
                 class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                 >Edit</a
               >
               <a
-                href="{{ med.get_absolute_url }}medication-history-delete/"
+                href="{{ med.get_absolute_url }}delete/"
                 class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
                 >Remove</a
               >

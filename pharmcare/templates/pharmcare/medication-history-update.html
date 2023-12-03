@@ -8,9 +8,10 @@
   <a class="hover:text-blue-500" href="{% url 'pharmcare:medication-history' %}">
     Go back to medication history page</a>
   <div class="py-3 border-t border-gray-200">  
-    <h1 class="text-4xl text-gray-800 ">Update {% comment %} {{ patient.first_name }}'s {% endcomment %}patient's medication history data.</h1 >
+    <h1 class="text-4xl text-gray-800  create-pt-heading
+    ">Update {% comment %} {{ patient.first_name }}'s {% endcomment %}patient's medication history data.</h1 >
   </div>
-  <form method="post" class="mt-5" action=".">
+  <form method="post" class="mt-5 pt-create" action=".">
           {% csrf_token %}
           {{ form|crispy }}
           <button

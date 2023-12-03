@@ -1,19 +1,17 @@
 from typing import Any
 from django.db.models.query import QuerySet
 from django.urls import reverse
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404, render
+from django.conf import settings
 from django.core.mail import send_mail
-from utils import files, generate_patient_unique_code
+from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Lead, Category, Contact
+from .models import Lead, Category
 from .forms import (LeadModelForm,
                     CategoryModelForm,
                     LeadCategoryUpdateForm,
                     AgentAssignedForm,
                     CustomUserForm,
-                    ContactUsForm
                     )
 
 from agents.mixins import (
@@ -23,7 +21,8 @@ from agents.mixins import (
 
 """ CRUD + L """
 
-# Registration 
+# Registration
+
 
 class SignUpView(generic.CreateView):
     template_name = 'registration/signup.html'
@@ -35,9 +34,18 @@ class SignUpView(generic.CreateView):
 
 class LandingPageView(generic.TemplateView):
     template_name = "leads/landing-page.html"
+
+    def get(self, *args, **kwargs):
+
+        context = {
+            'WHATSAPP_LINK': settings.WHATSAPP_LINK
+        }
     
+        return render(self.request, self.template_name, context)
 
 # Leads
+
+
 class LeadsListView(LoginRequiredMixin, generic.ListView):
     """ Leads list view class: displays the model data as a request made by the client
     on the server when needed. Any request made must pass certain conditions by the 

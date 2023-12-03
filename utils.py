@@ -17,11 +17,11 @@ def slug_modifier():
     mask it from the user or any other person viewing the URI. 
     So, we don't want the set slug to be easily identified.
     """
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=15))
 
 
 def files(file):
-    """ A helper function to upload and read individual files when sending emails to
+    """ A helper function to upload and read individual file when sending emails to
     the user. """
     with open(file, "r") as f:
         data = f.read()
@@ -59,6 +59,7 @@ class BMI:
 
 
 def bmi(height, weight):
+    """ weight/height function playground. :D """
     if height > 0:
         ft_in_square = 0.3048
         pt_height = (ft_in_square) * height

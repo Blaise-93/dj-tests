@@ -29,14 +29,15 @@
         {% endif %}
       </div>
       </div>
+      
       <div class="flex flex-wrap m-4 pb-3">
         {% if patient_list|length == 0 %}
-          <p class="p-4 w-full text-3xl text-blue-800">
+          <p class="px-4 w-full text-2xl text-blue-800">
             Apologies, there is currently no patients with such 
             search you entered in our database. Kindly input a correct 
-            data or contact the site owner. Thank you, {{ request.user.username }}!</p> 
+            data or contact the site owner. Thank you, Pharm {{ request.user.username |title }}!</p> 
          <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-          {% else %}
+        {% else %}
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
           >
@@ -90,8 +91,7 @@
                   >
                 </td>
             </tr>
-            {% empty %}
-            
+          {% endfor %}
           {% for patient in patient_list %}
             <tr>
                 <td class="flex items-center pl-3">Cumulative Total</td>
@@ -105,16 +105,16 @@
             
             </tr>
         
-           {% endfor %}
+ 
            
             </tbody>
            
            </table>
         
-       </div>
-       {% endif %}
+     </div>
+      {% endfor %}
         <div class="py-4"> {% include 'pharmcare/snippets/paginate-patients.html' %}</div>
-      
+        {% endif %}
  </section>
   
 
