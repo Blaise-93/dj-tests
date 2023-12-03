@@ -1,7 +1,8 @@
 import string
 import random
+from datetime import datetime
 import uuid
-
+from decimal import Decimal
 
 def password_setter():
     """ generate a random password for each user in our database until the client/
@@ -16,11 +17,11 @@ def slug_modifier():
     mask it from the user or any other person viewing the URI. 
     So, we don't want the set slug to be easily identified.
     """
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=15))
 
 
 def files(file):
-    """ A helper function to upload and read individual files when sending emails to
+    """ A helper function to upload and read individual file when sending emails to
     the user. """
     with open(file, "r") as f:
         data = f.read()
@@ -32,3 +33,40 @@ def generate_patient_unique_code():
     """
     code = uuid.uuid4().hex.upper()
     return code[0:10]
+
+
+class BMI:
+    def __init__(self, height:None, weight:None):
+        self.height = height
+        self.weight = weight
+        
+    def patients_bmi(self) -> int:
+
+            # check whether the user input the correct units
+            # of weight and height.
+            if self.height is None or self.weight is None:
+               return f'Not provided' 
+            elif self.height and self.weight is not None:
+                # check if the said height of a patient is greater than 1 foot
+                if self.height > 0:
+                    square_foot = 0.3048  # in m2 based on metric conversion
+                    in_meter_square = (self.height * square_foot) 
+                    bmi = round((self.weight) / (in_meter_square * in_meter_square),2)
+                  
+                    return f'{bmi}kg/m2'  
+
+            return f"Not provided"
+
+
+def bmi(height, weight):
+    """ weight/height function playground. :D """
+    if height > 0:
+        ft_in_square = 0.3048
+        pt_height = (ft_in_square) * height
+        height_per_meter_squared = pt_height * pt_height
+        print(height_per_meter_squared)
+        bmi = round((weight / height_per_meter_squared), 2)
+        return bmi
+
+        
+        

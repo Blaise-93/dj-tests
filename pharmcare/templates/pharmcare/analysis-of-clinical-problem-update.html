@@ -1,0 +1,25 @@
+
+{% extends "base.html" %} {% block extra_css%}
+
+{% endblock extra_css%} {% block content %}
+{% load tailwind_filters %}
+<main class="max-w-lg mx-auto mb-3">
+    
+  <a class="hover:text-blue-500 pt-heading-info"
+     href="{% url 'pharmcare:progress-notes' %}">Go back to home page</a>
+  <div class="py-3 border-t border-gray-200">  
+    <h1 class="text-4xl text-gray-800  create-pt-heading">Update Patient's Analysis data.</h1 >
+  </div>
+  <form method="post" class="mt-5 create-pt" action="{{ analysis.get_absolute_url }}">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button
+            class="w-full hover:text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-md"
+            type="submit"
+          >Submit</button>
+  </form>
+
+</main>
+{% endblock content %}
+
+

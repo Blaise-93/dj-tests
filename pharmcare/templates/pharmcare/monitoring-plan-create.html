@@ -1,0 +1,29 @@
+
+{% extends "base.html" %} {% block extra_css%}
+
+{% endblock extra_css%} {% block content %}
+{% load tailwind_filters %}
+<main class="max-w-lg mx-auto mb-3">
+    
+  <div>
+    <a class="pt-heading-info hover:text-blue-500 " href="{% url 'pharmcare:monitoring-plan' %}">
+        Go back to Monitoring Plan page</a>
+  </div>
+
+  <div class="py-3 border-t border-gray-200">  
+    <h1 class="text-4xl text-gray-800 create-pt-heading text">
+      Create a new Patient medication history information </h1 >
+  </div>
+  <form method="post" class="mt-5 pt-create" action="{% url 'pharmcare:monitoring-plan-create' %}">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button
+            class="w-full hover:text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-md"
+            type="submit"
+          >Submit</button>
+  </form>
+
+</main>
+{% endblock content %}
+
+

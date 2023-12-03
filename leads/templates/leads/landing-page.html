@@ -1,34 +1,183 @@
 {% extends "base.html" %} {% block content %}
-<section class="text-gray-600 body-font">
-  <div
-    class="container mx-auto flex px-5 py-24 items-center justify-center flex-col"
+{% load static %}
+
+<section
+  class="bg-white
+  
+  dark:bg-gray-900 bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern.svg')] 
+  dark:bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern-dark.svg')]"
   >
-    <img
-      class="lg:w-2/6 md:w-3/6 w-5/6 mb-10 object-cover object-center rounded"
-      alt="hero"
-      src="https://dummyimage.com/720x600"
-    />
-    <div class="text-center lg:w-2/3 w-full">
-      <h1
-        class="title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900"
+  <div
+    class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 z-10 relative"
+  >
+    <a
+      href="https://api.whatsapp.com/send?phone/{{WHATSAPP_LINK}}"
+      class="inline-flex justify-between items-center py-1 px-1 pe-4 mb-7 
+      text-sm text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800"
+    >
+      <span class="text-xs bg-blue-600 rounded-full text-white px-4 py-1.5 me-3"
+        >New</span
       >
-        This is CRM built with Django.
-      </h1>
-      <p class="mb-8 leading-relaxed">This CRM helps you manage the leads</p>
-    {% comment %}   <div class="flex justify-center">
-        <button
-          class="inline-flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg"
-        >
-          Button
-        </button>
-        <button
-          class="ml-4 inline-flex text-gray-700 bg-gray-100 border-0 py-2 px-6 focus:outline-none hover:bg-gray-200 rounded text-lg"
-        >
-          Button
-        </button>
-      </div> {% endcomment %}
-    </div>
+      <span class="text-sm font-medium"
+        >Customer care representative section was launched!</span
+      >
+      <svg
+        class="w-2.5 h-2.5 ms-2 rtl:rotate-180"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 6 10"
+      >
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="m1 9 4-4-4-4"
+        />
+      </svg>
+    </a>
+    <h1
+      class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+    >
+      We invest in the world's potential
+    </h1>
+    <p
+      class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48 dark:text-gray-200"
+    >
+      Here at MedConnect we focus on markets where there is availability
+      of quality medication with strict pharmaceutical care practice to 
+       unlock long-term value and drive wellbeing of our clients.
+    </p>
   </div>
+  <div
+    class="bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-900 w-full h-full absolute top-0 left-0 z-0"
+  ></div>
+</section>
+
+{% comment %} TEAM SECTION {% endcomment %}
+
+<section class="text-gray-600 body-font">
+  <div class="container px-5 py-20 mx-auto">
+    <div class="flex flex-col text-center w-full mb-20">
+      <h1
+        class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+      >
+        Our Team
+      </h1>
+      <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48 dark:text-gray-200">
+        Whatever cardigan tote bag tumblr hexagon brooklyn asymmetrical
+        gentrify, subway tile poke farm-to-table. Franzen you probably haven't
+        heard of them.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap -m-4">
+      {% for team in teams %}
+      <div class="p-4 md:w-1/3">
+     
+        <div
+          class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden"
+        >
+      
+          <img
+            class="lg:h-48 md:h-36 w-full  object-cover object-center"
+            src="{{ team.image.url }}"
+            alt="{{ team.alt_description }}"
+          />
+          <div class="p-6">
+            <h2
+              class="tracking-widest text-xs title-font font-medium text-gray-400 mb-1"
+            >
+            {{ team.position }}
+              
+            </h2>
+            <h1 class="title-font text-lg font-medium text-gray-900 mb-3">
+            
+              {{ team.name }}
+            </h1>
+            <p class="leading-relaxed mb-3 text-gray-800">
+            
+              {{ team.description }}
+            </p>
+            <div class="flex bg-gray-900 py-2 items-center  flex-wrap">
+             <div class="p-0">
+              <a href="https://api.whatsapp.com/send?phone/{{WHATSAPP_LINK}}" 
+              class="ms-3 inline-flex items-center px-4 py-2
+              text-sm font-medium text-center text-gray-900 bg-white
+                border border-gray-300 rounded-lg hover:bg-gray-100 
+                focus:ring-4 focus:outline-none focus:ring-gray-200 
+                dark:bg-gray-800 dark:text-white dark:border-gray-600
+                dark:hover:bg-gray-700 dark:hover:border-gray-700 
+                dark:focus:ring-gray-700 ">Message</a>
+              </a>
+             </div>
+              <span
+                class="text-gray-400 mr-3 inline-flex items-center 
+                lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-gray-200"
+              >
+                <div class="flex mt-4 sm:justify-center sm:mt-0">
+                <a
+                    href="{{ team.facebook_link }}"
+                    class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                    target="_blank" aria-label="{{team.facebook_aria_label }}"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 8 19"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span class="sr-only">Facebook page</span>
+                  </a>
+
+                  <a
+                  class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5"
+                  href="{{ team.instagram_link }}"
+                  target="_blank" aria-label="{{team.instagram_aria_label }}"
+                  ><i class="fab fa-instagram  text-white"></i
+                >
+                    <span class="sr-only">Instagram</span>
+                  </a>
+                  <a
+                    href="{{ team.twitter_link }}"
+                    aria-label="{{ twitter_aria_label }}"
+                      target="_blank"
+                    class="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 20 17"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M20 1.892a8.178 8.178 0 0 1-2.355.635 4.074 4.074 0 0 0 1.8-2.235 8.344 8.344 0 0 1-2.605.98A4.13 4.13 0 0 0 13.85 0a4.068 4.068 0 0 0-4.1 4.038 4 4 0 0 0 .105.919A11.705 11.705 0 0 1 1.4.734a4.006 4.006 0 0 0 1.268 5.392 4.165 4.165 0 0 1-1.859-.5v.05A4.057 4.057 0 0 0 4.1 9.635a4.19 4.19 0 0 1-1.856.07 4.108 4.108 0 0 0 3.831 2.807A8.36 8.36 0 0 1 0 14.184 11.732 11.732 0 0 0 6.291 16 11.502 11.502 0 0 0 17.964 4.5c0-.177 0-.35-.012-.523A8.143 8.143 0 0 0 20 1.892Z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span class="sr-only">Twitter page</span>
+                  </a>
+                </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+   
+  </div>
+
 </section>
 
 {% endblock content %}

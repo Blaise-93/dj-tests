@@ -16,10 +16,9 @@ class PatientDetailForm(forms.ModelForm):
             'marital_status',
             'patient_class',
             'age',
-            'pharmacist',
+            "weight",
             'gender',
             'height',
-            'BMI',
             'patient_history',
             'past_medical_history',
             'social_history',
@@ -34,8 +33,9 @@ class PatientDetailForm(forms.ModelForm):
             'last_name': 'Enter your patient\'s last name',
             'email': ' Enter your patient\'s email',
             'age': ' Enter your patient\'s age',
-            'height': "Enter your patient's height",
-            'BMI': " Enter your patient\'s BMI",
+            'height': "Enter your patient's height in (feet)",
+            'weight': "Enter your patient's weight in (kg)",
+         #   'BMI': " Enter your patient\'s BMI",
             'patient_history':  "Enter your patient's medical history",
             'past_medical_history': "Enter your patient's past medical history",
             'social_history': 'Enter the social history of your patient if any',
@@ -58,6 +58,27 @@ class MedicationHistoryForm(forms.ModelForm):
         labels = {
             'medication_list': " Enter your patient's medication list",
             'indication_and_evidence': "Enter your patient's indication"
+        }
+
+
+class PatientModelForm(forms.ModelForm):
+    """ class that handles the patient form input and submission in our db made by our pharmacist.  """
+    class Meta:
+        model = Patient
+        fields = [
+            'medical_charge',
+            'notes',
+            'patient',
+            'medical_history',
+            'total',
+        ]
+
+        labels = {
+            'medical_charge': "Enter medical charge",
+            'notes': "Enter patient's notes to follow up on your next possible action ",
+            'patient': "Select patient for this field which you had previously created",
+            'medical_history': 'Select patient medical history for this field which you had previously created',
+            'total': 'Optional (the summation is done instantenously)',
         }
 
 
@@ -90,8 +111,8 @@ class MedicationChangesForm(forms.ModelForm):
             'frequency',
             'route',
             'indication',
-            'start_or_continued_date',
             'stop_date',
+            
         ]
 
         labels = {
@@ -100,7 +121,7 @@ class MedicationChangesForm(forms.ModelForm):
             'frequency': " Enter the frequency of the dose",
             'route': " Enter the route of administration of the drug ",
             'indication': " Enter the drug(s) indication",
-            'start_or_continued_date': " (Optional) If the time is left blank, it will be automatically generated",
+            'start_or_continued_date': " (Optional) If the time is left blank, it will automatically generated",
             'stop_date': " Enter the time the patient is meant to stop the drug",
 
         }
@@ -108,79 +129,65 @@ class MedicationChangesForm(forms.ModelForm):
             'error': "Kindly input the patient fields, Pharm."
         }
 
+
 class AnalysisOfClinicalProblemForm(forms.ModelForm):
     """ Analysis of Clinical Problem form is a form class that helps us to input, check the validility
     of the form prior to it's submission of our patient's clinical problems retrieved from the model. """
     class Meta:
         model = AnalysisOfClinicalProblem
-        
+
         fields = [
-                "clinical_problem",
-                "assessment",
-                "priority",
-                "action_taken_or_future_plan",
+            "clinical_problem",
+            "assessment",
+            "priority",
+            "action_taken_or_future_plan",
         ]
 
         labels = {
-              "clinical_problem": " Enter the patient's clinical problem(s)",
-              "assessment": 'Enter your clinical assessment about patient ' ,
-              "priority": "Choose the priority" ,
-              "action_taken_or_future_plan":"Enter action to be taken concerning the patient" ,
+            "clinical_problem": " Enter the patient's clinical problem(s)",
+            "assessment": 'Enter your clinical assessment about patient',
+            "priority": "Choose the priority",
+            "action_taken_or_future_plan": "Enter action to be taken concerning the patient",
 
         }
         error_messages = {
             'error': f"Kindly input the patient fields, Pharm."
         }
 
+
 class MonitoringPlanForm(forms.ModelForm):
     """ Monitoring plan form is a form class that helps us to input, check the validility
     of the form prior to it's submission of our patient's monitoring plan retrieved from the model. """
-    
+
     class Meta:
-        models = MonitoringPlan
+        model = MonitoringPlan
         fields = '__all__'
-    
-  
+
+
 class FollowUpPlanForm(forms.ModelForm):
     """ Analysis of Clinical Problem form is a form class that helps us to input, check the validility
     of the form prior to it's submission of our patient's clinical problems retrieved from the model. """
-    
+
     class Meta:
-            model = FollowUpPlan
-            
-            fields = [
-                'user',
-                'follow_up_requirement',
-                'action_taken_and_future_plan',
-                'state_of_improvement_by_score',
-                'has_improved_than_before',
-                'adhered_to_medications_given',
-                'referral'
-            ]
+        model = FollowUpPlan
 
-            labels = {
-                'user': "Enter the user ( Optional )",
-                'follow_up_requirement': " Enter the follow up requirement for the patient",
-                 "action_taken_or_future_plan":"Enter action to be taken concerning the patient",
-                'state_of_improvement_by_score': "Score the patient's medical improvement by percent ",
-                'referral': " Enter the referral's name. "
-            }
-            error_messages = {
-                'error': f"Kindly input the patient fields, Pharm."
-            }
-        
+        fields = [
+     
+            'follow_up_requirement',
+            'action_taken_and_future_plan',
+            'state_of_improvement_by_score',
+            'has_improved_than_before',
+            'adhered_to_medications_given',
+            'referral'
+        ]
 
-      
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        labels = {
+            'user': "Enter the user ( Optional )",
+            'follow_up_requirement': " Enter the follow up requirement for the patient",
+            "action_taken_or_future_plan": "Enter action to be taken concerning the patient",
+            'state_of_improvement_by_score': "Score the patient's medical improvement by percent ",
+            'referral': " Enter the referral's name. "
+        }
+        error_messages = {
+            'error': f"Kindly input the patient fields, Pharm."
+        }

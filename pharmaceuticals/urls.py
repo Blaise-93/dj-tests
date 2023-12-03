@@ -14,7 +14,7 @@ from django.views.generic import TemplateView
 from django.urls import path, include
 from leads.views import LandingPageView, SignUpView
 
-admin.site.site_header = 'Django_Test Enterprise'
+admin.site.site_header = 'Bruno Enterprise'
 admin.site.index_title = 'Django_Test Administration'
 
 
@@ -29,7 +29,7 @@ urlpatterns = [
     path('leads/', include("leads.urls", namespace='leads')),
     path("agents/", include("agents.urls", namespace='agents')),
     path('pharmcare/', include('pharmcare.urls', namespace='pharmcare')),
-
+  
     # Registration URL - inherited for django.contrib.auths views
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),

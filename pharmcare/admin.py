@@ -12,7 +12,8 @@ from .models import (
     MedicationChanges,
     AnalysisOfClinicalProblem,
     MonitoringPlan,
-    FollowUpPlan
+    FollowUpPlan,
+    Team
 
 
 )
@@ -27,6 +28,23 @@ class PatientDetailAdmin(admin.ModelAdmin):
         'patient_history':admin_widgets.AdminTextareaWidget()
     }
 
+class TeamAdmin(admin.ModelAdmin):
+    list_display = [
+            'full_name',
+            'position',
+            'image',
+            #'description',
+            'alt_description',
+            'facebook_aria_label',
+            'twitter_aria_label',
+            'instagram_aria_label',
+            'facebook_link',
+            'instagram_link',
+            'twitter_link' ,
+            'chat',
+    ]
+
+    search_fields = ["full_name", "position"]
 
 admin.site.register(Patient)
 admin.site.register(ProgressNote)
@@ -37,3 +55,4 @@ admin.site.register(MonitoringPlan)
 admin.site.register(FollowUpPlan)
 admin.site.register(PatientDetail)
 admin.site.register(MedicationHistory)
+admin.site.register(Team, TeamAdmin)

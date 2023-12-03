@@ -2,7 +2,8 @@ from django.db import models
 from songs.models import User
 from leads.models import Lead, Agent, UserProfile
 from django.db import models
-from django.conf import settings
+from datetime import datetime, timedelta
+from functools import reduce
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
@@ -18,16 +19,17 @@ class PharmaceuticalCarePlan(models.Model):
      identify the records of the user.
     """
     user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
-
+                             on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(max_length=20)
-
+    has_improved = models.BooleanField(default=False,
+                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
         'MedicationChanges', on_delete=models.SET_NULL, blank=True, null=True)
-
+    pharmacist = models.ForeignKey(
+        Agent, on_delete=models.CASCADE, verbose_name='Pharmacist')
     analysis_of_clinical_problem = models.ForeignKey(
         'AnalysisOfClinicalProblem', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -35,6 +37,9 @@ class PharmaceuticalCarePlan(models.Model):
         'MonitoringPlan', on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.monitoring_plan.frequency
 
     def save(self, *args, **kwargs):
         """
@@ -50,40 +55,80 @@ class PharmaceuticalCarePlan(models.Model):
 
 class Patient(models.Model):
     """ Patient model which has a many to many attribute to dynamically map out each
-    patients/user details in our db """
-    
-    medical_charge = models.PositiveBigIntegerField(blank=True, null=True)
+    patients/user details, medication history and customer leads in our db 
+
+    Methods & arguments it has are:
+         `get_total_charge()`: is a function that sums up the pharmacist's consultation fee
+        if any and add it up to the drug cost price (amount paid) made by the patient.
+        However, it checks whether the conditions are met before it does the summation as 
+        you can see below.
+
+        ```python
+         def get_total_charge(self) -> int:
+            total = 0
+            # check whether there is additional charges like drug price to be added
+            # if yes, then add medical charges to the total
+            if self.medical_charge:
+                amount_charged = self.patient.consultation + self.medical_charge
+                total += amount_charged
+                return total
+            total += self.patient.consultation
+            return total
+
+        ```
+
+        `save()` : commit and overide the total if the user did not sum it up prior to 
+        saving the patient data.
+    """
+
+    medical_charge = models.PositiveBigIntegerField(blank=True, null=True,
+                                                    verbose_name="amount paid (medical charge if any)")
     notes = models.TextField(null=True, blank=True)
-    user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
     leads = models.ForeignKey(
         Lead, on_delete=models.SET_NULL, null=True, blank=True)
-    patient_details = models.OneToOneField(
+    pharmacist = models.ForeignKey(
+        Agent, on_delete=models.SET_NULL, null=True,
+        blank=True, verbose_name='Pharmacist')
+    patient = models.OneToOneField(
         'PatientDetail', on_delete=models.CASCADE)
 
     medical_history = models.OneToOneField(
         'MedicationHistory',
         on_delete=models.CASCADE)
-    total = models.PositiveBigIntegerField(editable=True)
 
-   
+    total = models.PositiveBigIntegerField(editable=True, blank=True,
+                                           null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
-        return self.user.username
-    
-    def get_total_charge(self):
+        return self.patient.first_name
+
+    def get_total_charge(self) -> int:
         total = 0
         # check whether there is additional charges like drug price to be added
         # if yes, then add medical charges to the total
         if self.medical_charge:
-            amount_charged = self.patient_details.consultation + self.medical_charge
+            amount_charged = self.patient.consultation + self.medical_charge
             total += amount_charged
             return total
-        total += self.patient_details.consultation 
+        total += self.patient.consultation
         return total
-        
+
+    def save(self, *args, **kwargs):
+        # commit and overide the total if the user did not sum it up prior to
+       # saving the patient data.
+        self.total = self.get_total_charge()
+        super().save(self, *args, **kwargs)
+
+    def sum_number(acc, total): return acc + total  # sum numbers fn
+    """  def get_cummulative(self):
+        cumm_total = reduce(self.sum_number, self.get_total_charge())
+        print(cumm_total)
+        return cumm_total  """
 
 
 class PatientDetail(models.Model):
@@ -110,9 +155,6 @@ class PatientDetail(models.Model):
 
 
     """
-
-    class Meta:
-        ordering = ['id']
 
     GENDER_CHOICES = (
         ("Male", "Male"),
@@ -143,7 +185,7 @@ class PatientDetail(models.Model):
 
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
-    email = models.CharField(max_length=20, null=True, blank=True)
+    email = models.CharField(max_length=30, null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, choices=MARITAL_STATUS, default='Single')
     patient_class = models.CharField(
@@ -155,16 +197,67 @@ class PatientDetail(models.Model):
     organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
-    height = models.CharField(max_length=20)
+    height = models.IntegerField(null=True, blank=True, editable=True,
+                                 help_text="must be provided in ft",
+                                 error_messages="Kindly provide the patient's")
+    weight = models.IntegerField(null=True, blank=True,
+                                 help_text="must be provided in kg",
+                                 editable=True, error_messages="Kindly provide the patient's weight")
     BMI = models.CharField(max_length=10)
     patient_history = models.TextField(editable=True, blank=False)
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=12, null=True, blank=True)
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
-    social_history = models.CharField(max_length=250, editable=True)
+    social_history = models.CharField(
+        max_length=250, editable=True, null=True, blank=True)
     slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['first_name']
+
+    def get_email(self):
+        if self.email is not None:
+            return self.email
+        return 'No email provided'
+
+    def get_west_african_time(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_created.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+
+        return lagos_time
+
+    def get_patient_weight(self):
+        if self.weight is not None:
+            return self.weight
+        return 'No weight provided'
+
+    def get_patient_height(self):
+
+        if self.height is not None:
+            return self.height
+        return 'No weight provided'
+
+    def patients_bmi(self) -> int:
+
+        # check whether the user input the correct units
+        # of weight and height.
+        if self.height and self.weight is not None:
+            # check if the said height of a patient is greater than 0 foot
+            if self.height > 0:
+                square_foot = 0.3048  # in m2 based on metric conversion
+                in_meter_square = (self.height * square_foot)
+                bmi = round((self.weight) /
+                            (in_meter_square * in_meter_square), 2)
+
+                return f'{bmi}kg/m2'
+
+        return f"Not provided"
 
     def get_absolute_url(self):
         return reverse("pharmcare:patient-detail", kwargs={"slug": self.slug})
@@ -177,7 +270,7 @@ class PatientDetail(models.Model):
     def save(self, *args, **kwargs):
         """ override the original save method to set the patient details 
         according to if agent has phoned or not"""
-
+        self.BMI = self.patients_bmi()
         self.slug = slugify(
             f'{(self.first_name + slug_modifier())}')
 
@@ -189,7 +282,7 @@ class MedicationHistory(models.Model):
     class Meta:
         verbose_name_plural = 'Medication History'
         ordering = ['id',]
-        
+
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
     slug = models.SlugField(blank=True, null=True)
@@ -200,58 +293,64 @@ class MedicationHistory(models.Model):
         return f'patient history in abbreviated format: {medical_history}...'
 
     def save(self, *args, **kwargs):
-        self.slug = slug_modifier() 
+        self.slug = slug_modifier()
         super().save(*args, **kwargs)
-        
-    
-    def get_absolute_url(self):
+
+    def get_medication_absolute_url(self):
         return reverse("pharmcare:medication-history-detail",
-                       kwargs={"slug": self.slug})
+                       kwargs={"pk": self.pk})
+
 
 class ProgressNote(models.Model):
+    """ Model class that handles the progress note of each patient. """
     class Meta:
         ordering = ['id',]
-        
+
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
-    slug = models.SlugField(null=True, blank=True)
-    
+    slug = models.SlugField()
+
     def __str__(self) -> str:
         notes = self.notes[:30]
         return f'patient notes in abbreviated format: {notes}...'
-    
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier() 
-        super().save(self, *args, **kwargs)
+
+    def get_west_african_time(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            # work on this - 2023-12-03 02:00:00 -> strip the hour
+            str(self.date_created.date().today()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+        print(lagos_time)
+        return lagos_time
 
 
 class MedicationChanges(models.Model):
     """ a model class for patients posology """
     class Meta:
         verbose_name_plural = 'Medication Changes'
+        ordering = ['id']
 
-    medication_list = models.CharField(max_length=50)
-    dose = models.CharField(max_length=30)
+    medication_list = models.CharField(max_length=100)
+    dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
     route = models.CharField(max_length=20, default='Oral')
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     indication = models.CharField(max_length=200, null=True, blank=True)
-    start_or_continued_date = models.CharField(
-        max_length=50, verbose_name='Start/Continued Date')
+    start_or_continued_date = models.CharField(blank=False,
+                                               max_length=50, verbose_name='Start/Continued Date')
     stop_date = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
-    
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
+
 
 class MonitoringPlan(models.Model):
     """ Monitoring plan is our model class schema that handles all the required data used
     to monitor patients plan and justification of the patient wellbeing."""
-    
+
     class Meta:
         ordering = ['id',]
     parameter_used = models.CharField(max_length=100)
@@ -260,26 +359,17 @@ class MonitoringPlan(models.Model):
         max_length=100, default='On admission and then 6 hours after',
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
-    slug = models.SlugField(null=True, blank=True)
-    has_improved = models.BooleanField(default=False, 
-                verbose_name="has improved (tick good, if yes, otherwise don't.)")
+    slug = models.SlugField()
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.parameter_used
-    
-    
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
-    
-    
 
 
 class AnalysisOfClinicalProblem(models.Model):
-    """ Analysis of clinical Problem is a model class schema that handles clinical challanges 
-    encountered during the course of the treatment of our patient."""
-    
+    """ Analysis of clinical Problem is a model class schema that handles 
+    clinical challanges encountered during the course of the treatment of our patient."""
+
     class Meta:
         verbose_name_plural = 'Analysis of Clinical Problems'
         ordering = ['id',]
@@ -293,47 +383,65 @@ class AnalysisOfClinicalProblem(models.Model):
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
     priority = models.CharField(max_length=50, choices=PRORITY_CHOICES)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     action_taken_or_future_plan = models.CharField(
         max_length=500, verbose_name='Action Taken/Future Plan')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
-    
-    
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
 
 
 class FollowUpPlan(models.Model):
     """ Follow up plan model class collates all the basic information a
-    pharmacist needs to further follow up the case if needs be."""
-    
+    pharmacist needs to further follow up the case if needs be.
+
+    NB:
+        `patient` -> a nullable foriegn key variable is left nullable in case
+    the pharmacist decide not to record the patient he/she is following up 
+    at the moment which he/she must select when handling pharmaceutical schema. 
+    """
+
     class Meta:
         ordering = ['id',]
-        
-    user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, blank=True, null=True)
+
+    patient = models.ForeignKey(PatientDetail,
+                                on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_requirement = models.CharField(max_length=100)
     action_taken_and_future_plan = models.CharField(max_length=100,
                                                     verbose_name="Action Taken/Future Plan")
     state_of_improvement_by_score = models.CharField(max_length=4,
-                                                     default='70%')
+                                                     default='for example -> 70%')
     has_improved_than_before = models.BooleanField(default=False)
-    slug = models.SlugField(null=True, blank=True)
+    slug = models.SlugField()
     adhered_to_medications_given = models.BooleanField(default=False)
     referral = models.CharField(max_length=50)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
+
         return f'''
-            {self.user.username} state of improvement by score is
+            state of improvement by score is
             {self.state_of_improvement_by_score}
         '''
 
-    
-    def save(self, *args, **kwargs):
-        self.slug = slug_modifier()
-        super().save(self, *args, **kwargs)
+class Team(models.Model):
+    """ Team model in our db """
+    class Meta:
+        verbose_name_plural = 'Med-Connect Staff'
+    full_name = models.CharField( max_length=50, verbose_name="Full name")
+    position = models.CharField(max_length=25)
+    image = models.ImageField()
+    description = models.CharField(max_length=200)
+    alt_description = models.CharField(max_length=60)
+    facebook_aria_label = models.CharField(max_length=30)
+    twitter_aria_label = models.CharField(max_length=30)
+    instagram_aria_label = models.CharField(max_length=30)
+    facebook_link = models.CharField(max_length=150, unique=True)
+    instagram_link = models.CharField(max_length=150, unique=True)
+    twitter_link = models.CharField(max_length=150, unique=True)
+    chat = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.full_name}'
+     

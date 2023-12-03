@@ -1,18 +1,60 @@
-{% extends 'base.html' %} {% load static %} {% block content %}
+{% extends 'base.html' %} 
 
-{% comment %} https://flowbite.com/docs/components/tables/  {% endcomment %}
+{% load static %}
+{% block extra_css %} 
 
+{% endblock %}
+   
+{% block content %}
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
-  <div class="container px-5 py-24 mx-auto">
+
+  <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
+  <div class="container px-5 py-20 mx-auto">
     <div
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Pharmcare</h1>
-        <div class="text-gray-500 hover:text-blue-500">
-          <a href="{% comment %} {% url 'leads:category-list' %} {% endcomment %}">View Categories</a>
-        </div>
+        <h1 class="text-3xl pb-2 text-gray-800">Pharmcare</h1>
+
+        
+      <button id="dropdownDelayButton" data-dropdown-toggle="dropdownDelay" 
+      data-dropdown-delay="500" data-dropdown-trigger="hover" class="text-white bg-blue-700 
+      hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium 
+      rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600
+       dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">Pharmaceutical Plan
+        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+        </svg>
+        </button>
+        
+        <!-- Dropdown menu -->
+        <div id="dropdownDelay" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDelayButton">
+              <li>
+                <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication History</a>
+              </li>
+              <li>
+                <a href="{% url 'pharmcare:medication-changes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication Changes</a>
+              </li>
+              <li>
+
+                <a href="{% url 'pharmcare:progress-notes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Progress Note </a>
+              </li>
+              <li>
+                <a href="{% url 'pharmcare:analysis-of-cp' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Analysis of Clinical Problem</a>
+              </li>
+              <li>
+                <a href="{% url 'pharmcare:monitoring-plan' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Monitoring Plan</a>
+              </li>
+              <li>
+                <a href="{% url 'pharmcare:follow-up-plan' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Follow Up Plan</a>
+              </li>
+              <li>
+                <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient Pharmaceutical Care Plan</a>
+              </li>
+            </ul>
+          </div>
       </div>
 
         {% if request.user.is_organizer %}
@@ -22,6 +64,12 @@
         {% endif %}
       </div>
       <div class="flex flex-wrap m-4 pb-3">
+        {% if patients|length == 0 %}
+          <p class="px-4 w-full text-2xl text-blue-800">
+            Apologies, there is currently no patient with such 
+            search you entered in our database. Kindly input a correct 
+            data or contact the site owner. Thank you,  {{ request.user.username|title }}!</p> 
+        {% else %}
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
@@ -47,9 +95,8 @@
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-           
+         {% for patient in patients %}
             <tbody>
-              {% for patient in patients %}
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -61,7 +108,7 @@
                 </td>
                 
                 <td class="px-6 py-4">{{ patient.first_name }} {{ patient.last_name|slice:'0:1'}}.</td>
-                <td class="px-6 py-4">{{ patient.email }}</td>
+                <td class="px-6 py-4">{{ patient.get_email }}</td>
                 <td class="px-6 py-4">{{ patient.gender }}</td>
                 <td class="px-6 py-4">{{ patient.phone_number }}</td>
                 <td class="px-6 py-4">{{ patient.age }}yr</td>
@@ -70,20 +117,29 @@
                 <td class="px-6 py-4">{{ patient.BMI }}</td>
                 <td class="px-6 py-4"> {{ patient.patient_history|truncatechars:100 }} </td>
                 <td class="flex items-center px-6 py-4">
-                  <a
-                    href="{% url "pharmcare:patient-detail" patient.slug %}"
-                    class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    >For further Details</a
-                  >
+                   <a href="{% url "pharmcare:patient-detail" patient.slug %}"
+                      class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline" >For further Details
+                    </a>
                 </td>
             </tr>
             </tbody>
-            {% endfor %}
-          </table>
+          
+           {% endfor %}
+           
+           </table>
+     
         </div>
-        {% if unassigned_patients.exists %}
-        <div class="mt-5 flex flex-wrap -m-4">
-          {% for patient in unassigned_patients%}
+       
+        <div class="py-4"> {% include 'snippets/pagination.html' %}</div>
+      
+        {% endif %}
+{% comment %}  {% if unassigned_patients.exists %}
+
+      
+          {% for patients in unassigned_patients %}
+        
+      <div class="mt-5 flex flex-wrap -m-4">
+         
           <div class="p-4 w-full text-3xl text-gray-800">
             <h1>Unassigned Patients</h1>
           </div>
@@ -107,14 +163,14 @@
                   <th scope="col" class="px-6 py-3">Age</th>
                   <th scope="col" class="px-6 py-3">Marital class</th>
                   <th scope="col" class="px-6 py-3">Patient height</th>
+                  <th scope="col" class="px-6 py-3">Patient weight</th>
                   <th scope="col" class="px-6 py-3">BMI</th>
                   <th scope="col" class="px-6 py-3"> Patient history </th>
                   <th scope="col" class="px-6 py-3">Action</th>
                 </tr>
               </thead>
-             
+        
               <tbody>
-                {% for patient in patients %}
                 <tr
                   class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                   hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -132,27 +188,26 @@
                   <td class="px-6 py-4">{{ patient.age }}yr</td>
                   <td class="px-6 py-4">{{ patient.patient_class }}</td>
                   <td class="px-6 py-4">{{ patient.height }}</td>
+                  <td class="px-6 py-4">{{ patient.weight }}</td>
                   <td class="px-6 py-4">{{ patient.BMI }}</td>
                   <td class="px-6 py-4"> {{ patient.patient_history|truncatechars:100 }} </td>
                   <td class="flex items-center px-6 py-4">
                     <a
-                      href="{% url "pharmcare:patient-detail" patient.slug %}"
+                      href="{{patient.get_absolute_url }}"
                       class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                       >For further Details</a
                     >
                   </td>
               </tr>
               </tbody>
-              {% endfor %}
             </table>
           </div>
           {% empty %}
           <p>There are currently no patient. Thank you.</p>
           {% endfor %}
         </div>
-        {% endif %}
-      </div>
-    </div>
+        {% endif %} {% endcomment %}
+      
   </section>
   
 
