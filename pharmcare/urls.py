@@ -99,7 +99,7 @@ urlpatterns = [
          MedicationChangesDetailView.as_view(), name='medication-changes-detail'),
     path('medication-history/<int:pk>/', MedicationHistoryDetailView.as_view(),
          name='medication-history-detail'),
-    path('patient-list/<str:slug>/',
+    path('patient-list/<int:pk>/',
          PatientSummaryDetailView.as_view(), name='patients-detail'),
 
     path("analysis-of-clincal-problem/<str:slug>/",

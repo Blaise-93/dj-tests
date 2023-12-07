@@ -1,8 +1,9 @@
 import string
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from decimal import Decimal
+
 
 def password_setter():
     """ generate a random password for each user in our database until the client/
@@ -27,6 +28,7 @@ def files(file):
         data = f.read()
         return data
 
+
 def generate_patient_unique_code():
     """
     Generate a random, unique order number using UUID for our patients
@@ -36,26 +38,27 @@ def generate_patient_unique_code():
 
 
 class BMI:
-    def __init__(self, height:None, weight:None):
+    def __init__(self, height: None, weight: None):
         self.height = height
         self.weight = weight
-        
+
     def patients_bmi(self) -> int:
 
-            # check whether the user input the correct units
-            # of weight and height.
-            if self.height is None or self.weight is None:
-               return f'Not provided' 
-            elif self.height and self.weight is not None:
-                # check if the said height of a patient is greater than 1 foot
-                if self.height > 0:
-                    square_foot = 0.3048  # in m2 based on metric conversion
-                    in_meter_square = (self.height * square_foot) 
-                    bmi = round((self.weight) / (in_meter_square * in_meter_square),2)
-                  
-                    return f'{bmi}kg/m2'  
+        # check whether the user input the correct units
+        # of weight and height.
+        if self.height is None or self.weight is None:
+            return f'Not provided'
+        elif self.height and self.weight is not None:
+            # check if the said height of a patient is greater than 1 foot
+            if self.height > 0:
+                square_foot = 0.3048  # in m2 based on metric conversion
+                in_meter_square = (self.height * square_foot)
+                bmi = round((self.weight) /
+                            (in_meter_square * in_meter_square), 2)
 
-            return f"Not provided"
+                return f'{bmi}kg/m2'
+
+        return f"Not provided"
 
 
 def bmi(height, weight):
@@ -68,5 +71,11 @@ def bmi(height, weight):
         bmi = round((weight / height_per_meter_squared), 2)
         return bmi
 
-        
-        
+
+def utc_standard_time():
+    """ strictly convert wat to utc - my playground
+    for date related migration pick-up in our db. :D """
+    return datetime.now() - timedelta(hours=1)
+
+
+# print(utc_standard_time())

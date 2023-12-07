@@ -1,36 +1,7 @@
 
-
-let ages = [4, 5, 7]
-let i = 0
-
-
-
-function pupil(arr) {
-    for (let i = 0; i < arr.length; i++) {
-        const age = arr[i]
-        return `pupil ages ${age}`
-    }
- 
-}
-
-//import { age } from '../js/age.json'
-const student_age = require('../student_age.json')
-
-//const getCummulative = document.getElementById('get-cummulative')
-
-function get_cummulative(arr){
-
-    return arr.reduce((cumm, totalPrice) => {
-        return cumm + totalPrice.age
-    }, 0)
-}
-
-console.log(get_cummulative(student_age))
-
-/*  CREATING WEBSOCKET FOR OUR CHATTERBOT */
-    var wss_protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
-    var chatSocket = new WebSocket(
-        wss_protocol + window.location.host + "/ws/chat/"
+  var wss_protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
+  var chatSocket = new WebSocket(
+    wss_protocol + window.location.host + "/ws/chat/"
   );
   var messages = [];
 
@@ -84,4 +55,3 @@ console.log(get_cummulative(student_age))
 
     messageInputDom.value = "";
   };
-

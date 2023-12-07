@@ -1,5 +1,6 @@
 from django.db import models
 from songs.models import User
+from django.shortcuts import get_object_or_404
 from leads.models import Lead, Agent, UserProfile
 from django.db import models
 from datetime import datetime, timedelta
@@ -21,7 +22,13 @@ class PharmaceuticalCarePlan(models.Model):
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
-    patient_unique_code = models.CharField(max_length=20)
+    patient_unique_code = models.CharField(
+        max_length=20, null=True, blank=True)
+
+    # abstract patient full name from base patients (manytomany orm) manager
+    # prior to saving the entry to the db, and it is a nullable field.
+    patient_full_name = models.CharField(max_length=20, null=True, blank=True)
+
     has_improved = models.BooleanField(default=False,
                                        verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
@@ -37,9 +44,63 @@ class PharmaceuticalCarePlan(models.Model):
         'MonitoringPlan', on_delete=models.SET_NULL, blank=True, null=True)
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
+    total_payment = models.PositiveBigIntegerField(null=True, blank=True)
+    discount = models.PositiveBigIntegerField(null=True, blank=True,
+        help_text="discount given to patient, perhaps due to his/her consistent loyalty, if any.")
+
+    date_created = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self) -> str:
         return self.monitoring_plan.frequency
+    
+    def get_total(self) -> int:
+        total = 0
+        for patient_total in self.patients.all():
+            total += patient_total.get_total_charge()
+            
+        if self.discount:
+            # check discount if any
+              total -= self.discount
+        return total
+        
+    def save(self, *args, **kwargs):
+        self.amount = self.get_total()
+        return super().save(self, *args, **kwargs)
+
+    def get_patient_fullname(self, request, slug):
+        """ a helper function to dynamically abstract each patient
+        full name and force it to be saved in our db."""
+        # get the id of the patients from patientdetail table
+        item = get_object_or_404(PatientDetail, slug=slug)
+
+        # get  or create the patient queryset which is a
+        # a many to many model.
+        patient_qs, created = Patient.objects.get_or_create(
+            user=request.user, patient=item
+        )
+        # filter out the user making the request
+        # and check  whether the object exist
+        pharmcare_qs = PharmaceuticalCarePlan.objects.filter(user=request.user)
+
+        if pharmcare_qs.exists():
+
+            patients_qs = pharmcare_qs[0]
+            if patients_qs.patients.filter(patient__slug=item.slug).exists():
+
+                # for items in self.patients.all():
+
+                first_name = patient_qs.patient.first_name
+                last_name = patient_qs.patient.last_name
+                if len(full_name) <= 20:
+                    full_name = f'{first_name} {last_name}'
+                    print(full_name)
+                else:
+                    full_name = f'{first_name} {last_name[:1].capitalize()}'
+                print(full_name)
+                return full_name
+
+        return self.patients
 
     def save(self, *args, **kwargs):
         """
@@ -49,6 +110,7 @@ class PharmaceuticalCarePlan(models.Model):
         if not self.patient_unique_code:
 
             self.patient_unique_code = generate_patient_unique_code()
+            #self.patient_full_name = self.get_patient_fullname()
 
         super().save(*args, **kwargs)
 
@@ -90,7 +152,7 @@ class Patient(models.Model):
         Agent, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
     patient = models.OneToOneField(
-        'PatientDetail', on_delete=models.CASCADE)
+        'PatientDetail', on_delete=models.CASCADE, verbose_name='Patient-detail')
 
     medical_history = models.OneToOneField(
         'MedicationHistory',
@@ -106,6 +168,9 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.patient.first_name
+    
+    def get_full_name(self):
+        return f'{self.patient.first_name} {self.patient.last_name}'
 
     def get_total_charge(self) -> int:
         total = 0
@@ -425,11 +490,12 @@ class FollowUpPlan(models.Model):
             {self.state_of_improvement_by_score}
         '''
 
+
 class Team(models.Model):
     """ Team model in our db """
     class Meta:
         verbose_name_plural = 'Med-Connect Staff'
-    full_name = models.CharField( max_length=50, verbose_name="Full name")
+    full_name = models.CharField(max_length=50, verbose_name="Full name")
     position = models.CharField(max_length=25)
     image = models.ImageField()
     description = models.CharField(max_length=200)
@@ -444,4 +510,3 @@ class Team(models.Model):
 
     def __str__(self):
         return f'{self.full_name}'
-     

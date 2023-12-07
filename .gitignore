@@ -1,12 +1,14 @@
 themw
 env
 fixtures.py
-
+chats
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 medication_changes
+
+
 
 # C extensions
 *.so

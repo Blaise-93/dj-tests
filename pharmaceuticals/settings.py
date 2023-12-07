@@ -1,7 +1,9 @@
+from decouple import Csv, config
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,6 +23,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',  # for ASGI server
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,11 +34,13 @@ INSTALLED_APPS = [
 
     'songs',
     'leads',
+    'chats',
     'posts',
     'agents',
     'pharmcare',
 
     # third party packages
+    "chatterbot.ext.django_chatterbot",
     'mptt',
     'django_browser_reload',
     'allauth',
@@ -44,7 +49,7 @@ INSTALLED_APPS = [
     'tailwind',
     'django_countries',
     'sass_processor',
-    # 'themw',
+    # 'themw', # tailwind-css-for-django
     'crispy_forms',
     'crispy_tailwind',
     'compressor',
@@ -67,6 +72,71 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pharmaceuticals.urls'
 
+""" 
+import redis
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+r.set('foo', 'bar') and r.get('foo') """
+
+# Celery
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL").strip()
+CELERY_RESULT_BACKEND = os.getenv("REDIS_BACKEND").strip()
+
+
+# Chatterbot
+CHATTERBOT = {
+    "name": "Medconnect Agent",
+    "logic_adapters": [
+        "chatterbot.logic.BestMatch",
+    ],
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv("REDIS_BACKEND")],
+            # "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+
+# CORS CONFIGURATIONS :
+CORS_ORIGIN_ALLOW_ALL = True
+
+ALLOWED_HOSTS = [
+    '127.0.0.1'
+]
+
+CORS_ALLOWED_ORIGIN = [
+    'http://127.0.0.1', 'localhost'
+]
+
+CORS_ALLOW_CREDENTIALS = False
+
+CORS_ALLOW_HEADERS = [
+    'accept'
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'origin',
+    'dnt',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHOD = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+    'PATCH',
+]
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -87,6 +157,9 @@ TEMPLATES = [
 
     },
 ]
+
+
+ASGI_APPLICATION = "pharmaceuticals.asgi.application"
 
 
 WSGI_APPLICATION = 'pharmaceuticals.wsgi.application'

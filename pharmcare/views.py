@@ -2,7 +2,7 @@ from typing import Any
 from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from utils import files, slug_modifier
 from django.core.exceptions import ObjectDoesNotExist
@@ -84,6 +84,13 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
             self.queryset = search.get_page(search.num_pages)
 
         return self.queryset
+
+    def get_success_url(self):
+        if not self.request.user.is_organizer or not \
+                self.request.user.is_agent:
+            messages.error(self.request, f'Apologies {
+                           self.request.user}, you don\'t have access to this link because you are not a registered pharmacist. Kindly contact the admin.')
+            return reverse('landing-page')
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split patients that have not been 
@@ -798,49 +805,42 @@ class ProgressNoteDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:progress-notes')
-    
-class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, ListView):
+
+
+class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ Handles request-response cycle made by the admin/pharmacists regarding 
     the patients pharmacautical care record in our db"""
+
     template_name = 'pharmcare/patient-list.html'
-    queryset = PharmaceuticalCarePlan.objects.all()
+    # queryset = Patient.objects.all()
     context_object_name = 'patient_list'
-    ordering = 'id'
-    print(queryset)
-    
-    def get_queryset(self, *args, **kwargs):
-        user = self.request.user
 
-        if user.is_pharmacist and user.is_agent:
-            query = self.request.GET.get('q', '')
-            if query is None:
-                messages.info(self.request,
-                              files('/pharmcare/mails/patient.txt'))
-                return render(self.request, self.template_name)
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
 
-            self.queryset = PharmaceuticalCarePlan.objects.filter(
-                Q(has_improved__icontains=query) 
-             #   Q(analysis_of_clinical_problem__icontains=query)
+        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.get(
+            user=self.request.user
+        )
 
-            ).order_by(self.ordering).distinct()
-            
-            print(self.queryset)
-            # Pagination - of Medication History Page
-
-            search = Paginator(self.queryset, 10)
-            page = self.request.GET.get('page')
-
-            try:
-                self.queryset = search.get_page(page)
-
-            except PageNotAnInteger:
-                self.queryset = search.get_page(1)
-
-            except EmptyPage:
-                self.queryset = search.get_page(search.num_pages)
-        return self.queryset
-
+        """  # paginate  patients list 
+        paginate_pt = Paginator(patient_pharmcare_summary, 1)
+        page = self.request.GET.get('page')
         
+        try:
+            patient_list_qs = paginate_pt.get_page(page)
+        
+        except PageNotAnInteger:
+            patient_list_qs = paginate_pt.get_page(1)
+        except EmptyPage:
+            patient_list_qs = paginate_pt.get_page(paginate_pt.num_pages)
+        """
+        context = {
+            'patient_list': patient_pharmcare_summary
+        }
+       # print(patient_pharmcare_summary.id)
+        return render(self.request, self.template_name, context)
+
+
 class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
     template_name = 'pharmcare/patient-create.html'
@@ -865,21 +865,19 @@ class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
 class PatientSummaryDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ Handles request-response cycle made by the admin/pharmacists to view each patient record."""
     template_name = 'pharmcare/patient-detail.html'
-    model = Patient
+    queryset = PharmaceuticalCarePlan.objects.all()
 
     def get_success_url(self):
 
         return reverse("pharmcare:patient-list")
 
-
 class PatientSummaryUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
     template_name = 'pharmcare/patient-list.html'
-    model = Patient
+    queryset = PharmaceuticalCarePlan.objects.all()
 
 
 class PatientSummaryDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
     """ Handles request-response cycle made by the admin/pharmacists to delete a patient record"""
     template_name = 'pharmcare/patient-list.html'
-    model = Patient
-
+    queryset = PharmaceuticalCarePlan.objects.all()
