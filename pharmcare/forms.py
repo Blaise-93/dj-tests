@@ -191,3 +191,20 @@ class FollowUpPlanForm(forms.ModelForm):
         error_messages = {
             'error': f"Kindly input the patient fields, Pharm."
         }
+        
+class PharmaceuticalCarePlanModelForm(forms.ModelForm):
+    class Meta:
+        model = PharmaceuticalCarePlan
+        fields = [
+            'patients',
+            'patient_full_name',
+            'has_improved',
+            'progress_note', 
+            'medication_changes',
+            'pharmacist',
+            'analysis_of_clinical_problem',
+            'monitoring_plan',
+            'follow_up_plan',
+            'discount'
+        ]
+        

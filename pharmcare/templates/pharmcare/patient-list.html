@@ -95,11 +95,15 @@
                 <td class="px-6 py-4"> {{ patient_list.total_payment }} </td>
                 <td class="px-6 py-4"> {{ patient_list.date_created }} </td>
                 <td class="flex items-center px-6 py-4">
+
+                  {% if request.user.is_organizer %}
+                  {% comment %} Allow only the organizer to perform this operation. {% endcomment %}
                   <a
-                   href="{% url "pharmcare:patients-detail" patient_list.pk %}" 
+                   {% comment %} href="{% url "pharmcare:patients-detail" patient_list.pk %}"  {% endcomment %}
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    >For further Details</a
+                    >Delete</a
                   >
+                  {% endif %}
                 </td>
             </tr>
             </tbody>

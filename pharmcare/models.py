@@ -20,7 +20,7 @@ class PharmaceuticalCarePlan(models.Model):
      identify the records of the user.
     """
     user = models.ForeignKey(User,
-                             on_delete=models.CASCADE)
+                             on_delete=models.SET_NULL, null=True, blank=True)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
@@ -36,7 +36,7 @@ class PharmaceuticalCarePlan(models.Model):
     medication_changes = models.ForeignKey(
         'MedicationChanges', on_delete=models.SET_NULL, blank=True, null=True)
     pharmacist = models.ForeignKey(
-        Agent, on_delete=models.CASCADE, verbose_name='Pharmacist')
+        Agent, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pharmacist')
     analysis_of_clinical_problem = models.ForeignKey(
         'AnalysisOfClinicalProblem', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -46,24 +46,24 @@ class PharmaceuticalCarePlan(models.Model):
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
     total_payment = models.PositiveBigIntegerField(null=True, blank=True)
     discount = models.PositiveBigIntegerField(null=True, blank=True,
-        help_text="discount given to patient, perhaps due to his/her consistent loyalty, if any.")
+                                              help_text="discount given to patient, perhaps due to his/her consistent loyalty, if any.")
 
     date_created = models.DateTimeField(auto_now_add=True)
-    
 
     def __str__(self) -> str:
         return self.monitoring_plan.frequency
-    
+
     def get_total(self) -> int:
+        # pt_name = Patient.objects.get(id=self.pk)
         total = 0
         for patient_total in self.patients.all():
             total += patient_total.get_total_charge()
-            
+
         if self.discount:
             # check discount if any
-              total -= self.discount
+            total -= self.discount
         return total
-        
+
     def save(self, *args, **kwargs):
         self.amount = self.get_total()
         return super().save(self, *args, **kwargs)
@@ -110,7 +110,8 @@ class PharmaceuticalCarePlan(models.Model):
         if not self.patient_unique_code:
 
             self.patient_unique_code = generate_patient_unique_code()
-            #self.patient_full_name = self.get_patient_fullname()
+            # self.patient_full_name = self.get_patient_fullname()
+           # self.total_payment = self.get_total()
 
         super().save(*args, **kwargs)
 
@@ -146,10 +147,14 @@ class Patient(models.Model):
     medical_charge = models.PositiveBigIntegerField(blank=True, null=True,
                                                     verbose_name="amount paid (medical charge if any)")
     notes = models.TextField(null=True, blank=True)
+
     leads = models.ForeignKey(
         Lead, on_delete=models.SET_NULL, null=True, blank=True)
     pharmacist = models.ForeignKey(
         Agent, on_delete=models.SET_NULL, null=True,
+        blank=True, verbose_name='Pharmacist')
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
     patient = models.OneToOneField(
         'PatientDetail', on_delete=models.CASCADE, verbose_name='Patient-detail')
@@ -168,7 +173,7 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.patient.first_name
-    
+
     def get_full_name(self):
         return f'{self.patient.first_name} {self.patient.last_name}'
 
@@ -190,6 +195,7 @@ class Patient(models.Model):
         super().save(self, *args, **kwargs)
 
     def sum_number(acc, total): return acc + total  # sum numbers fn
+   
     """  def get_cummulative(self):
         cumm_total = reduce(self.sum_number, self.get_total_charge())
         print(cumm_total)

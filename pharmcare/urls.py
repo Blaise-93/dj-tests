@@ -15,13 +15,7 @@ from .views import (
 
     PatientSummaryListView,
     PatientSummaryCreateView,
-    PatientSummaryDetailView,
-    PatientSummaryUpateView,
-    PatientSummaryDeleteView,
-
-    PatientSummaryListView,
-    PatientSummaryCreateView,
-    PatientSummaryDetailView,
+    delete_patient_summary,
     PatientSummaryUpateView,
     PatientSummaryDeleteView,
 
@@ -100,7 +94,7 @@ urlpatterns = [
     path('medication-history/<int:pk>/', MedicationHistoryDetailView.as_view(),
          name='medication-history-detail'),
     path('patient-list/<int:pk>/',
-         PatientSummaryDetailView.as_view(), name='patients-detail'),
+         delete_patient_summary, name='patients-detail'),
 
     path("analysis-of-clincal-problem/<str:slug>/",
          AnalysisOfClinicalProblemDetailView.as_view(), name='analysis-of-cp-detail'),

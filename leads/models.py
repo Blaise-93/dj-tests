@@ -37,7 +37,7 @@ class Lead(models.Model):
     # related_name => to do relationship modeling
 
     agent = models.ForeignKey(
-        "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pharmacist')
+        "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Agent')
     category = models.ForeignKey("Category", related_name='leads',
                                  on_delete=models.SET_NULL, null=True, blank=True)
 

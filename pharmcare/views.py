@@ -1,10 +1,17 @@
 from typing import Any
+from django.db import models
 from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
-from utils import files, slug_modifier
+from utils import (
+    files,
+    slug_modifier,
+    generate_patient_unique_code,
+    utc_standard_time
+)
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerAgentLoginRequiredMixin
 from django.core.mail import send_mail
@@ -305,7 +312,7 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form = form.save(commit=False)
-        form.date_created = timezone.now()
+        form.date_created = utc_standard_time()
         form.save()
         return super(MedicationHistoryCreateView, self).form_valid(form)
 
@@ -401,8 +408,8 @@ class MedicationChangesCreateView(LoginRequiredMixin, CreateView):
         date to our db prior to saving every entry provided that form is valid."""
         form = form.save(commit=False)
         form.slug = slug_modifier()
-        form.date_created = timezone.now()
-        form.start_or_continued_date = timezone.now().date()
+        form.date_created = utc_standard_time()
+        form.start_or_continued_date = utc_standard_time().date()
         form.save()
         return super(MedicationChangesCreateView, self).form_valid(form)
 
@@ -774,7 +781,7 @@ class ProgressNoteCreateView(LoginRequiredMixin, CreateView):
         """ dynamically create and save patient's slug identifier in our db. """
         progress_note = form.save(commit=False)
         progress_note.slug = slug_modifier()
-        progress_note.date_created = timezone.now()
+        progress_note.date_created = utc_standard_time()
         progress_note.save()
         return super(ProgressNoteCreateView, self).form_valid(form)
 
@@ -818,58 +825,69 @@ class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, DetailView):
     def get(self, *args, **kwargs):
         query = self.request.GET.get('q', '')
 
-        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.get(
-            user=self.request.user
-        )
-
-        """  # paginate  patients list 
-        paginate_pt = Paginator(patient_pharmcare_summary, 1)
-        page = self.request.GET.get('page')
-        
         try:
-            patient_list_qs = paginate_pt.get_page(page)
-        
-        except PageNotAnInteger:
-            patient_list_qs = paginate_pt.get_page(1)
-        except EmptyPage:
-            patient_list_qs = paginate_pt.get_page(paginate_pt.num_pages)
-        """
-        context = {
-            'patient_list': patient_pharmcare_summary
-        }
-       # print(patient_pharmcare_summary.id)
-        return render(self.request, self.template_name, context)
+            patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+                user=self.request.user)
+            print(patient_pharmcare_summary)
+            context = {
+                'patient_list': patient_pharmcare_summary
+            }
+            print(patient_pharmcare_summary)
+        # print(patient_pharmcare_summary.id)
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request, 
+            f"""Apologies, the patient summary record you are searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:patient')
 
 
 class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
     template_name = 'pharmcare/patient-create.html'
-    models = Patient
-    form_class = PatientModelForm
-    print(form_class)
+    queryset = PharmaceuticalCarePlan.objects.all()
+    form_class = PharmaceuticalCarePlanModelForm
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = PharmaceuticalCarePlan.objects.filter(
+                organization=user.userprofile, pharmacist__isnull=True)
+
+        else:
+            self.queryset = PharmaceuticalCarePlan.objects.filter(
+                organization=user.pharmacist.organization, pharmacist__isnull=True)
+
+            self.queryset = self.queryset.filter(
+                pharamacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
-        return reverse('patients')
+        return reverse('pharmcare:patients')
 
-    def form_valid(self, form):
-        user = self.request.user
-
-        form = form.save(commit=False)
-        # fetch and save the current user
-        form.pharmacist = user
-        print(form.pharmacist)
-        form.save()
-        super().form_valid(self, form)
-
-
-class PatientSummaryDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
-    """ Handles request-response cycle made by the admin/pharmacists to view each patient record."""
+@login_required
+def delete_patient_summary(request, pk, *args, **kwargs):
+    """ Handles request-response cycle made by the admin/pharmacists to delete each patient record."""
     template_name = 'pharmcare/patient-detail.html'
-    queryset = PharmaceuticalCarePlan.objects.all()
+    try:
+        patients = PharmaceuticalCarePlan.objects.get(
+            user=request.user, id=pk, *args, **kwargs)
+        if patients.DoesNotExist:
+            messages.info(request, 'Object you are looking for does not exist')
+            print("Object does not exist")
+            return reverse('pharmacare:patients')
 
-    def get_success_url(self):
+        patients.delete()
+        context = {
+            'object': patients
+        }
+        return render(request, template_name, context)
+    except ObjectDoesNotExist:
+        messages.info(request, 'Object you are looking for does not exist')
+        return reverse('pharmacare:patient')
 
-        return reverse("pharmcare:patient-list")
 
 class PatientSummaryUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
