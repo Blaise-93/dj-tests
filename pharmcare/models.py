@@ -52,17 +52,26 @@ class PharmaceuticalCarePlan(models.Model):
 
     def __str__(self) -> str:
         return self.monitoring_plan.frequency
+    
+    def get_pharmcare_absolute_url(self):
+         reverse("pharmcare:patients-detail", 
+                       kwargs={"pk": self.pk})
+    
 
+    
     def get_total(self) -> int:
+        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(id=self.pk)
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
-        for patient_total in self.patients.all():
-            total += patient_total.get_total_charge()
+        for patient_list in patient_pharmcare_summary:
+            for patient_list in self.patients.all():
+                total += patient_list.get_total_charge()
 
-        if self.discount:
-            # check discount if any
-            total -= self.discount
-        return total
+            if self.discount:
+                # check discount if any
+                total -= self.discount
+                print(total)
+            return total
 
     def save(self, *args, **kwargs):
         self.amount = self.get_total()
@@ -167,12 +176,23 @@ class Patient(models.Model):
                                            null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
+    
 
     class Meta:
         ordering = ['id']
 
     def __str__(self):
         return self.patient.first_name
+    
+    def get_west_african_time_zone(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_created.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+
+        return lagos_time
 
     def get_full_name(self):
         return f'{self.patient.first_name} {self.patient.last_name}'

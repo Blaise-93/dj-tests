@@ -827,18 +827,51 @@ class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, DetailView):
 
         try:
             patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
-                user=self.request.user)
-            print(patient_pharmcare_summary)
+                user=self.request.user).filter(
+                    Q(patient_unique_code__icontains=query) |
+                    Q(has_improved__icontains=query) |
+                    Q(patient_full_name__icontains=query)
+            )\
+                .order_by('id')
+
+            # Pagination - of Medication History Page
+
+            search = Paginator(patient_pharmcare_summary, 2)
+            page = self.request.GET.get('page')
+
+            try:
+                self.queryset = search.get_page(page)
+
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
+
+            """
+            total = 0
+            
+             for patient_list in patient_pharmcare_summary:
+                
+                for patient_total in patient_list.patients.all():
+                    total += int(patient_total.get_total_charge())
+
+                if patient_list.discount:
+                    # check discount if any
+                    total -= int(patient_list.discount)
+                    print(total)
+                return total
+                """
+
             context = {
-                'patient_list': patient_pharmcare_summary
+                'patient_list': self.queryset
             }
-            print(patient_pharmcare_summary)
-        # print(patient_pharmcare_summary.id)
+
             return render(self.request, self.template_name, context)
 
         except ObjectDoesNotExist:
-            messages.info(self.request, 
-            f"""Apologies, the patient summary record you are searching for does not exist.
+            messages.info(self.request,
+                          f"""Apologies, the patient summary record you are searching for does not exist.
                 It was deleted by {self.request.user.username.title()}""")
             return redirect('pharmcare:patient')
 
@@ -846,7 +879,7 @@ class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, DetailView):
 class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ Handles request-response cycle made by the admin/pharmacists to create a patient"""
     template_name = 'pharmcare/patient-create.html'
-    queryset = PharmaceuticalCarePlan.objects.all()
+   # queryset = PharmaceuticalCarePlan.objects.all()
     form_class = PharmaceuticalCarePlanModelForm
 
     def get_queryset(self, *args, **kwargs):
@@ -867,9 +900,10 @@ class PatientSummaryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         return reverse('pharmcare:patients')
 
+
 @login_required
 def delete_patient_summary(request, pk, *args, **kwargs):
-    """ Handles request-response cycle made by the admin/pharmacists to delete each patient record."""
+    # Handles request-response cycle made by the admin/pharmacists to delete each patient record.
     template_name = 'pharmcare/patient-detail.html'
     try:
         patients = PharmaceuticalCarePlan.objects.get(
@@ -877,7 +911,7 @@ def delete_patient_summary(request, pk, *args, **kwargs):
         if patients.DoesNotExist:
             messages.info(request, 'Object you are looking for does not exist')
             print("Object does not exist")
-            return reverse('pharmacare:patients')
+            return reverse('pharmcare:patients-detail')
 
         patients.delete()
         context = {
@@ -886,16 +920,35 @@ def delete_patient_summary(request, pk, *args, **kwargs):
         return render(request, template_name, context)
     except ObjectDoesNotExist:
         messages.info(request, 'Object you are looking for does not exist')
-        return reverse('pharmacare:patient')
+        return reverse('pharmcare:patient-details')
 
-
+ 
 class PatientSummaryUpateView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ Handles request-response cycle made by the admin/pharmacists to update a patient record"""
-    template_name = 'pharmcare/patient-list.html'
+    template_name = 'pharmcare/patient-update.html'
     queryset = PharmaceuticalCarePlan.objects.all()
+    form_class = PharmaceuticalCarePlanModelForm
 
 
-class PatientSummaryDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
+class PatientSummaryDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ Handles request-response cycle made by the admin/pharmacists to delete a patient record"""
-    template_name = 'pharmcare/patient-list.html'
-    queryset = PharmaceuticalCarePlan.objects.all()
+    template_name = 'pharmcare/patient-detail.html'
+    context_object_name = "patient_qs"
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = PharmaceuticalCarePlan.objects.filter(
+                organization=user.userprofile, pharmacist__isnull=True)
+
+        else:
+            self.queryset = PharmaceuticalCarePlan.objects.filter(
+                organization=user.pharmacist.organization, pharmacist__isnull=True)
+
+            self.queryset = self.queryset.filter(
+                pharamacist__user=self.request.user)
+
+        return self.queryset
+
+    def get_success_url(self):
+        return reverse('pharmcare:patients-detail')

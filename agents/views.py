@@ -5,6 +5,7 @@ from django.views import generic
 from leads.models import Agent
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from utils import password_setter, files
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
@@ -47,10 +48,18 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             user=user,
             organization=self.request.user.userprofile
         )
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        context = {
+                    'user':f'{ first_name }{ last_name }',
+                    'user_temp_password': user.set_password
+                    }
+
+        # send email to the user
         
         send_mail(
-            subject='You are invited to be an agent in our organization',
-            message=files('agents/mails/agent-request-mail.txt'),
+            subject='Daily Attendance Registrar',
+            message=render_to_string('staff/attendance-invite.html', context),
             from_email="tests@blaise.com",
             recipient_list=[email, ]
         )
@@ -98,5 +107,3 @@ class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     def get_success_url(self):
         return reverse("leads:home-page")
 
-
-""" Two types of users - Organizer (main superuser) and agent  """

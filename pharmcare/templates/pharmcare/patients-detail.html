@@ -58,7 +58,7 @@
             <td class="px-6 py-4">{{ object.has_improved }}</td>
             <td class="px-6 py-4">{{ object.progress_note }}</td>
             <td class="px-6 py-4">{{ object.medication_changes }}</td>
-            {% for patient_full_name in object.patients.all %}
+            {% comment %} {% for patient_full_name in object.patients.all %} {% endcomment %}
             <td class="px-6 py-4">{{ patient_full_name }}</td>
 
             {% endfor %}

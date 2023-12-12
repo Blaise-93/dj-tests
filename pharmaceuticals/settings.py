@@ -32,12 +32,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+ 
     'songs',
     'leads',
     'chats',
     'posts',
     'agents',
     'pharmcare',
+    'staff',
 
     # third party packages
     "chatterbot.ext.django_chatterbot",

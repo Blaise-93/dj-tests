@@ -13,6 +13,7 @@ class User(AbstractUser):
     is_organizer = models.BooleanField(default=True, verbose_name="is an organizer?")
     is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
     is_pharmacist = models.BooleanField(default=False, verbose_name="is pharmacist?") 
+    is_management = models.BooleanField(default=False, verbose_name="is management?") 
 
 
 

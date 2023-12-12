@@ -53,14 +53,14 @@
             <td class="px-6 py-4">
               {{ lead.first_name }} {{ lead.last_name }}
             </td>
-            <td class="px-6 py-4">{{ lead.email }}</td>
-            <td class="px-6 py-4">{{ lead.phone_number }}</td>
+            <td class="px-6 py-4">{{ lead.get_email }}</td>
+            <td class="px-6 py-4">{{ lead.get_phone_number}}</td>
             <td class="px-6 py-4">{{ lead.age }}yr</td>
             <td class="px-6 py-4">{{ lead.phoned }}</td>
             <td class="px-6 py-4">{{ lead.description }}</td>
-            <td class="px-6 py-4">{{ lead.social_media_account }}</td>
-            <td class="px-6 py-4">{{ lead.address }}</td>
-            <td class="px-6 py-4">{{ lead.files }}</td>
+            <td class="px-6 py-4">{{ lead.get_social_media_account }}</td>
+            <td class="px-6 py-4">{{ lead.get_address }}</td>
+            <td class="px-6 py-4">{{ lead.get_file }}</td>
 
             <td class="flex items-center px-6 py-4">
               <a

@@ -125,12 +125,13 @@ class LeadsCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         Lead.objects.create(
             organization=self.request.user.userprofile
         )
-
+        # fetch user email
+        email = form.cleaned_data['email']
         send_mail(
-            subject='A lead has been created',
+            subject=f'Thanks, a lead has been created by {self.request.user}',
             message='Go to the site to see the new lead',
-            from_email='blaise@gmail.com',
-            recipient_list=['test2@gmail.com']
+            from_email='blaisemart@gmail.com',
+            recipient_list=[email, ],
         )
         return super(LeadsCreateView, self).form_valid(form)
 
@@ -186,7 +187,7 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     template_name = 'agents/agent-assigned.html'
     form_class = AgentAssignedForm
-   # kwargs = 'slug'
+  
 
     def get_form_kwargs(self, **kwargs):
         kwargs = super(AgentAssignedView, self)\
