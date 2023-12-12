@@ -10,14 +10,14 @@ from .forms import ManagementModelForm, AttendanceModelForm
 class StaffListView(OrganizerManagementLoginRequiredMixin, generic.ListView):
     
     template_name = 'staff/staff-list.html'
-    context_object_name = 'staff'
+    context_object_name = 'attendance'
     
     
 
 
 class ManagementListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
     template_name = 'managements/management-list.html'
-    context_object_name = 'Managements'
+    context_object_name = 'managements'
 
     def get_queryset(self):
         user_userprofile = self.request.user.userprofile
@@ -29,13 +29,13 @@ class ManagementListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
         return Management.objects.filter(organization=user_userprofile)
 
 
-class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
+class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
     template_name = 'staff/management-create.html'
     form_class = ManagementModelForm
     queryset = Management.objects.all()
 
     def get_success_url(self) -> str:
-        return reverse('agents:agent-list')
+        return reverse('staff:management-list')
 
     def form_valid(self, form):
         # call form.save()
@@ -69,7 +69,7 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             from_email="tests@blaise.com",
             recipient_list=[email, ]
         )
-        return super(AgentCreateView, self).form_valid(form)
+        return super(ManagementCreateView, self).form_valid(form)
 
 
 class ManagementDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
@@ -86,7 +86,7 @@ class ManagementDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
         return reverse('staff:management-detail')
 
 
-class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
+class ManagementUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
     """ Update the management record created by the organizer """
     template_name = "staff/management-update.html"
     context_object_name = 'management'
@@ -104,7 +104,7 @@ class AgentUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return reverse('staff:management-list')
 
 
-class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
+class ManagementDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     template_name = 'staff/management-delete.html'
 
     def get_queryset(self):
