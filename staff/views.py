@@ -16,7 +16,7 @@ class StaffListView(OrganizerManagementLoginRequiredMixin, generic.ListView):
 
 
 class ManagementListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
-    template_name = 'managements/management-list.html'
+    template_name = 'staff/management-list.html'
     context_object_name = 'managements'
 
     def get_queryset(self):
@@ -74,7 +74,7 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
 class ManagementDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
 
-    context_object_name = 'agent'
+    context_object_name = 'management'
     template_name = 'staff/management-detail.html'
 
     def get_queryset(self):

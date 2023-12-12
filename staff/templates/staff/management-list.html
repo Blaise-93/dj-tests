@@ -12,29 +12,29 @@
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
 
-  <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
+  <div class="hero pt-5 px-5 ">{% include "staff/snippets/search-management.html" %}</div>
   <div class="container px-5 py-20 mx-auto">
     <div
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
 
     <div>
-        <h1 class="text-3xl text-gray-800">Patient's Account Information</h1>
+        <h1 class="text-3xl text-gray-800">Management Account Information</h1>
       </div>
 
-        {% if request.user.is_organizer or request.user.is_agent %}
+        {% if request.user.is_organizer or request.user.is_management %}
         <div class="text-gray-500 hover:text-blue-500">
-          <a href="{% url 'pharmcare:medication-changes-create' %}">
-            Go to Patient's Medication Changes Page</a> 
+          <a href="{% url 'staff:management-create' %}">
+            Go to Management Create Page</a> 
         </div>
         {% endif %}
       </div>
       </div>
       <div class="flex flex-wrap m-4 pb-3">
-        {% if med_changes|length == 0 %}
+        {% if managements|length == 0 %}
         
         <p class="p-4 w-full text-2xl text-blue-800">
-         Apologies, there is currently no medical-change with such 
+         Apologies, there is currently no management (branch) with such 
          search you entered in our database. Kindly input a correct 
           data or contact the site owner. Thank you, Pharm {{ request.user.username|title }}!</p> 
           {% else %}
@@ -53,20 +53,16 @@
                     <span>S/N</span>
                   </div>
                 </th>
-                <th scope="col" class="px-6 py-3">Medication list</th>
-                <th scope="col" class="px-6 py-3">Dose</th>
-                <th scope="col" class="px-6 py-3">Frequency</th>
-                <th scope="col" class="px-6 py-3">Route</th>
-                <th scope="col" class="px-6 py-3">Indication</th>
-                <th scope="col" class="px-6 py-3">Start or continued date
-            
-                </th>
-                <th scope="col" class="px-6 py-3">Stop date
-                </th>
+                <th scope="col" class="px-6 py-3">Full name</th>
+                <th scope="col" class="px-6 py-3">Email</th>
+                <th scope="col" class="px-6 py-3">Phone number</th>
+                <th scope="col" class="px-6 py-3">Slug</th>
+                <th scope="col" class="px-6 py-3">Date joined</th>
+   
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
-            {% for med_change in med_changes %}
+            {% for management in managements %}
             <tbody>
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
@@ -74,20 +70,18 @@
               >
                 <td class="w-4 p-4">
                   <div class="flex items-center">
-                    <span>{{med_change.id }}</span>
+                    <span>{{management.id }}</span>
                   </div>
                 </td>
                 
-                <td class="px-6 py-4">{{ med_change.medication_list }}</td>
-                <td class="px-6 py-4">{{ med_change.dose }}</td>
-                <td class="px-6 py-4">{{ med_change.frequency  }}</td>
-                <td class="px-6 py-4">{{ med_change.route }}</td>
-                <td class="px-6 py-4">{{ med_change.indication }}</td>
-                <td class="px-6 py-4">{{ med_change.start_or_continued_date}}</td>
-                <td class="px-6 py-4">{{ med_change.stop_date }}</td>
+                <td class="px-6 py-4">{{ management.first_name }} {{ management.first_name }}</td>
+                <td class="px-6 py-4">{{ management.email }}</td>
+                <td class="px-6 py-4">{{ management.phone_number }}</td>
+                <td class="px-6 py-4">{{ management.slug }}</td>
+                <td class="px-6 py-4">{{ management.get_west_african_time_zone }} </td>
                 <td class="flex items-center px-6 py-4">
                   <a
-                    href="{% url "pharmcare:medication-changes-detail" med_change.slug %}" 
+                    href="{% url "staff:management-detail" management.slug %}" 
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     >For further Details</a
                   >
@@ -98,17 +92,17 @@
             </tr>
            
             {% endfor %}           
-            </tbody>
-           
-           </table>
-        
-      </div>
-      
-        <div class="py-4"> {% include 'pharmcare/snippets/paginate-med_change.html' %}</div>
-      {% endif %}
-      
- </section>
-  
+    </tbody>          
+   </table>
+   </div>
+
+
+    </div>
+    <div class="px-3"> {% include 'staff/snippets/paginate-management.html' %}</div>
+    </div>
+    {% endif %}
+</section>
+    
 
 
 {% endblock content %} 

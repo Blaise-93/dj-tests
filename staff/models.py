@@ -1,10 +1,12 @@
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.urls import reverse
+from django.core.validators import MinValueValidator, MaxValueValidator
 from leads.models import UserProfile
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
 from songs.models import User
+from datetime import datetime, timedelta
 
 
 class Attendance(models.Model):
@@ -64,6 +66,8 @@ class Management(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=12, validators=[MinValueValidator("010100000"),
+                                                               MaxValueValidator("099010100000")])
     email = models.EmailField(max_length=30)
     slug = models.SlugField()
     organization = models.ForeignKey(
@@ -72,6 +76,15 @@ class Management(models.Model):
 
     def __str__(self) -> str:
         return self.user.username
+    
+    def get_west_african_time_zone(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_joined.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+        return lagos_time
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 

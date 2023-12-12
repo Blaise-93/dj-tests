@@ -19,6 +19,6 @@ urlpatterns = [
     path('management/', ManagementListView.as_view(), name='management-list'), 
     path('management-create/', ManagementCreateView.as_view(), name='management-create'),
     path('management/<str:slug>/', ManagementDetailView.as_view(), name='management-detail'),
-    path('management/<str:slug>/update', ManagementUpdateView.as_view(), name='management-update'),
-    path('management/<str:slug>/delete', ManagementDeleteView.as_view(), name='management-delete'),
+    path('management/<str:slug>/update/', ManagementUpdateView.as_view(), name='management-update'),
+    path('management/<str:slug>/delete/', ManagementDeleteView.as_view(), name='management-delete'),
 ]

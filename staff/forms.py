@@ -32,6 +32,7 @@ class ManagementModelForm(forms.ModelForm):
             'username',
             'first_name',
             "last_name",
+            'phone_number',
             'email',
                
         ]
@@ -40,6 +41,7 @@ class ManagementModelForm(forms.ModelForm):
             "username": "Enter your username",
             "first_name": "Enter your first name",
             "last_name": "Enter your last name",
+            "phone_number": "Enter your phone number",
             'email': 'Enter your email',
         }
         
