@@ -8,6 +8,8 @@ from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pharmcare.models import Team
 from .models import Lead, Category
+from django.core.paginator import Page, Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
 from .forms import (LeadModelForm,
                     CategoryModelForm,
                     LeadCategoryUpdateForm,
@@ -63,22 +65,43 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
+        
+        query = self.request.GET.get('q', '')
+        
         if user.is_organizer:
             queryset = Lead.objects.filter(
                 organization=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization, agent__isnull=False)
-            # filter according n reassign the queryset
-            # which doesnt make multiple queryset in the db
-
-            # filter the agent user via deep filter call (agent__user: filters the lead based on the agent
-            # field where that agent has a user == self.request.user )
-
+        
            # filter agent that is logged in
             queryset = queryset.filter(agent__user=self.request.user)
-            # when returned django then evaluate what you filtered
-        return queryset
+          
+        # query the db via filtering the individual fields the 
+        # user is searching for.
+        queryset.filter(
+            Q(first_name__icontains=query) |
+            Q( age__icontains=query) |
+            Q( social_media_accounts__icontains=query) 
+            
+        )
+        
+        # Pagination - Paginate the Lead
+        search = Paginator(queryset, 10)
+        
+        page = self.request.GET.get('page')
+
+        try:
+            self.queryset = search.get_page(page)
+
+        except PageNotAnInteger:
+            self.queryset = search.get_page(1)
+
+        except EmptyPage:
+            self.queryset = search.get_page(search.num_pages)
+
+        return self.queryset
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split leads that have not been 

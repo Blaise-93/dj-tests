@@ -2,7 +2,7 @@ from django import forms
 from .models import Management, Attendance
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from leads.forms import CustomUserForm
 
 User = get_user_model()
 
@@ -17,8 +17,7 @@ class AttendanceModelForm(forms.ModelForm):
             'sign_in_time',
             'sign_out_time',
             'date_added',
-            'staff_attendance_ref',
-            'organization' ,
+            'organization',
             'management', 
         ]
 
@@ -44,4 +43,17 @@ class ManagementModelForm(forms.ModelForm):
             "phone_number": "Enter your phone number",
             'email': 'Enter your email',
         }
-        
+
+
+class ManagementAssignedForm(forms.Form):
+    management = forms.ModelChoiceField(queryset=Management.objects.none())
+
+    def __init__(self, *args, **kwargs):
+
+        request = kwargs.pop('request')
+        management = Management.objects.filter(organization=request.user.userprofile)
+      
+        super(ManagementAssignedForm, self).__init__(*args, **kwargs)
+       
+        self.fields['management'].queryset = management
+

@@ -10,7 +10,10 @@ from datetime import datetime, timedelta
 
 
 class Attendance(models.Model):
-    full_name = models.CharField(max_length=15)
+    """ A model responsible for creating attendance table of an instance made in our db
+    with relationship mapping of the organization and an assigned management."""
+    
+    full_name = models.CharField(max_length=30)
     sign_in_time = models.CharField(
         max_length=8, help_text='Enter the time you resumed for work in this format -> 8:00 am')
     date_added = models.CharField(
@@ -35,12 +38,23 @@ class Attendance(models.Model):
 
     def __str__(self) -> str:
         return f'{self.full_name}'
+    
+    def get_west_african_time(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_created.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+        print(lagos_time)
+        return lagos_time
 
     def get_fullname(self) -> str:
         """ validates full name input by the user """
         if self.full_name <= 8:
             return 'Kindly enter your full name'
         return self.full_name
+    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 

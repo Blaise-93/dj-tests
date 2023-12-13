@@ -7,11 +7,11 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Management Information</h1>
+        <h1 class="text-3xl text-gray-800">Management (Branch) Information</h1>
       </div>
       <div class="text-gray-500 hover:text-blue-500">
-        <a href="{% url 'staff:management-create' %}"
-          >Go to Management Create Page</a
+        <a href="{% url 'staff:attendance-create' %}"
+          >Go to the Staff Attendance Create Page</a
         >
       </div>
     </div>
@@ -29,10 +29,14 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
               </div>
             </th>
             <th scope="col" class="px-6 py-3">Full name</th>
-            <th scope="col" class="px-6 py-3">Email</th>
-            <th scope="col" class="px-6 py-3">Phone number</th>
-            <th scope="col" class="px-6 py-3">Slug</th>
-            <th scope="col" class="px-6 py-3">Date joined</th>
+            <th scope="col" class="px-6 py-3">Sign in time</th>
+            <th scope="col" class="px-6 py-3">Sign out time</th>
+            <th scope="col" class="px-6 py-3">
+              staff daily unique attendance ref
+            </th>
+            <th scope="col" class="px-6 py-3">Organization</th>
+            <th scope="col" class="px-6 py-3">Sign in date</th>
+            <th scope="col" class="px-6 py-3">Expected Sign in time with Date</th>
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
@@ -46,21 +50,23 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
               </div>
             </td>
 
-            <td class="px-6 py-4">{{ object.first_name }} {{ object.first_name }}</td>
-            <td class="px-6 py-4">{{ object.email }}</td>
-            <td class="px-6 py-4">{{ object.phone_number }}</td>
-            <td class="px-6 py-4">{{ object.slug }}</td>
-            <td class="px-6 py-4">{{ object.get_west_african_time_zone }} </td>
-                <td class="flex items-center px-6 py-4">
+            <td class="px-6 py-4">{{ object.full_name }}</td>
+            <td class="px-6 py-4">{{ object.sign_in_time }}</td>
+            <td class="px-6 py-4">{{ object.sign_out_time }}</td>
+            <td class="px-6 py-4">{{ object.staff_attendance_ref }}</td>
+            <td class="px-6 py-4">{{ object.organization|title  }}</td>
+            <td class="px-6 py-4">{{ object.date_added  }}</td>
+            <td class="px-6 py-4">{{ object.get_west_african_time }}</td>
+            <td class="flex items-center px-6 py-4">
               <a
                 href="
-                {% url 'staff:management-update' object.slug %}
+                {% url 'staff:attendance-update' object.slug %}
                 "
                 class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                 >Edit</a
               >
               <a
-                href=" {% url 'staff:management-delete' object.slug %}"
+                href=" {% url 'staff:attendance-delete' object.slug %}"
                 class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
                 >Remove</a
               >
