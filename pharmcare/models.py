@@ -30,7 +30,7 @@ class PharmaceuticalCarePlan(models.Model):
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
 
     has_improved = models.BooleanField(default=False,
-                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
+                    verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
@@ -45,8 +45,10 @@ class PharmaceuticalCarePlan(models.Model):
     follow_up_plan = models.ForeignKey(
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
     total_payment = models.PositiveBigIntegerField(null=True, blank=True)
-    discount = models.PositiveBigIntegerField(null=True, blank=True,
-                                              help_text="discount given to patient, perhaps due to his/her consistent loyalty, if any.")
+    discount = models\
+             .PositiveBigIntegerField(null=True, blank=True,
+                 help_text="discount given to patient,\
+            perhaps due to his/her consistent loyalty, if any.")
 
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -56,8 +58,6 @@ class PharmaceuticalCarePlan(models.Model):
     def get_pharmcare_absolute_url(self):
          reverse("pharmcare:patients-detail", 
                        kwargs={"pk": self.pk})
-    
-
     
     def get_total(self) -> int:
         patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(id=self.pk)
@@ -325,13 +325,13 @@ class PatientDetail(models.Model):
 
     def get_patient_weight(self):
         if self.weight is not None:
-            return self.weight
+            return f'{self.weight}kg'
         return 'No weight provided'
 
     def get_patient_height(self):
 
         if self.height is not None:
-            return self.height
+            return f'{self.height}ft'
         return 'No weight provided'
 
     def patients_bmi(self) -> int:

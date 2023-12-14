@@ -12,13 +12,12 @@ from django.contrib import messages
 from .forms import ManagementModelForm, AttendanceModelForm, ManagementAssignedForm
 
 
-    
 class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView):
     """ Attendance list view class: displays the model data as a request made by the client
     on the server when needed. Any request made must pass certain conditions by the 
     organization responsible for the management and assigning the attendance to individual
     management (branch). 
-    
+
     NB: `OrganizerManagementLoginRequiredMixin` is a customized mixins to restrict logged in 
     user to be only the management, and or organizer. It inherits `AccessMixin` class from base 
     mixins for it's functionality.
@@ -31,9 +30,9 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
-        
+
         query = self.request.GET.get('q', '')
-        
+
         if user.is_organizer:
             self.queryset = Attendance.objects.filter(
                 organization=user.userprofile, management__isnull=False)
@@ -42,13 +41,14 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
                 organization=user.management.organization, management__isnull=False)
 
            # filter the mgmt that is logged in
-            self.queryset = self.queryset.filter(management__user=self.request.user)
-            
+            self.queryset = self.queryset.filter(
+                management__user=self.request.user)
+
         self.queryset.filter(
             Q(full_name__icontains=query) |
-            Q(staff_attendance_ref__icontains=query) 
+            Q(staff_attendance_ref__icontains=query)
         )
-        
+
         # Pagination - of Attendance Page
 
         search = Paginator(self.queryset, 10)
@@ -65,7 +65,6 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
 
         return self.queryset
 
-
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split attendance that have not been 
         assigned yet to a manager """
@@ -74,7 +73,7 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
         user = self.request.user
 
         if user.is_organizer:
-            
+
             # if management__isnull== True
             # then update unassigned attendance
             queryset = Attendance.objects.filter(
@@ -93,13 +92,13 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
     when needed by the assigned management (branch) and or organizer. """
     template_name = 'staff/attendance-create.html'
     form_class = AttendanceModelForm
-    
+
     def get_queryset(self):
         organization = self.request.user.userprofile
-        
+
         queryset = Attendance.objects.filter(
             organization=organization, organization__isnull=True)
-        
+
         return queryset
 
     def get_success_url(self):
@@ -117,7 +116,7 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
             organization=self.request.user.userprofile
         ) 
         """
-        
+
         # fetch user email from already validated form
         messages.info(self.request, "Your attendance was created successfully")
         return super(AttendanceCreateView, self).form_valid(form)
@@ -127,7 +126,7 @@ class AttendanceDetailView(OrganizerManagementLoginRequiredMixin, generic.Detail
     """ A view that handles each user attendance detail in our db for further information 
     about the record.
     """
-    
+
     # queryset = Attendance.objects.all()
     template_name = "staff/attendance-detail.html"
 
@@ -148,10 +147,10 @@ class AttendanceDetailView(OrganizerManagementLoginRequiredMixin, generic.Detail
 class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.UpdateView):
     """ A view responsible for updating of a specific slug of a attendance if needed 
     by the organizer or the mgmt.
-    
+
     NB: Mgmt -> Management
     """
-    
+
     template_name = "staff/attendance-update.html"
     context_object_name = 'attendance'
     form_class = AttendanceModelForm
@@ -170,7 +169,7 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
 class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     """ A view responsible for deletion of a specific slug if a attendance of needed 
     by the organizer or the mgmt.
-    
+
     NB: Mgmt -> Management
     """
     template_name = 'staff/attendance-delete.html'
@@ -189,10 +188,9 @@ class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 class ManagementAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     """ A view responsible for creating a management form and assigning the management 
     to a specific attendance keeping records required by the organizer when created."""
-    
+
     template_name = 'assigned-management.html'
     form_class = ManagementAssignedForm
-  
 
     def get_form_kwargs(self, **kwargs):
         kwargs = super(ManagementAssignedView, self)\
@@ -218,9 +216,10 @@ class ManagementAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         return super(ManagementAssignedView, self).form_valid(form)
 
 
-# TODO : Create Mgt CRUD + L 
+# TODO : Create Mgt CRUD + L
 class ManagementListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
-    """ View that handles listing and rendering management request-response cycle of the organizer """
+    """ View that handles listing and rendering management request-response 
+    cycle of the organizer """
     template_name = 'staff/management-list.html'
     context_object_name = 'managements'
 

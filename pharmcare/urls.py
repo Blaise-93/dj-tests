@@ -15,7 +15,7 @@ from .views import (
 
     PatientSummaryListView,
     PatientSummaryCreateView,
-   # delete_patient_summary,
+    delete_patient_summary,
     PatientSummaryDetailView,
     PatientSummaryUpateView,
     #  PatientSummaryDeleteView,
@@ -113,7 +113,7 @@ urlpatterns = [
          UpdatePatientDetailView.as_view(), name='patient-update'),
     path('medication-history/<int:pk>/medication-history-update/',
          MedicationHistoryUpdateView.as_view(), name='medication-history-update'),
-    path('patient-list/<str:slug>/patients-update/',
+    path('patient-list/<int:pk>/patients-update/',
          PatientSummaryUpateView.as_view(), name='patients-update'),
     path("medication-changes/<str:slug>/update/",
          MedicationChangesUpdateView.as_view(), name='medication-changes-update'),
@@ -134,8 +134,8 @@ urlpatterns = [
     path('medication-history/<int:pk>/medication-history-delete/',
          MedicationHistoryDeleteView.as_view(), name='medication-history-delete'),
 
-    path('patient-list/<str:slug>/patients-delete/',
-         PatientSummaryDetailView.as_view(), name='patients-delete'),
+    path('patient-list/<int:pk>/patients-delete/',
+         delete_patient_summary, name='patients-delete'),
 
     path("medication-changes/<str:slug>/delete/",
          MedicationChangesDeleteView.as_view(), name='medication-changes-delete'),

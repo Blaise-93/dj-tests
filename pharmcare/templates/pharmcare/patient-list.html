@@ -98,8 +98,8 @@
            
                 <td class="flex items-center px-6 py-4">
                   <a
-                     href="{% comment %} {{ patient_qs.get_pharmcare_absolute_url }}detail/ {% endcomment %} 
-                         {% comment %} {% url "pharmcare:patients-list-detail" patient_qs.pk %} {% endcomment %}
+                     href="
+                     {% url "pharmcare:patients-detail" patient_qs.pk %} 
                          
                      "
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"

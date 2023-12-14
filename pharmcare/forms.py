@@ -197,7 +197,7 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
         model = PharmaceuticalCarePlan
         fields = [
             'patients',
-            'patient_full_name',
+          #  'patient_full_name',
             'has_improved',
             'progress_note', 
             'medication_changes',
