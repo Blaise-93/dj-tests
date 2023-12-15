@@ -245,16 +245,37 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
+        
+        query = self.request.GET.get('q', '')
         # initial queryset of leads for the organization
         if user.is_organizer:
             queryset = Category.objects.filter(
-                organization=user.userprofile).order_by('id')
+                organization=user.userprofile)
 
         else:
             queryset = Category.objects.filter(
-                organization=user.agent.organization).order_by('id')
+                organization=user.agent.organization)
 
-        return queryset
+        queryset.order_by(self.ordering).filter(
+            Q(name__icontains=query)
+         
+        )
+           # Pagination - Paginate the Lead
+        search = Paginator(queryset, 10)
+        
+        page = self.request.GET.get('page')
+
+        try:
+            self.queryset = search.get_page(page)
+
+        except PageNotAnInteger:
+            self.queryset = search.get_page(1)
+
+        except EmptyPage:
+            self.queryset = search.get_page(search.num_pages)
+        
+        print(self.queryset)
+        return self.queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super(CategoryListView, self).get_context_data(**kwargs)
