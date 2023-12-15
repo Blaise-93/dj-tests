@@ -5,6 +5,8 @@
 
 <main>
     <section class="text-gray-600 body-font overflow-hidden mt-0">
+      <div class="hero pt-5 px-5 ">{% include "leads/snippets/search-lead.html" %}</div>
+
       <div class="container px-5 py-12 mx-auto">
         <div
           class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
@@ -57,7 +59,7 @@
                     >
                       <td class="w-4 p-4">
                         <div class="flex items-center">
-                          <span>{{lead.id }}</span>
+                          <span>{{ forloop.counter }}</span>
                         </div>
                       </td>
           
@@ -188,8 +190,12 @@
                   </tr>
                 </tbody>
               {% endfor %}
-              </table>
-            </div>
+            </table>
+          </div>
+        </div>
+        <div class="px-3"> {% include 'leads/snippets/paginate-lead.html' %}</div>
+      </div>
+
 
   {% endif %}
         

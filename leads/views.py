@@ -82,10 +82,12 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
         # user is searching for.
         queryset.filter(
             Q(first_name__icontains=query) |
-            Q( age__icontains=query) |
+            Q(age__icontains=query) |
             Q( social_media_accounts__icontains=query) 
             
         )
+          
+        print(queryset)
         
         # Pagination - Paginate the Lead
         search = Paginator(queryset, 10)
@@ -273,8 +275,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
 
         except EmptyPage:
             self.queryset = search.get_page(search.num_pages)
-        
-        print(self.queryset)
+      
         return self.queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

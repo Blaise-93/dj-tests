@@ -134,6 +134,18 @@ class Agent(models.Model):
 
     def __str__(self) -> str:
         return self.user.username
+    
+    def get_email(self) :
+        if self.email is not None:
+            return self.email
+        return 'Not email provided'
+    
+    def get_full_name(self) :
+        if self.email is not None:
+            return f'{self.first_name} {self.last_name}'
+        return 'Not yet provided'
+    
+    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 
