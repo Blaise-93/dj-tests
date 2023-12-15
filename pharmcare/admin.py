@@ -42,6 +42,8 @@ class PatientDetailModelAdmin(admin.ModelAdmin):
         'patient_history': admin_widgets.AdminTextareaWidget(),
         'past_medical_history': admin_widgets.AdminTextareaWidget()
     }
+    
+    list_per_page = 10
 
     list_display = [
         'first_name',
@@ -85,6 +87,8 @@ class ProgressNoteModelAdmin(admin.ModelAdmin):
     model = ProgressNote
     fields = ('notes', )
 
+    list_per_page = 10
+    
     list_display = [
         'notes',
         'slug',

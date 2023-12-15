@@ -44,10 +44,10 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
             self.queryset = self.queryset.filter(
                 management__user=self.request.user)
 
-        self.queryset.filter(
+        p = self.queryset.filter(
             Q(full_name__icontains=query) |
             Q(staff_attendance_ref__icontains=query)
-        )
+        )        
 
         # Pagination - of Attendance Page
 
@@ -191,6 +191,7 @@ class ManagementAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
 
     template_name = 'assigned-management.html'
     form_class = ManagementAssignedForm
+    context_object_name = 'assigned'
 
     def get_form_kwargs(self, **kwargs):
         kwargs = super(ManagementAssignedView, self)\
@@ -283,8 +284,8 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
         context = {
-            'user': f'{first_name}{last_name}',
-            'user_temp_password': user.set_password
+            'user': f'{first_name} {last_name}',
+            'user_temp_password': user.password
         }
 
         # send email to the user

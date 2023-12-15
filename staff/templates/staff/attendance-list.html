@@ -34,9 +34,10 @@
               <li>
                 <a href="{% url 'staff:attendance' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Attendance </a>
               </li>
-              <li>
+            {% comment %}   <li>
                 <a href="{% url 'staff:assigned-management' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Attendance </a>
-              </li>
+              for pt in p:
+              </li> {% endcomment %}
               {% if request.user.is_organizer %}
               <li>
                 <a href="{% url 'staff:management-list' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Management </a>
@@ -94,8 +95,8 @@
                   </div>
                 </td>
                 <td class="px-6 py-4">{{ staff.full_name }}</td>
-                <td class="px-6 py-4">{{ staff.sign_in_time }}</td>
-                <td class="px-6 py-4">{{ staff.sign_out_time }}</td>
+                <td class="px-6 py-4">{{ staff.get_sign_in_time }}</td>
+                <td class="px-6 py-4">{{ staff.get_sign_out_time }}</td>
                 <td class="px-6 py-4">{{ staff.staff_attendance_ref }}</td>
                 <td class="px-6 py-4">{{ staff.date_added  }}</td>
                 <td class="px-6 py-4">{{ staff.organization|title }}</td>

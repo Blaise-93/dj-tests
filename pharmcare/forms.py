@@ -196,6 +196,7 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
     class Meta:
         model = PharmaceuticalCarePlan
         fields = [
+            "user",
             'patients',
           #  'patient_full_name',
             'has_improved',

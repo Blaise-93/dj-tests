@@ -73,6 +73,10 @@ class PharmaceuticalCarePlan(models.Model):
                 print(total)
             return total
 
+    def get_utc_by_date(self):
+        if self.date_created.now() >= 17:
+            return self.date_created.now()
+
     def save(self, *args, **kwargs):
         self.amount = self.get_total()
         return super().save(self, *args, **kwargs)

@@ -833,7 +833,7 @@ class PatientSummaryListView(OrganizerAgentLoginRequiredMixin, DetailView):
                     Q(patient_full_name__icontains=query)
             )\
                 .order_by('id')
-
+            
             # Pagination - of Medication History Page
 
             search = Paginator(patient_pharmcare_summary, 2)

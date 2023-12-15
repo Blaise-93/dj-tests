@@ -36,7 +36,9 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
             </th>
             <th scope="col" class="px-6 py-3">Organization</th>
             <th scope="col" class="px-6 py-3">Sign in date</th>
-            <th scope="col" class="px-6 py-3">Expected Sign in time with Date</th>
+            <th scope="col" class="px-6 py-3">
+              Expected Sign in time with Date in UTC
+            </th>
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
@@ -51,12 +53,12 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
             </td>
 
             <td class="px-6 py-4">{{ object.full_name }}</td>
-            <td class="px-6 py-4">{{ object.sign_in_time }}</td>
-            <td class="px-6 py-4">{{ object.sign_out_time }}</td>
+            <td class="px-6 py-4">{{ object.get_sign_in_time }}</td>
+            <td class="px-6 py-4">{{ object.get_sign_out_time }}</td>
             <td class="px-6 py-4">{{ object.staff_attendance_ref }}</td>
-            <td class="px-6 py-4">{{ object.organization|title  }}</td>
-            <td class="px-6 py-4">{{ object.date_added  }}</td>
-            <td class="px-6 py-4">{{ object.get_west_african_time }}</td>
+            <td class="px-6 py-4">{{ object.organization|title }}</td>
+            <td class="px-6 py-4">{{ object.date_added }}</td>
+            <td class="px-6 py-4">{{ object.date_created }} </td>
             <td class="flex items-center px-6 py-4">
               <a
                 href="

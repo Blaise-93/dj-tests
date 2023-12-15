@@ -14,9 +14,10 @@ class AttendanceModelAdmin(admin.ModelAdmin):
     ]
     list_filter = [
           'full_name',
-           'staff_attendance_ref',
     ]
 
+    list_per_page = 10
+    
     search_fields = [
           'full_name',
            'staff_attendance_ref',

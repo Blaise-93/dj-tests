@@ -72,6 +72,22 @@ def bmi(height, weight):
         return bmi
 
 
+def _grettings_in_time_utc(name):
+    hours = datetime.now().hour
+    
+    if hours >=4 and hours < 12:
+        return f'Good morning {name}'
+    
+    elif hours >= 12 and hours < 17:
+        return f'Good afternoon {name}'
+    elif hours >= 17 and hours < 20 :
+        return f'Good evening {name}'
+    else:
+        return f'Good night {name}'
+
+
+print(_grettings_in_time_utc("Blaise"))
+
 def utc_standard_time():
     """ strictly convert wat to utc - my playground
     for date related migration pick-up in our db. :D """
