@@ -22,6 +22,8 @@ class AgentAdmin(admin.ModelAdmin):
          'date_joined',
     ]
     
+    list_per_page = 10
+    
     list_filter = ['first_name', 'email', 'user__username']
 
     search_fields = ['user__username', 'first_name']
@@ -54,6 +56,8 @@ class LeadAdmin(admin.ModelAdmin):
         'category',
         'email',
     ]
+    list_per_page = 10
+    
     list_filter = [
         'first_name',
         'organization',
@@ -74,6 +78,7 @@ class CategoryAdmin(admin.ModelAdmin):
         'organization',
        
     ]
+    list_per_page = 10
     
     list_filter = [
       'name',

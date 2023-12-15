@@ -37,7 +37,7 @@ class Lead(models.Model):
     # related_name => to do relationship modeling
 
     agent = models.ForeignKey(
-        "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pharmacist')
+        "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Agent')
     category = models.ForeignKey("Category", related_name='leads',
                                  on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -54,10 +54,42 @@ class Lead(models.Model):
     slug = models.SlugField()
 
     class Meta:
-        ordering = ['id']
+        ordering = ['id', 'phone_number']
 
     def __str__(self) -> str:
         return f'{self.first_name} {self.last_name}'
+    
+    def get_email(self):
+        if self.email is not None:
+            return self.email
+        return 'No email provided'
+    
+    def get_phone_number(self):
+        if self.phone_number:
+            return self.phone_number
+        return 'No phone number provided'
+    
+    def get_description(self):
+        if self.description:
+            return self.description
+        return 'No description provided'
+    
+    def get_social_media_account(self):
+        if self.social_media_accounts:
+            return self.social_media_accounts
+        return 'social account not provided'
+    
+    def get_file(self):
+        if self.files:
+            return self.files
+        return 'File not provided'
+    
+    def get_address(self):
+        if self.address:       
+            return self.address
+        return 'Address not provided'
+    
+    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 
@@ -102,6 +134,18 @@ class Agent(models.Model):
 
     def __str__(self) -> str:
         return self.user.username
+    
+    def get_email(self) :
+        if self.email is not None:
+            return self.email
+        return 'Not email provided'
+    
+    def get_full_name(self) :
+        if self.email is not None:
+            return f'{self.first_name} {self.last_name}'
+        return 'Not yet provided'
+    
+    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 

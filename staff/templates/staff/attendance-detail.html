@@ -1,0 +1,83 @@
+{% extends 'base.html' %} {% load static %} {% block content %} {% comment %}
+https://flowbite.com/docs/components/tables/ {% endcomment %}
+
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+  <div class="container px-5 py-24 mx-auto">
+    <div
+      class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
+    >
+      <div>
+        <h1 class="text-3xl text-gray-800">Management (Branch) Information</h1>
+      </div>
+      <div class="text-gray-500 hover:text-blue-500">
+        <a href="{% url 'staff:attendance-create' %}"
+          >Go to the Staff Attendance Create Page</a
+        >
+      </div>
+    </div>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr class="hover:text-gray-600">
+            <th scope="col" class="p-4">
+              <div class="flex items-center">
+                <span>S/N</span>
+              </div>
+            </th>
+            <th scope="col" class="px-6 py-3">Full name</th>
+            <th scope="col" class="px-6 py-3">Sign in time</th>
+            <th scope="col" class="px-6 py-3">Sign out time</th>
+            <th scope="col" class="px-6 py-3">
+              staff daily unique attendance ref
+            </th>
+            <th scope="col" class="px-6 py-3">Organization</th>
+            <th scope="col" class="px-6 py-3">Sign in date</th>
+            <th scope="col" class="px-6 py-3">
+              Expected Sign in time with Date in UTC
+            </th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                <span>{{object.id }}</span>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">{{ object.full_name }}</td>
+            <td class="px-6 py-4">{{ object.get_sign_in_time }}</td>
+            <td class="px-6 py-4">{{ object.get_sign_out_time }}</td>
+            <td class="px-6 py-4">{{ object.staff_attendance_ref }}</td>
+            <td class="px-6 py-4">{{ object.organization|title }}</td>
+            <td class="px-6 py-4">{{ object.date_added }}</td>
+            <td class="px-6 py-4">{{ object.date_created }} </td>
+            <td class="flex items-center px-6 py-4">
+              <a
+                href="
+                {% url 'staff:attendance-update' object.slug %}
+                "
+                class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                >Edit</a
+              >
+              <a
+                href=" {% url 'staff:attendance-delete' object.slug %}"
+                class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
+                >Remove</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+  <div class="container px-5 py-24 mx-auto">
+    <div
+      class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
+    >
+      <div>
+        <h1 class="text-2xl text-gray-800">
+          Patient Pharmaceutical Care Summary
+        </h1>
+      </div>
+      <div class="text-gray-500 hover:text-blue-500">
+        <a href="{% url 'pharmcare:patients-create' %}"
+          >Go to Patient Summary Create Page</a
+        >
+      </div>
+    </div>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr class="hover:text-gray-600">
+            <th scope="col" class="p-4">
+              <div class="flex items-center">
+                <span>S/N</span>
+              </div>
+            </th>
+            <th scope="col" class="px-6 py-3">Full name</th>
+            <th scope="col" class="px-6 py-3">Patient unique code</th>
+            <th scope="col" class="px-6 py-3">Has improved</th>
+            <th scope="col" class="px-6 py-3">Progress note</th>
+            <th scope="col" class="px-6 py-3">Medication changes</th>
+            {% comment %}
+            <th scope="col" class="px-6 py-3">Patients</th>
+            {% endcomment %}
+            <th scope="col" class="px-6 py-3">Analysis of clinical problem</th>
+            <th scope="col" class="px-6 py-3">Monitoring plan</th>
+            <th scope="col" class="px-6 py-3">Follow up plan</th>
+            <th scope="col" class="px-6 py-3">Total</th>
+            <th scope="col" class="px-6 py-3">Date created</th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                <span>{{forloop.counter}}</span>
+              </div>
+            </td>
+            {% for pt in patient_qs.patients.all %}
+            <td class="px-6 py-4">{{ pt.get_full_name }}</td>
+            {% endfor %} {% comment %}
+            <td class="px-6 py-4">{{ patient_qs.fullname }}</td>
+            {% endcomment %}
+            <td class="px-6 py-4">{{ patient_qs.patient_unique_code }}</td>
+            <td class="px-6 py-4">{{ patient_qs.has_improved }}</td>
+            <td class="px-6 py-4">{{ patient_qs.progress_note }}</td>
+            <td class="px-6 py-4">{{ patient_qs.medication_changes }}</td>
+
+            <td class="px-6 py-4">
+              {{ patient_qs.analysis_of_clinical_problem }}
+            </td>
+            <td class="px-6 py-4">{{ patient_qs.monitoring_plan }}</td>
+            <td class="px-6 py-4">{{ patient_qs.follow_up_plan }}</td>
+            <td class="px-6 py-4">{{ patient_qs.total_payment }}</td>
+            <td class="px-6 py-4">{{ patient_qs.date_created }} in UTC+0</td>
+
+            <td class="flex items-center px-6 py-4">
+              <a
+                href="{% url 'pharmcare:patients-update' patient_qs.pk %}"
+                class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                >Edit</a
+              >
+              <a
+                href=" {% url 'pharmcare:patients-delete' patient_qs.pk %}"
+                class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
+                >Remove</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

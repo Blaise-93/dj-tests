@@ -1,6 +1,7 @@
 {% extends "base.html" %} {% block content %}
 {% load static %}
 
+{% comment %} JUMBOTRON ALERT SECTION {% endcomment %}
 <section
   class="bg-white
   
@@ -55,6 +56,13 @@
   ></div>
 </section>
 
+{% comment %} HERO SECTION {% endcomment %}
+  <div
+    class="max-w-screen-xl text-center z-10 relative"
+  >
+    {% include  'leads/snippets/landing-page-plugins/hero.html'%}
+  </div>
+</div>
 {% comment %} TEAM SECTION {% endcomment %}
 
 <section class="text-gray-600 body-font">

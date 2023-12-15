@@ -1,76 +1,74 @@
-{% extends "base.html" %} {% block content %}
+  {% extends 'base.html' %} {% load static %} {% block content %} 
 
-<section class="text-gray-600 body-font overflow-hidden">
-    <div class="container px-5 py-24 mx-auto">
-      <div class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between 
-      items-center ">
+<section class="text-gray-600 body-font overflow-hidden mt-0">
+  <div class="container px-5 py-24 mx-auto">
+    <div
+      class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
+    >
       <div>
-      <h1 class="text-3xl text-gray-800">Agents</h1>
+        <h1 class="text-3xl text-gray-800">Agent Information</h1>
       </div>
       <div class="text-gray-500 hover:text-blue-500">
-      <a href="{% url 'agents:agent-create' %}">Go to Lead Create Page</a>
-
-  </div>
-  </div>
-    <div class="lg:w-4/5 mx-auto flex flex-wrap">
-      <div class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
-        <h2 class="text-sm title-font text-gray-500 tracking-widest">
-          <i class="text-gray-400">agent</i>
-        </h2>
-        <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">
-          Detailed page of {{ agent.first_name }} {{ agent.last_name }} agent
-        </h1>
-        <div class="flex mb-4">
-          <a href="{% url "agents:agent-detail" agent.slug %}"
-            class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
-            >Overview</a
-          >
-          <a class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1"
-            >Reviews</a
-          >
-          <a href="{% url "agents:agent-update" agent.slug %}" 
-          class="flex-grow text-blue-500 border-b-2 border-indigo-500 py-2 text-lg px-1"
-            >Update Detail</a
-          >
-        </div>
-        <p class="leading-relaxed mb-4">
-          Your lead details about the customer.
-        </p>
-        <div class="flex border-t border-gray-200 py-2">
-          <span class="text-gray-500">Name</span>
-          <span class="ml-auto text-gray-900">{{ agent.user.username }}</span>
-        </div>
-        <div class="flex border-t border-b mb-6 border-gray-200 py-2">
-          <span class="text-gray-500">Email</span>
-          <span class="ml-auto text-gray-900">{{ agent.user.email }}</span>
-        </div>
-  
-        <div class="flex">
-          <a  href="{% url "agents:agent-update" agent.slug %}" 
-          class="flex mr-auto text-white bg-blue-500 border-0 py-2 px-6 
-          focus:outline-none hover:bg-indigo-500 rounded
-          
-            
-          "
-            >Update Agent </a 
-          >
-          <a href="{% url 'agents:agent-delete' agent.slug %}"
-            class="flex ml-auto text-white bg-blue-500 border-0 py-2 px-6 
-            focus:outline-none hover:bg-red-600 rounded-md"
-          >
-            Delete Agent
-          </a >
-        </div>
+        <a href="{% url 'agents:agent-create' %}">Go to Agent Create Page</a>
+         
       </div>
-      <img
-        alt="ecommerce"
-        class="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
-        src="https://dummyimage.com/400x400"
-      />
+    </div>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <table
+        class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+      >
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr class="hover:text-gray-600">
+            <th scope="col" class="p-4">
+              <div class="flex items-center">
+                <span>S/N</span>
+              </div>
+            </th>
+         
+            <th scope="col" class="px-6 py-3">Agent Username</th>
+            <th scope="col" class="px-6 py-3">Full name</th>
+            <th scope="col" class="px-6 py-3">Email</th>
+            <th scope="col" class="px-6 py-3">Organization</th>
+            <th scope="col" class="px-6 py-3">Slug</th>
+            <th scope="col" class="px-6 py-3">Date created</th>
+            <th scope="col" class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
+            hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                <span>{{forloop.counter }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">{{ agent.user.username }}</td>
+            <td class="px-6 py-4">{{ agent.get_full_name }}</td>
+            <td class="px-6 py-4">{{ agent.get_email }}</td>
+            <td class="px-6 py-4">{{ agent.organization }}</td>
+            <td class="px-6 py-4">{{ agent.slug }}</td>
+            <td class="px-6 py-4">{{ agent.date_joined }}</td>
+            <td class="flex items-center px-6 py-4">
+              <a
+                href="{%  url "agents:agent-update" agent.slug %}"
+                class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                >Edit</a
+              >
+              <a
+                 href="{%  url "agents:agent-delete" agent.slug %}"
+                class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Delete</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
 
+{% endblock content %}
 
-  {% endblock content %}
 

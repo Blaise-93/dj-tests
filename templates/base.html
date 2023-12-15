@@ -8,6 +8,7 @@
     <link href="{% static 'css/main.css' %}" rel="stylesheet" />
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet" />
     <link href="{% static 'styles.css' %}" rel="stylesheet" />
+
     <link
       href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
       rel="stylesheet"
@@ -17,6 +18,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css"
       rel="stylesheet"
     />
+
+    <script src="//unpkg.com/alpinejs" defer></script>
 
     {% comment %} {% compress css %} <link rel="stylesheet" href="{% static
     "css/tailwind.css" %}"> {% endcompress %} {% endcomment %}{% comment %} {%
@@ -50,5 +53,10 @@
 
     {% block extra_scripts %} {% endblock extra_scripts %} {% include 'scripts.html' %}
     <script src="{% static  'js/main.js' %}"></script>
+    <script src="{% static  'js/chat.js' %}"></script>
+     <section class="">
+      <div class="max-w-screen-xl lg:py-3 z-10 relative">
+      
+     
   </body>
 </html>

@@ -5,22 +5,47 @@ from django.views import generic
 from leads.models import Agent
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.template.loader import render_to_string
 from utils import password_setter, files
+from django.db.models import Q
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
+
 
 class AgentListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
     template_name = 'agents/agent-list.html'
     context_object_name = 'agents'
 
     def get_queryset(self):
+        query = self.request.GET.get('q', '')
         user_userprofile = self.request.user.userprofile
-       
 
         # filter by request user organization - so that each won't see or
         # have access to every agent in other organization
         # except their respective organization
-        return Agent.objects.filter(organization=user_userprofile)
+        queryset = Agent.objects.filter(organization=user_userprofile).\
+            filter(
+            Q(first_name__icontains=query) |
+            Q(user__username__icontains=query)
+        )
+        print(queryset)
+
+        # Pagination - Paginate the Agent list
+        search = Paginator(queryset, 10)
+
+        page = self.request.GET.get('page')
+
+        try:
+            self.queryset = search.get_page(page)
+
+        except PageNotAnInteger:
+            self.queryset = search.get_page(1)
+
+        except EmptyPage:
+            self.queryset = search.get_page(search.num_pages)
+
+        return self.queryset
 
 
 class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
@@ -47,10 +72,18 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             user=user,
             organization=self.request.user.userprofile
         )
-        
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        context = {
+            'user': f'{first_name}{last_name}',
+            'user_temp_password': user.set_password
+        }
+
+        # send email to the user
+
         send_mail(
-            subject='You are invited to be an agent in our organization',
-            message=files('agents/mails/agent-request-mail.txt'),
+            subject='Daily Attendance Registrar',
+            message=render_to_string('staff/attendance-invite.html', context),
             from_email="tests@blaise.com",
             recipient_list=[email, ]
         )
@@ -97,6 +130,3 @@ class AgentDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         return reverse("leads:home-page")
-
-
-""" Two types of users - Organizer (main superuser) and agent  """

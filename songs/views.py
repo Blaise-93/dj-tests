@@ -22,15 +22,12 @@ def navigation(request):
 class FooterView(LoginRequiredMixin, generic.CreateView):
     template_name = 'songs/footer.html'
     form_class = SubscribedModelForm
-    model = SubscribedUsers
-    
-
-       
+    model = SubscribedUsers       
 
     def form_valid(self, form):
         email = form.cleaned_data['email']
         send_mail(
-            subject="Newsletter SUbscription",
+            subject="Newsletter Subscription",
             message=files('songs/mails/subscription.txt'),
             from_email='blaise@gmail.com',
             recipient_list=[email, ],
@@ -39,7 +36,7 @@ class FooterView(LoginRequiredMixin, generic.CreateView):
         return super(FooterView, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('leads:home-page')
+        return reverse('landing-page')
 
 
 def newsletter(request):

@@ -1,0 +1,75 @@
+<nav aria-label="Page navigation of Lead">
+    <ul class="inline-flex -space-x-px text-base h-10">
+      {% if leads.has_previous %}
+      <li>
+        <a
+          href="?page={{  leads.previous_page_number }}"
+          class="flex items-center justify-center px-4 h-10 ms-0 leading-tight 
+          text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 
+          hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 
+          dark:hover:bg-gray-700 dark:hover:text-white"
+          >Previous</a
+        >
+      </li>
+      {% endif %}
+      <li>
+        <a
+          href="?page=1"
+          aria-label="first page"
+          class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500
+           bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 
+           dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 
+           dark:hover:bg-gray-700 dark:hover:text-white"
+          >1</a
+        >
+      </li>
+      {% comment %} Current pagination count {% endcomment %}
+      <li>
+        <span
+          class="current px-4 py-2 text-gray-700 flex items-center
+           justify-center px-4 h-10 leading-tight text-gray-500 bg-white 
+           border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800
+            dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+          aria-label="number of current page"
+        >
+          Page {{  leads.number }} of {{  leads.paginator.num_pages }}
+        </span>
+      </li>
+      <li>
+        {% if  leads.has_next %}
+        <a
+          href="?page={{  leads.next_page_number }}"
+          aria-label="next page"
+          class="flex items-center justify-center px-4 h-10 leading-tight 
+          text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 
+          hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 
+          dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+          >Next</a
+        >
+      </li>
+  
+      <li>
+        <a
+          href="?page={{  leads.paginator.num_pages }}" 
+          aria-label="last page"
+          class="flex items-center justify-center px-4 h-10 leading-tight
+           text-gray-500 bg-white border border-gray-300 rounded-e-lg 
+           hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 
+           dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700
+            dark:hover:text-white"
+          >Last</a
+        >
+      </li>
+      <li>
+        <span
+         
+          aria-label="last page"
+          class="flex items-center pl-2 pt-2 justify-center  
+          "
+          >{{ leads.paginator.count }} Analysis of Clincal Problem</span
+        >
+      </li>
+    </ul>
+    {% endif %}
+  </nav>
+  

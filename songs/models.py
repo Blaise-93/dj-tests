@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.auth.models import AbstractUser
 
@@ -12,7 +12,10 @@ class User(AbstractUser):
     their respective tasks in our organization. """
     is_organizer = models.BooleanField(default=True, verbose_name="is an organizer?")
     is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
-    is_pharmacist = models.BooleanField(default=False, verbose_name="is pharmacist?") 
+    is_pharmacist = models.BooleanField(default=False, verbose_name=" a pharmacist?") 
+    is_management = models.BooleanField(default=False, verbose_name="is the management?") 
+    phone_number = models.CharField(max_length=15, validators=[MinValueValidator("010100000"),
+                                                               MaxValueValidator("099910000")])
 
 
 
