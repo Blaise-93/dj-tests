@@ -59,7 +59,6 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
 
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
-    paginate_by = 10
     ordering = 'id'
 
     def get_queryset(self):
@@ -241,15 +240,14 @@ class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
 
 class CategoryListView(LoginRequiredMixin, generic.ListView):
     template_name = 'leads/category-list.html'
-    paginate_by = 10
     context_object_name = 'category_list'
     ordering = 'id'
 
     def get_queryset(self):
         # login in user - an organizer?
+        query = self.request.GET.get('q', '')
         user = self.request.user
         
-        query = self.request.GET.get('q', '')
         # initial queryset of leads for the organization
         if user.is_organizer:
             queryset = Category.objects.filter(

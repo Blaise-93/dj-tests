@@ -49,6 +49,9 @@ from .views import (
     ProgressNoteDetailView,
     ProgressNoteUpdateView,
     ProgressNoteDeleteView,
+    
+    PatientListView,
+    PatientCreateView
 )
 app_name = 'pharmcare'
 
@@ -59,7 +62,8 @@ urlpatterns = [
     path('', PatientDetailListView.as_view(), name='patient'),
     path('medication-history/', MedicationHistoryListView.as_view(),
          name='medication-history'),
-    path('patient-list', PatientSummaryListView.as_view(), name='patients'),
+    path('patient-info/', PatientListView.as_view(), name='patient-info'),
+    path('patient-list/', PatientSummaryListView.as_view(), name='patients'),
     path('medication-changes/', MedicationChangesListView.as_view(),
          name='medication-changes'),
     path('analysis-of-clincal-problem/',
@@ -72,6 +76,7 @@ urlpatterns = [
 
     # pharmcare create uris
     path('patient-create/', PatientDetailCreateView.as_view(), name='patient-create'),
+    path('patient-info-create/', PatientCreateView.as_view(), name='patients-info-create'),
     path('medication-history-create/', MedicationHistoryCreateView.as_view(),
          name='medication-history-create'),
     path('patients-create/',  PatientSummaryCreateView.as_view(),

@@ -300,9 +300,8 @@ class PharmaceuticalPlanModelAdmin(admin.ModelAdmin):
 
     list_filter = [
         'user__username',
-        'patient_unique_code',
+        'patient_unique_code', 
         'has_improved',
-        'progress_note',
     ]
 
     search_fields = [

@@ -35,7 +35,7 @@ class PatientDetailForm(forms.ModelForm):
             'age': ' Enter your patient\'s age',
             'height': "Enter your patient's height in (feet)",
             'weight': "Enter your patient's weight in (kg)",
-         #   'BMI': " Enter your patient\'s BMI",
+            #   'BMI': " Enter your patient\'s BMI",
             'patient_history':  "Enter your patient's medical history",
             'past_medical_history': "Enter your patient's past medical history",
             'social_history': 'Enter the social history of your patient if any',
@@ -59,19 +59,6 @@ class MedicationHistoryForm(forms.ModelForm):
             'medication_list': " Enter your patient's medication list",
             'indication_and_evidence': "Enter your patient's indication"
         }
-
-
-class PatientModelForm(forms.ModelForm):
-    """ class that handles the patient form input and submission in our db made by our pharmacist.  """
-    class Meta:
-        model = Patient
-        fields = [
-            'medical_charge',
-            'notes',
-            'patient',
-            'medical_history',
-            'total',
-        ]
 
         labels = {
             'medical_charge': "Enter medical charge",
@@ -112,7 +99,7 @@ class MedicationChangesForm(forms.ModelForm):
             'route',
             'indication',
             'stop_date',
-            
+
         ]
 
         labels = {
@@ -172,7 +159,7 @@ class FollowUpPlanForm(forms.ModelForm):
         model = FollowUpPlan
 
         fields = [
-     
+
             'follow_up_requirement',
             'action_taken_and_future_plan',
             'state_of_improvement_by_score',
@@ -192,6 +179,22 @@ class FollowUpPlanForm(forms.ModelForm):
             'error': f"Kindly input the patient fields, Pharm."
         }
         
+class PatientModelForm(forms.ModelForm):
+    """ class that handles the patient form input and submission in our db made by our pharmacist.  """
+    class Meta:
+        model = Patient
+        fields = [
+            'medical_charge',
+            'notes', 
+            'leads',
+            'pharmacist' ,
+            'user',
+            'patient',
+            'medical_history',
+           # 'total',
+        ]
+
+
 class PharmaceuticalCarePlanModelForm(forms.ModelForm):
     class Meta:
         model = PharmaceuticalCarePlan
@@ -199,7 +202,7 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
             "user",
             'patients',
             'has_improved',
-            'progress_note', 
+            'progress_note',
             'medication_changes',
             'pharmacist',
             'analysis_of_clinical_problem',
@@ -207,4 +210,3 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
             'follow_up_plan',
             'discount'
         ]
-        

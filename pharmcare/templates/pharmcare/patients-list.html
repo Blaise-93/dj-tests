@@ -12,26 +12,26 @@
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
 
-  <div class="hero pt-5 px-5 ">{% include "pharmcare/snippets/search-patients.html" %}</div>
+  <div class="hero pt-5 px-5 ">{% include "pharmcare/snippets/search-patient.html" %}</div>
   <div class="container px-5 py-20 mx-auto">
     <div
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
 
     <div>
-        <h1 class="text-3xl text-gray-800">Patient's Information</h1>
+        <h1 class="text-3xl text-gray-800">Patient's Account Information</h1>
       </div>
 
         {% if request.user.is_organizer or request.user.is_agent %}
         <div class="text-gray-500 hover:text-blue-500">
-          <a href="{% url 'pharmcare:patients-info-create' %}">Go to Patient's Create Page</a> 
+          <a href="{% url 'pharmcare:patients-create' %}">Go to Patient's Create Page</a> 
         </div>
         {% endif %}
       </div>
       </div>
       
       <div class="flex flex-wrap m-4 pb-3">
-    {% if patient_info|length == 0 %} 
+    {% if patient_list|length == 0 %} 
           <p class="px-4 w-full text-2xl text-blue-800">
             Apologies, there is currently no patients with such 
             search you entered in our database. Kindly input a correct 
@@ -53,21 +53,24 @@
                   </div>
                 </th>
 
-                <th scope="col" class="px-6 py-3">Medical Charge</th>
-                <th scope="col" class="px-6 py-3">Notes</th>
-                <th scope="col" class="px-6 py-3">Leads</th>
-                <th scope="col" class="px-6 py-3">Patient
+                <th scope="col" class="px-6 py-3">Full name</th>
+                <th scope="col" class="px-6 py-3">Patient unique code</th>
+                <th scope="col" class="px-6 py-3">Has improved</th>
+                <th scope="col" class="px-6 py-3">Progress note</th>
+                <th scope="col" class="px-6 py-3">Medication changes</th>
+                <th scope="col" class="px-6 py-3">Patients
                  </th>
-                <th scope="col" class="px-6 py-3">Medical History</th>
+                <th scope="col" class="px-6 py-3">Analysis of clinical problem</th>
+                <th scope="col" class="px-6 py-3">Monitoring plan</th>
+                <th scope="col" class="px-6 py-3">Follow up plan</th>
                 <th scope="col" class="px-6 py-3">Total</th>
-                <th scope="col" class="px-6 py-3">Date Created</th>
+                <th scope="col" class="px-6 py-3">Date created</th>
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
            
-           
             <tbody>
-             {% for patient_qs in patient_info %}
+             {% for patient_qs in patient_list %}
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -78,27 +81,32 @@
                       <span>{{forloop.counter }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-4">₦{{ patient_qs.medical_charges }}</td>
-                  <td class="px-6 py-4">{{ patient_qs.notes }}</td>
-
-                  <td class="px-6 py-4">{{ patient_qs.patient }}</td>
-                  <td class="px-6 py-4">{{ patient_qs.medical_history}}</td>
-                  <td class="px-6 py-4">{{ patient_qs.total }}</td>
-            {% comment %}     {% for pt in patient_qs.patients.all %} 
+                  
+                  <td class="px-6 py-4">{{ patient_qs.fullname }}</td>
+                  <td class="px-6 py-4">{{ patient_qs.patient_unique_code }}</td>
+                  <td class="px-6 py-4">{{ patient_qs.has_improved }}</td>
+                  <td class="px-6 py-4">{{ patient_qs.progress_note }}</td>
+                  <td class="px-6 py-4">{{ patient_qs.medication_changes }}</td>
+                {% for pt in patient_qs.patients.all %} 
                   <td class="px-6 py-4">{{ pt.get_full_name }}</td>
-                {% endfor %} {% endcomment %}
-            
+                {% endfor %}
+                  <td class="px-6 py-4">{{ patient_qs.analysis_of_clinical_problem }}</td>
+                  <td class="px-6 py-4"> {{ patient_qs.monitoring_plan }} </td>
+                  <td class="px-6 py-4"> {{ patient_qs.follow_up_plan }} </td>
+                  {% for pt in patient_qs.patients.all %}
+                  <td class="px-6 py-4">₦{{ patient_qs.get_total }}</td>
+                  {%endfor %}
                   <td class="px-6 py-4"> {{ patient_qs.date_created }} in UTC </td>
             
                   <td class="flex items-center px-6 py-4">
-                    {% comment %} <a
+                    <a
                       href="
                       {% url "pharmcare:patients-detail" patient_qs.pk %} 
                           
-                      " {% endcomment %}
-                    {% comment %}   class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                      "
+                      class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                       >For Further Details</a
-                    > {% endcomment %}
+                    >
                   </td>
             </tr>
             </tbody>
@@ -109,7 +117,7 @@
      </div>
  
         
-      <div class="py-4"> {% include 'pharmcare/snippets/paginate-patient.html' %}</div>
+      <div class="py-4"> {% include 'pharmcare/snippets/paginate-patients.html' %}</div>
          {% endif %}
  </section>
   

@@ -30,7 +30,7 @@ class PharmaceuticalCarePlan(models.Model):
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
 
     has_improved = models.BooleanField(default=False,
-                    verbose_name="has improved (tick good, if yes, otherwise don't.)")
+                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
@@ -46,21 +46,22 @@ class PharmaceuticalCarePlan(models.Model):
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
     total_payment = models.PositiveBigIntegerField(null=True, blank=True)
     discount = models\
-             .PositiveBigIntegerField(null=True, blank=True,
-                 help_text="discount given to patient,\
+        .PositiveBigIntegerField(null=True, blank=True,
+                                 help_text="discount given to patient,\
             perhaps due to his/her consistent loyalty, if any.")
 
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.monitoring_plan.frequency
-    
+
     def get_pharmcare_absolute_url(self):
-         reverse("pharmcare:patients-detail", 
-                       kwargs={"pk": self.pk})
-    
+        reverse("pharmcare:patients-detail",
+                kwargs={"pk": self.pk})
+
     def get_total(self) -> int:
-        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(id=self.pk)
+        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+            id=self.pk)
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
         for patient_list in patient_pharmcare_summary:
@@ -78,7 +79,7 @@ class PharmaceuticalCarePlan(models.Model):
             return self.date_created.now()
 
     def save(self, *args, **kwargs):
-        self.amount = self.get_total()
+        self.total_payment = self.get_total()
         return super().save(self, *args, **kwargs)
 
     def get_patient_fullname(self, request, slug):
@@ -124,7 +125,7 @@ class PharmaceuticalCarePlan(models.Model):
 
             self.patient_unique_code = generate_patient_unique_code()
             # self.patient_full_name = self.get_patient_fullname()
-           # self.total_payment = self.get_total()
+            self.total_payment = self.get_total()
 
         super().save(*args, **kwargs)
 
@@ -180,14 +181,13 @@ class Patient(models.Model):
                                            null=True, verbose_name="Total (auto-add)")
 
     date_created = models.DateTimeField(auto_now_add=True)
-    
 
     class Meta:
         ordering = ['id']
 
     def __str__(self):
         return self.patient.first_name
-    
+
     def get_west_african_time_zone(self):
         """ converts the utc time to West African time for the user 
         on the frontend - however, the admin panel still maintained 
@@ -219,7 +219,6 @@ class Patient(models.Model):
         super().save(self, *args, **kwargs)
 
     def sum_number(acc, total): return acc + total  # sum numbers fn
-   
     """  def get_cummulative(self):
         cumm_total = reduce(self.sum_number, self.get_total_charge())
         print(cumm_total)
@@ -289,10 +288,11 @@ class PatientDetail(models.Model):
     pharmacist = models.ForeignKey(
         Agent, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
-    organization = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, null=True, blank=True)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
-    height = models.IntegerField(null=True, blank=True, editable=True,
+    height = models.FloatField(null=True, blank=True, editable=True,
                                  help_text="must be provided in ft",
                                  error_messages="Kindly provide the patient's")
     weight = models.IntegerField(null=True, blank=True,
@@ -306,8 +306,11 @@ class PatientDetail(models.Model):
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
     social_history = models.CharField(
         max_length=250, editable=True, null=True, blank=True)
-    slug = models.SlugField()
+    slug = models.SlugField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
+
+    """ django.db.utils.IntegrityError: NOT NULL constraint failed: pharmcare_patientdetail.organization_id
+HTTP POST /admin/pharmcare/patientdetail/add/ 500 [0.17, 127.0.0.1:52111] """
 
     class Meta:
         ordering = ['first_name']
@@ -419,6 +422,10 @@ class ProgressNote(models.Model):
         lagos_time = date_time + timedelta(hours=2)
         print(lagos_time)
         return lagos_time
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(*args, **kwargs)
 
 
 class MedicationChanges(models.Model):
@@ -440,6 +447,10 @@ class MedicationChanges(models.Model):
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
+    
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(*args, **kwargs)
 
 
 class MonitoringPlan(models.Model):
@@ -459,7 +470,10 @@ class MonitoringPlan(models.Model):
 
     def __str__(self) -> str:
         return self.parameter_used
-
+      
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(*args, **kwargs)
 
 class AnalysisOfClinicalProblem(models.Model):
     """ Analysis of clinical Problem is a model class schema that handles 
@@ -485,6 +499,10 @@ class AnalysisOfClinicalProblem(models.Model):
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
+      
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(*args, **kwargs)
 
 
 class FollowUpPlan(models.Model):
@@ -518,7 +536,11 @@ class FollowUpPlan(models.Model):
         return f'''
             state of improvement by score is
             {self.state_of_improvement_by_score}
+            
         '''
+    def save(self, *args, **kwargs):
+        self.slug = slug_modifier()
+        super().save(*args, **kwargs)
 
 
 class Team(models.Model):

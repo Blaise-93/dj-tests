@@ -36,11 +36,17 @@
                   <li>
                     <a href="{% url 'pharmcare:patient' %} " class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
                     dark:hover:text-white">Patient Details</a>
+                  </li> 
+                  <li>
+                    <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                    dark:hover:text-white">Medication History</a>
                   </li>
                   <li>
-                      <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
-                      dark:hover:text-white">Medication History</a>
-                    </li>
+                    <a href="{% url 'pharmcare:patient-info' %} " class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                    dark:hover:text-white">Patient</a>
+                  </li> 
+
+  
                     <li>
                       <a href="{% url 'pharmcare:medication-changes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
                       dark:hover:text-white">Medication Changes</a>

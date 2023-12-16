@@ -77,7 +77,7 @@ class Lead(models.Model):
     def get_social_media_account(self):
         if self.social_media_accounts:
             return self.social_media_accounts
-        return 'social account not provided'
+        return 'Social account not provided'
     
     def get_file(self):
         if self.files:

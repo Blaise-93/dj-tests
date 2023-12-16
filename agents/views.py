@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.loader import render_to_string
-from utils import password_setter, files
+from utils import password_setter
 from django.db.models import Q
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
