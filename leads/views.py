@@ -86,7 +86,8 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
             Q( social_media_accounts__icontains=query) 
             
         )
-          
+        for i in queryset:
+            print(i.email)
         print(queryset)
         
         # Pagination - Paginate the Lead

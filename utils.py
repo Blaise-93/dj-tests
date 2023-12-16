@@ -72,7 +72,8 @@ def bmi(height, weight):
         return bmi
 
 
-def _grettings_in_time_utc(name):
+def _greetings_in_time_utc(name) -> str:
+    """ A helper function that greet a user after a specific task is done (in utc+0). """
     hours = datetime.now().hour
     
     if hours >=4 and hours < 12:
@@ -86,7 +87,7 @@ def _grettings_in_time_utc(name):
         return f'Good night {name}'
 
 
-print(_grettings_in_time_utc("Blaise"))
+print(_greetings_in_time_utc("Blaise"))
 
 def utc_standard_time():
     """ strictly convert wat to utc - my playground
@@ -94,4 +95,22 @@ def utc_standard_time():
     return datetime.now() - timedelta(hours=1)
 
 
+
+def time_in_hr_min():
+    " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
+    when a staff wants to update his/her record."
+    hr = datetime.now().hour   
+    timezone = datetime.now() 
+    
+    if hr >=0 and hr < 12:
+        time_in_hr_and_min = str(timezone.time())[0:5]
+        return f'{time_in_hr_and_min } AM'
+    
+    time_in_hr_and_min = str(timezone.time())[0:5]
+    
+    return f"{time_in_hr_and_min} PM"
+
 # print(utc_standard_time())
+
+
+# print(time_in_hr_min())

@@ -1,9 +1,11 @@
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from utils import password_setter
+from utils import password_setter, utc_standard_time, time_in_hr_min
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from agents.mixins import OrganizerManagementLoginRequiredMixin, OrgnizerAndLoginRequiredMixin
 from .models import Management, Attendance
@@ -112,10 +114,17 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
         management.save()
 
         # create the mgmt from the form we saved
-        """  Attendance.objects.create(
-            organization=self.request.user.userprofile
-        ) 
-        """
+        username = form.cleaned_data['username']
+        email = form.cleaned_data.get('email')
+        context = {
+            'user': username,
+        }
+        send_mail(
+            subject='Invitation By the Management',
+            message=render_to_string('staff/attendance-invite.html', context),
+            from_email="tests@blaise.com",
+            recipient_list=[email, ]
+        )
 
         # fetch user email from already validated form
         messages.info(self.request, "Your attendance was created successfully")
@@ -158,6 +167,14 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
 
     def get_success_url(self):
         return reverse('staff:attendance')
+    
+    def form_valid(self, form: BaseModelForm):
+        """ create expected time of sign out in case the staff """
+        attendance = form.save(commit=False)
+        attendance.date_sign_out_time = time_in_hr_min()
+     
+        attendance.save()
+        return super(AttendanceUpdateView, self).form_valid(form)
 
     def get_queryset(self):
         user = self.request.user
@@ -281,11 +298,10 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             organization=self.request.user.userprofile
         )
 
-        first_name = form.cleaned_data['first_name']
-        last_name = form.cleaned_data['last_name']
+        username= form.cleaned_data['username']
+   
         context = {
-            'user': f'{first_name} {last_name}',
-            'user_temp_password': user.password
+            'user': username,
         }
 
         # send email to the user

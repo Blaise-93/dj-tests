@@ -10,6 +10,7 @@ class AttendanceModelAdmin(admin.ModelAdmin):
             'staff_attendance_ref',
             'organization' ,
             'management', 
+            'date_sign_out_time',
             'date_created'
     ]
     list_filter = [
