@@ -1,13 +1,13 @@
 from typing import Any
 from django.urls import reverse
-from django.conf import settings 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pharmcare.models import Team
 from .models import Lead, Category
-from django.core.paginator import  Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from .forms import (LeadModelForm,
                     CategoryModelForm,
@@ -45,8 +45,6 @@ class LandingPageView(generic.TemplateView):
             'teams': team
         }
         return render(self.request, self.template_name, context)
-
-# Leads
 
 
 class LeadsListView(LoginRequiredMixin, generic.ListView):

@@ -49,7 +49,7 @@ def error_403(request, exception):
     Handles HTTP 403 errors - the server understood the request,
     but it is forbidden
     """
-    return render(request, 'snippets/500-page.html', status=403)
+    return render(request, 'snippets/403-page.html', status=403)
 
 
 
