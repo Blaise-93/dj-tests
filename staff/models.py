@@ -136,7 +136,7 @@ class Management(models.Model):
     phone_number = models.CharField(max_length=12,
                                     validators=[MinValueValidator("010100000"),
                                                 MaxValueValidator("099010100000")])
-    email = models.EmailField(max_length=30)
+    email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE, verbose_name='Branch')

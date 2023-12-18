@@ -178,20 +178,19 @@ class FollowUpPlanForm(forms.ModelForm):
         error_messages = {
             'error': f"Kindly input the patient fields, Pharm."
         }
-        
+
+
 class PatientModelForm(forms.ModelForm):
     """ class that handles the patient form input and submission in our db made by our pharmacist.  """
     class Meta:
         model = Patient
         fields = [
             'medical_charge',
-            'notes', 
-            'leads',
-            'pharmacist' ,
-            'user',
+            'notes',     
+            'pharmacist',
             'patient',
             'medical_history',
-           # 'total',
+            # 'total',
         ]
 
 

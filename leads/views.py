@@ -1,14 +1,13 @@
 from typing import Any
-from django.db.models.query import QuerySet
 from django.urls import reverse
-from django.conf import settings
+from django.conf import settings 
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from pharmcare.models import Team
 from .models import Lead, Category
-from django.core.paginator import Page, Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import  Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from .forms import (LeadModelForm,
                     CategoryModelForm,
@@ -40,12 +39,11 @@ class LandingPageView(generic.TemplateView):
 
     def get(self, *args, **kwargs):
         team = Team.objects.all()
-        
+
         context = {
             'WHATSAPP_LINK': settings.WHATSAPP_LINK,
             'teams': team
         }
-    
         return render(self.request, self.template_name, context)
 
 # Leads
@@ -64,34 +62,34 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
-        
+
         query = self.request.GET.get('q', '')
-        
+
         if user.is_organizer:
             queryset = Lead.objects.filter(
                 organization=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization, agent__isnull=False)
-        
+
            # filter agent that is logged in
             queryset = queryset.filter(agent__user=self.request.user)
-          
-        # query the db via filtering the individual fields the 
+
+        # query the db via filtering the individual fields the
         # user is searching for.
         queryset.filter(
             Q(first_name__icontains=query) |
             Q(age__icontains=query) |
-            Q( social_media_accounts__icontains=query) 
-            
+            Q(social_media_accounts__icontains=query)
+
         )
         for i in queryset:
             print(i.email)
         print(queryset)
-        
+
         # Pagination - Paginate the Lead
         search = Paginator(queryset, 10)
-        
+
         page = self.request.GET.get('page')
 
         try:
@@ -212,7 +210,6 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     template_name = 'agents/agent-assigned.html'
     form_class = AgentAssignedForm
-  
 
     def get_form_kwargs(self, **kwargs):
         kwargs = super(AgentAssignedView, self)\
@@ -247,7 +244,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         # login in user - an organizer?
         query = self.request.GET.get('q', '')
         user = self.request.user
-        
+
         # initial queryset of leads for the organization
         if user.is_organizer:
             queryset = Category.objects.filter(
@@ -259,11 +256,11 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
 
         queryset.order_by(self.ordering).filter(
             Q(name__icontains=query)
-         
+
         )
-           # Pagination - Paginate the Lead
+        # Pagination - Paginate the Lead
         search = Paginator(queryset, 10)
-        
+
         page = self.request.GET.get('page')
 
         try:
@@ -274,7 +271,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
 
         except EmptyPage:
             self.queryset = search.get_page(search.num_pages)
-      
+
         return self.queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

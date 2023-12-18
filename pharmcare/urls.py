@@ -51,7 +51,10 @@ from .views import (
     ProgressNoteDeleteView,
     
     PatientListView,
-    PatientCreateView
+    PatientCreateView,
+    PatientUpateView,
+    delete_patient_view,
+    PatientsDetailView
 )
 app_name = 'pharmcare'
 
@@ -94,7 +97,9 @@ urlpatterns = [
 
     # pharmcare detail uris
     
+   
     path('<str:slug>/', PatientDetailView.as_view(), name='patient-detail'),
+     path('patient-info/<int:pk>/', PatientsDetailView.as_view(), name='patients-info-detail'),
     path("medication-changes/<str:slug>/",
          MedicationChangesDetailView.as_view(), name='medication-changes-detail'),
     path('medication-history/<int:pk>/', MedicationHistoryDetailView.as_view(),
@@ -120,6 +125,8 @@ urlpatterns = [
          MedicationHistoryUpdateView.as_view(), name='medication-history-update'),
     path('patient-list/<int:pk>/patients-update/',
          PatientSummaryUpateView.as_view(), name='patients-update'),
+    path('patient-info/<int:pk>/update/',
+        PatientUpateView.as_view(), name='patients-info-update'),
     path("medication-changes/<str:slug>/update/",
          MedicationChangesUpdateView.as_view(), name='medication-changes-update'),
     path("analysis-of-clincal-problem/<str:slug>/update/",
@@ -141,6 +148,7 @@ urlpatterns = [
 
     path('patient-list/<int:pk>/patients-delete/',
          delete_patient_summary, name='patients-delete'),
+    path('patients-info/<int:pk>/delete/', delete_patient_view, name='patient-info-delete'),
 
     path("medication-changes/<str:slug>/delete/",
          MedicationChangesDeleteView.as_view(), name='medication-changes-delete'),

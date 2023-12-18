@@ -3,6 +3,7 @@ from django.db.models.signals import post_save, pre_save
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.views.generic import View
 from django_countries.fields import CountryField
@@ -46,7 +47,7 @@ class Lead(models.Model):
     phoned = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=12)
     description = models.TextField()
-    email = models.EmailField(max_length=100, null=True, blank=True)
+    email = models.EmailField(unique=True, max_length=100, null=True, blank=True)
     address = models.CharField(max_length=50,  null=True, blank=True)
     files = models.FileField(blank=True, null=True,
                              upload_to="media/products/")
@@ -128,7 +129,7 @@ class Agent(models.Model):
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now=True)
-    email = models.EmailField(max_length=30)
+    email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
 
@@ -206,13 +207,14 @@ class Category(models.Model):
     # reverse('category-update', args=[category.slug])
 
 
+
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """
     # print(instance, created) # username get printed of the user
-
-    if created:
-        UserProfile.objects.create(user=instance)
-
+    try:
+        if created:
+            UserProfile.objects.create(user=instance)
+    except ObjectDoesNotExist: UserProfile.objects.create(user=instance)
 
 post_save.connect(post_user_created_signal, sender=User)
 
@@ -221,7 +223,7 @@ class Contact(models.Model):
     """ Contact us model to handle user's related complaints  """
     full_name = models.CharField(
         max_length=30, help_text='Enter your full name')
-    email = models.EmailField(help_text='Input your Email')
+    email = models.EmailField(help_text='Input your Email', unique=True)
     country = CountryField(blank_label="--Select a Country-- *",
                null=False, blank=False)
     subject = models.CharField(

@@ -6,9 +6,9 @@
 <main class="max-w-lg mx-auto mb-3">
     
   <a class="hover:text-blue-500 pt-heading-info"
-     href="{% url 'pharmcare:progress-notes' %}">Go back to Progress page</a>
+     href="{% url 'pharmcare:patient-info' %}">Go back to Patient Payment Information page</a>
   <div class="py-3 border-t border-gray-200">  
-    <h1 class="text-4xl text-gray-800  create-pt-heading">Update {{ patient.first_name }}'s data.</h1 >
+    <h1 class="text-3xl text-gray-800  create-pt-heading">Update {{ object.get_full_name }}'s data.</h1 >
   </div>
   <form method="post" class="mt-5 create-pt" action=".">
           {% csrf_token %}

@@ -52,10 +52,10 @@
                     <span>S/N</span>
                   </div>
                 </th>
-
+                <th scope="col" class="px-6 py-3">Patient Name
+                </th>
                 <th scope="col" class="px-6 py-3">Medical Charge</th>
                 <th scope="col" class="px-6 py-3">Notes</th>
-                <th scope="col" class="px-6 py-3">Leads</th>
                 <th scope="col" class="px-6 py-3">Patient
                  </th>
                 <th scope="col" class="px-6 py-3">Medical History</th>
@@ -67,7 +67,7 @@
            
            
             <tbody>
-             {% for patient_qs in patient_info %}
+             {% for patient in patient_info %}
               <tr
                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 
                 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -78,27 +78,27 @@
                       <span>{{forloop.counter }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-4">₦{{ patient_qs.medical_charges }}</td>
-                  <td class="px-6 py-4">{{ patient_qs.notes }}</td>
-
-                  <td class="px-6 py-4">{{ patient_qs.patient }}</td>
-                  <td class="px-6 py-4">{{ patient_qs.medical_history}}</td>
-                  <td class="px-6 py-4">{{ patient_qs.total }}</td>
-            {% comment %}     {% for pt in patient_qs.patients.all %} 
-                  <td class="px-6 py-4">{{ pt.get_full_name }}</td>
-                {% endfor %} {% endcomment %}
+                 
+                  <td class="px-6 py-4">{{ patient.get_full_name }}</td>
             
-                  <td class="px-6 py-4"> {{ patient_qs.date_created }} in UTC </td>
+                  <td class="px-6 py-4">{{ patient.get_medical_charge }}</td>
+                  <td class="px-6 py-4">{{ patient.notes }}</td>
+
+                  <td class="px-6 py-4">{{ patient.patient }}</td>
+                  <td class="px-6 py-4">{{ patient.medical_history}}</td>
+                  <td class="px-6 py-4">{{ patient.total }}</td>
+          
+            
+                  <td class="px-6 py-4"> {{ patient.date_created }} in UTC </td>
             
                   <td class="flex items-center px-6 py-4">
-                    {% comment %} <a
+                <a
                       href="
-                      {% url "pharmcare:patients-detail" patient_qs.pk %} 
+                      {% url "pharmcare:patients-info-detail" patient.pk %} 
                           
-                      " {% endcomment %}
-                    {% comment %}   class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                      "  class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                       >For Further Details</a
-                    > {% endcomment %}
+                    > 
                   </td>
             </tr>
             </tbody>

@@ -20,7 +20,7 @@ class PharmaceuticalCarePlan(models.Model):
      identify the records of the user.
     """
     user = models.ForeignKey(User,
-                             on_delete=models.SET_NULL, null=True, blank=True)
+                             on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
@@ -28,9 +28,11 @@ class PharmaceuticalCarePlan(models.Model):
     # abstract patient full name from base patients (manytomany orm) manager
     # prior to saving the entry to the db, and it is a nullable field.
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, null=True, blank=True)
 
     has_improved = models.BooleanField(default=False,
-                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
+        verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
@@ -162,14 +164,15 @@ class Patient(models.Model):
                                                     verbose_name="amount paid (medical charge if any)")
     notes = models.TextField(null=True, blank=True)
 
-    leads = models.ForeignKey(
-        Lead, on_delete=models.SET_NULL, null=True, blank=True)
     pharmacist = models.ForeignKey(
         Agent, on_delete=models.SET_NULL, null=True,
         blank=True, verbose_name='Pharmacist')
+
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)  # nulled?
+
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True,
-        blank=True, verbose_name='Pharmacist')
+        User, on_delete=models.CASCADE)
     patient = models.OneToOneField(
         'PatientDetail', on_delete=models.CASCADE, verbose_name='Patient-detail')
 
@@ -179,7 +182,6 @@ class Patient(models.Model):
 
     total = models.PositiveBigIntegerField(editable=True, blank=True,
                                            null=True, verbose_name="Total (auto-add)")
-
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -187,6 +189,11 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.patient.first_name
+
+    def get_medical_charge(self):
+        if self.medical_charge:
+            return f'₦{self.medical_charge}'
+        return 'Nill'
 
     def get_west_african_time_zone(self):
         """ converts the utc time to West African time for the user 
@@ -279,7 +286,7 @@ class PatientDetail(models.Model):
 
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
-    email = models.CharField(max_length=30, null=True, blank=True)
+    email = models.CharField(unique=True, max_length=30, null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, choices=MARITAL_STATUS, default='Single')
     patient_class = models.CharField(
@@ -293,8 +300,8 @@ class PatientDetail(models.Model):
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
     height = models.FloatField(null=True, blank=True, editable=True,
-                                 help_text="must be provided in ft",
-                                 error_messages="Kindly provide the patient's")
+                               help_text="must be provided in ft",
+                               error_messages="Kindly provide the patient's")
     weight = models.IntegerField(null=True, blank=True,
                                  help_text="must be provided in kg",
                                  editable=True, error_messages="Kindly provide the patient's weight")
@@ -422,7 +429,7 @@ class ProgressNote(models.Model):
         lagos_time = date_time + timedelta(hours=2)
         print(lagos_time)
         return lagos_time
-    
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
@@ -447,7 +454,7 @@ class MedicationChanges(models.Model):
 
     def __str__(self) -> str:
         return f'patient medication: {self.dose} dose to be taken via {self.route}'
-    
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
@@ -470,10 +477,11 @@ class MonitoringPlan(models.Model):
 
     def __str__(self) -> str:
         return self.parameter_used
-      
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
+
 
 class AnalysisOfClinicalProblem(models.Model):
     """ Analysis of clinical Problem is a model class schema that handles 
@@ -499,7 +507,7 @@ class AnalysisOfClinicalProblem(models.Model):
 
     def __str__(self) -> str:
         return self.clinical_problem[:30]
-      
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
@@ -536,8 +544,9 @@ class FollowUpPlan(models.Model):
         return f'''
             state of improvement by score is
             {self.state_of_improvement_by_score}
-            
+
         '''
+
     def save(self, *args, **kwargs):
         self.slug = slug_modifier()
         super().save(*args, **kwargs)
