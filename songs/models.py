@@ -10,11 +10,12 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     """ User model helps us gather users in our database and categorize
     their respective tasks in our organization. """
-    is_organizer = models.BooleanField(default=True, verbose_name="is an organizer?")
+    is_organizer = models.BooleanField(default=False, verbose_name="is an organizer?")
     is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
-    is_pharmacist = models.BooleanField(default=False, verbose_name=" a pharmacist?") 
+    is_pharmacist = models.BooleanField(default=False, verbose_name=" is a pharmacist?") 
     is_management = models.BooleanField(default=False, verbose_name="is the management?") 
-    phone_number = models.CharField(max_length=15, validators=[MinValueValidator("010100000"),
+    phone_number = models.CharField(max_length=15, null=True, blank=True, 
+                                    validators=[MinValueValidator("010100000"),
                                                                MaxValueValidator("099910000")])
 
 

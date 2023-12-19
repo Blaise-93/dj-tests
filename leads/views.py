@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views import generic
-from django.contrib.auth.mixins import LoginRequiredMixin
+from agents.mixins import OrganizerAgentLoginRequiredMixin
 from pharmcare.models import Team
 from .models import Lead, Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -47,7 +47,7 @@ class LandingPageView(generic.TemplateView):
         return render(self.request, self.template_name, context)
 
 
-class LeadsListView(LoginRequiredMixin, generic.ListView):
+class LeadsListView(OrganizerAgentLoginRequiredMixin, generic.ListView):
     """ Leads list view class: displays the model data as a request made by the client
     on the server when needed. Any request made must pass certain conditions by the 
     organization responsible for the management and assigning the leads to individual
@@ -233,7 +233,7 @@ class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         return super(AgentAssignedView, self).form_valid(form)
 
 
-class CategoryListView(LoginRequiredMixin, generic.ListView):
+class CategoryListView(OrganizerAgentLoginRequiredMixin, generic.ListView):
     template_name = 'leads/category-list.html'
     context_object_name = 'category_list'
     ordering = 'id'
@@ -297,7 +297,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         return context
 
 
-class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
+class CategoryDetailView(OrganizerAgentLoginRequiredMixin, generic.DetailView):
     template_name = 'leads/category-detail.html'
     context_object_name = 'category'
 
@@ -333,7 +333,7 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
+class LeadCategoryUpdateView(OrganizerAgentLoginRequiredMixin, generic.UpdateView):
     template_name = 'leads/lead-category-update.html'
     form_class = LeadCategoryUpdateForm
 

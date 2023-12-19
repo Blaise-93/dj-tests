@@ -1,5 +1,4 @@
 from django.forms.models import BaseModelForm
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
@@ -166,6 +165,7 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
     # queryset = Attendance.objects.all()
 
     def get_success_url(self):
+        messages.info(self.request, "You have successfully updated the staff attendance record!")
         return reverse('staff:attendance')
     
     def form_valid(self, form: BaseModelForm):
@@ -199,6 +199,7 @@ class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         return queryset
 
     def get_success_url(self):
+        messages.info(self.request, "You have successfully deleted the staff attendance record!")
         return reverse('staff:attendance')
 
 
@@ -313,7 +314,7 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             recipient_list=[email, ]
         )
         return super(ManagementCreateView, self).form_valid(form)
-
+    
 
 class ManagementDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
 
@@ -344,6 +345,7 @@ class ManagementUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return Management.objects.filter(organization=userprofile)
 
     def get_success_url(self):
+        messages.info(self.request, "You have successfully updated the management!")
         return reverse('staff:management-list')
 
 
@@ -355,4 +357,5 @@ class ManagementDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         return Management.objects.filter(organization=userprofile)
 
     def get_success_url(self):
+        messages.success(self.request, "You had successfully deleted the management assigned for the attendant register.")
         return reverse("staff:management-list")

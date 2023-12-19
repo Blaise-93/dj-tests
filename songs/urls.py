@@ -13,7 +13,7 @@ app_name = 'songs'
 urlpatterns = [
     path('footer/', FooterView.as_view(), name='footer'),
     path('alert/',
-         TemplateView.as_view(template_name='songs/snippets/alert.html'), name='alert'),
+         TemplateView.as_view(template_name='snippets/alert.html'), name='alert'),
        path('contact/', ContactView.as_view(), name="contact"),
     path('unsubscribed/',  user_unsubscribed_newsletter, name='unsubscribe'),
     path('newsletter/',  newsletter, name='newsletter'),

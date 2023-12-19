@@ -1,8 +1,11 @@
 {% extends "base.html" %} {% block content %} {% load tailwind_filters %}
 
 <div class="max-w-lg mx-auto">
-  <div class="py-5 border-b border-gray-200 ">
-    <a class="hover:text-blue-500" href="{% url 'signup' %}">Don't have an account?</a>
+  <div>{% include 'snippets/alert.html' %}</div>
+  <div class="py-5 border-b border-gray-200">
+    <a class="hover:text-blue-500" href="{% url 'signup' %}"
+      >Don't have an account?</a
+    >
   </div>
   <form method="post" class="mt-5">
     {% csrf_token %} {{ form|crispy }}
@@ -13,10 +16,10 @@
       Login
     </button>
   </form>
-    <div class="py-5 border-t  border-gray-200 mt-5">
-      <a class="hover:text-blue-500 mt-3" href="{% url 'reset-password' %}"
+  <div class="py-5 border-t border-gray-200 mt-5">
+    <a class="hover:text-blue-500 mt-3" href="{% url 'reset-password' %}"
       >Forgot password?</a
     >
-    </div>
+  </div>
 </div>
 {% endblock content %}

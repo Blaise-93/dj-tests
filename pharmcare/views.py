@@ -34,14 +34,14 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 def error_404(request, exception):
     """ handles 404 exception neatly using our 404 template """
 
-    return render(request, "snippets/404-page.html", status=404)
+    return render(request, "snippets/404.html", status=404)
 
 
 def error_500(request):
     """"
     Handles HTTP 500 errors
     """
-    return render(request, 'snippets/500-page.html', status=505)
+    return render(request, 'snippets/500.html', status=500)
 
 
 def error_403(request, exception):
@@ -49,12 +49,11 @@ def error_403(request, exception):
     Handles HTTP 403 errors - the server understood the request,
     but it is forbidden
     """
-    return render(request, 'snippets/403-page.html', status=403)
+    return render(request, 'snippets/403.html', status=403)
 
 
-
-# PHARMACEUTICALS 
-class PatientDetailListView(LoginRequiredMixin, ListView):
+# PHARMACEUTICALS
+class PatientDetailListView(OrganizerAgentLoginRequiredMixin, ListView):
     """ Patient view class: display the model data as a request made by 
     the client on the server when needed.
 
@@ -149,7 +148,7 @@ class PatientDetailListView(LoginRequiredMixin, ListView):
         return context
 
 
-class PatientDetailCreateView(LoginRequiredMixin, CreateView):
+class PatientDetailCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ View that handles creating a patient details in our database by the 
     assigned pharmacists or the admin."""
 
@@ -181,6 +180,8 @@ class PatientDetailCreateView(LoginRequiredMixin, CreateView):
         return queryset
 
     def get_success_url(self) -> str:
+        messages.success(
+            self.request, f'Patient medical details was created successfully.')
         return reverse('pharmcare:patient')
 
     def form_valid(self, form):
@@ -194,13 +195,10 @@ class PatientDetailCreateView(LoginRequiredMixin, CreateView):
         else:
             patient.pharmacist = self.request.user.pharmacist.organization
             patient.save()
-
-        messages.info(
-            self.request, f'Patient medical details was created successfully.')
         return super(PatientDetailCreateView, self).form_valid(form)
 
 
-class PatientDetailView(LoginRequiredMixin, DetailView):
+class PatientDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ This class shows the pharmacist/organization a detailed information of
     the patient extracted from pharmcare_patientdetail table.
     """
@@ -224,7 +222,7 @@ class PatientDetailView(LoginRequiredMixin, DetailView):
         return queryset
 
 
-class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
+class UpdatePatientDetailView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ View that handles users (pharmacists/organization) requests to
     update the form input of our registered patients."""
 
@@ -263,7 +261,7 @@ class UpdatePatientDetailView(LoginRequiredMixin, UpdateView):
         return reverse('pharmcare:patient')
 
 
-class DeletePatientDetailView(LoginRequiredMixin, DeleteView):
+class DeletePatientDetailView(OrganizerAgentLoginRequiredMixin, DeleteView):
     """ Handles all the delete entry request made by the registered user """
     template_name = 'pharmcare/pharmcare-delete.html'
 
@@ -328,7 +326,7 @@ class MedicationHistoryListView(OrganizerAgentLoginRequiredMixin, ListView):
         return self.queryset
 
 
-class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
+class MedicationHistoryCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ View responsible to display patient's create medication records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-create.html'
@@ -336,6 +334,8 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
     queryset = MedicationHistory.objects.all()
 
     def get_success_url(self) -> str:
+        messages.success(
+            "The patient's medication history was successfully created!")
         return reverse('pharmcare:medication-history')
 
     def form_valid(self, form):
@@ -345,7 +345,7 @@ class MedicationHistoryCreateView(LoginRequiredMixin, CreateView):
         return super(MedicationHistoryCreateView, self).form_valid(form)
 
 
-class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
+class MedicationHistoryDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ View responsible to display patient's detail medication records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-detail.html'
@@ -353,7 +353,7 @@ class MedicationHistoryDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'med_history'
 
 
-class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
+class MedicationHistoryUpdateView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ View responsible for updating patient's medication records if the
     admin/pharmacists wants. """
     form_class = MedicationHistoryForm
@@ -362,10 +362,12 @@ class MedicationHistoryUpdateView(LoginRequiredMixin, UpdateView):
     context_object_name = 'med_history'
 
     def get_success_url(self) -> str:
+        messages.success(
+            "The patient's medication history was successfully updated!")
         return reverse('pharmcare:medication-history')
 
 
-class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
+class MedicationHistoryDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's medication records if
     the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-delete.html'
@@ -373,6 +375,8 @@ class MedicationHistoryDeleteView(LoginRequiredMixin, DeleteView):
     context_object_name = 'med_history'
 
     def get_success_url(self) -> str:
+        messages.success(
+            "The patient's medication history was successfully deleted!")
         return reverse('pharmcare:medication-history')
 
 
@@ -421,7 +425,7 @@ class MedicationChangesListView(OrganizerAgentLoginRequiredMixin, ListView):
         return self.queryset
 
 
-class MedicationChangesCreateView(LoginRequiredMixin, CreateView):
+class MedicationChangesCreateView(OrganizerAgentLoginRequiredMixin, CreateView):
     """ View responsible to display patient's create medication changes
     records if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-changes-create.html'
@@ -429,7 +433,7 @@ class MedicationChangesCreateView(LoginRequiredMixin, CreateView):
     queryset = MedicationChanges.objects.all()
 
     def get_success_url(self) -> str:
-        messages.info(
+        messages.success(
             self.request, 'Medication changes was created successfully.')
         return reverse('pharmcare:medication-changes')
 
@@ -446,14 +450,14 @@ class MedicationChangesCreateView(LoginRequiredMixin, CreateView):
         return super(MedicationChangesCreateView, self).form_valid(form)
 
 
-class MedicationChangesDetailView(LoginRequiredMixin, DetailView):
+class MedicationChangesDetailView(OrganizerAgentLoginRequiredMixin, DetailView):
     """ View responsible to display patient's changes detail medication records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-changes-detail.html'
     queryset = MedicationChanges.objects.all()
 
 
-class MedicationChangesUpdateView(LoginRequiredMixin, UpdateView):
+class MedicationChangesUpdateView(OrganizerAgentLoginRequiredMixin, UpdateView):
     """ View responsible for updating patient's medication changes records
     if the admin/pharmacists wants. """
     form_class = MedicationChangesForm
@@ -461,6 +465,8 @@ class MedicationChangesUpdateView(LoginRequiredMixin, UpdateView):
     queryset = MedicationChanges.objects.all()
 
     def get_success_url(self) -> str:
+        messages.success(
+            "The patient's medication changes  was successfully updated!")
         return reverse('pharmcare:medication-changes')
 
     """ def get_success_url(self) -> str:
@@ -469,13 +475,16 @@ class MedicationChangesUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('pharmcare:medication-changes', kwargs={"pk": pk}) """
 
 
-class MedicationChangesDeleteView(LoginRequiredMixin, DeleteView):
+class MedicationChangesDeleteView(OrganizerAgentLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's medication changes records if
     the admin/pharmacists wants. """
     template_name = 'pharmcare/medication-history-delete.html'
     queryset = MedicationChanges.objects.all()
 
     def get_success_url(self) -> str:
+      
+        messages.success(
+            "The patient's medication changes  was successfully deleted!")
         return reverse('pharmcare:medication-changes')
 
 
@@ -536,8 +545,8 @@ class AnalysisOfClinicalProblemCreateView(OrganizerAgentLoginRequiredMixin,
     queryset = AnalysisOfClinicalProblem.objects.all()
 
     def get_success_url(self) -> str:
-        messages.info(
-            self.request, 'Medication changes was created successfully.')
+        messages.success(
+            self.request, 'Analysis of clinical problem form of the patient was created successfully.')
         return reverse('pharmcare:analysis-of-cp')
 
     def form_valid(self, form):
@@ -563,6 +572,8 @@ class AnalysisOfClinicalProblemUpdateView(LoginRequiredMixin, UpdateView):
     queryset = AnalysisOfClinicalProblem.objects.all()
 
     def get_success_url(self) -> str:
+        messages.info(
+            self.request, 'Analysis of clinical problem form of the patient was updated successfully.')
         return reverse('pharmcare:analysis-of-cp')
 
 
@@ -573,6 +584,8 @@ class AnalysisOfClinicalProblemDeleteView(LoginRequiredMixin, DeleteView):
     queryset = AnalysisOfClinicalProblem.objects.all()
 
     def get_success_url(self) -> str:
+        messages.info(
+            self.request, 'Analysis of clinical problem form of the patient was deleted successfully.')
         return reverse('pharmcare:analysis-of-cp')
 
 

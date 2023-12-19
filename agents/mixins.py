@@ -15,13 +15,25 @@ class OrgnizerAndLoginRequiredMixin(AccessMixin):
 
 
 class OrganizerAgentLoginRequiredMixin(AccessMixin):
-    """Verify that the current user is authenticated and is an organizer or an agent or a pharmacist."""
+    """Verify that the current user is authenticated and is an organizer or an agent"""
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated  \
-            or not request.user.is_agent or not request.user.is_pharmacist:
+            or not request.user.is_agent:
             messages.info(
-                request, "You are not an organizer or agent, please you cannot access this information.")
+                request, "You are not an organizer or an agent, please you cannot access this information.")
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+    
+
+class OrganizerPharmacistLoginRequiredMixin(AccessMixin): #TODO - Just saying
+    """Verify that the current user is authenticated and is an organizer or an agent"""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated  \
+            or not request.user.is_pharmacist:
+            messages.info(
+                request, "You are not an organizer or a pharmacist, please you cannot access this information.")
             return redirect('login')
         return super().dispatch(request, *args, **kwargs)
     
