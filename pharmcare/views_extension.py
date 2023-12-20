@@ -1,7 +1,9 @@
 from django.urls import reverse
 from agents.mixins import OrgnizerAndLoginRequiredMixin
 from django.views import generic
+from django.shortcuts import render, redirect
 from utils import password_setter
+from django.db import IntegrityError
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
@@ -46,6 +48,7 @@ class PharmacistAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         patient_detail.pharmacist = pharmacist
         patient_detail.save()
         return super(PharmacistAssignedView, self).form_valid(form)
+  
 
 
 class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
@@ -96,48 +99,53 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         # call form.save()
-        user = form.save(commit=False)
-        # create pharmacist user
-        user.is_pharmacist = True
-        user.is_organizer = False
-        # set password
-        user.set_password(password_setter())
-        user.save()
-
-        email = form.cleaned_data.get('email')
-        # create the pharmacist from the form we saved
-        Pharmacist.objects.create(
-            user=user,
-            organization=self.request.user.userprofile
-        )
-
-        username= form.cleaned_data['username']
-   
-        context = {
-            'user': username,
-        }
-
-        # send email to the user
-
-        send_mail(
-            subject='Pharmaceutical Care Mangement Invitation',
-            message=\
-                render_to_string\
-                    ('pharmcare/pharmacist/pharmacist-invite.html', context),
-            from_email=settings.FROM_EMAIL,
-            recipient_list=[email, ]
-        )
+        try:
+            user = form.save(commit=False)
+            # create pharmacist user
+            user.is_pharmacist = True
+            user.is_organizer = False
         
-        messages.success(self.request, f"""The pharmacist request form was
-            created successfully! Kindly follow up {username.title()} 
-            to make sure that other registrations are carried out successfully.""")
+            # set password
+            user.set_password(password_setter())
+            user.save()
+
+            email = form.cleaned_data.get('email')
+            # create the pharmacist from the form we saved
+            Pharmacist.objects.create(
+                user=user,
+                organization=self.request.user.userprofile
+            )
+
+            username= form.cleaned_data['username']
+    
+            context = {
+                'user': username,
+            }
+
+            # send email to the user
+
+            send_mail(
+                subject='Pharmaceutical Care Mangement Invitation',
+                message=\
+                    render_to_string\
+                        ('pharmcare/pharmacist/pharmacist-invite.html', context),
+                from_email=settings.FROM_EMAIL,
+                recipient_list=[email, ]
+            )
+            
+            messages.success(self.request, f"""The pharmacist request form was
+                created successfully! Kindly follow up {username.title()} 
+                to make sure that other registrations (like  {username.title()}'s 
+                full name,email, phone number etc) are carried out successfully.""")
+            
+            return super(PharmacistCreateView, self).form_valid(form)
         
-        return super(PharmacistCreateView, self).form_valid(form)
-    
-    """  def get_success_url(self):
-        messages.success(self.request, f"Kindly follow up {self.username} ")
-        return reverse('pharmcare:pharmacist-list') """
-    
+        except IntegrityError as e:
+            messages.info(self.request, "User's email already exist in our database.\
+                          Kindly input another email")
+            return redirect("pharmcare:pharmacist-list")
+            
+
 
 class PharmacistDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
 
