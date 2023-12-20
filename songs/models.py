@@ -14,7 +14,7 @@ class User(AbstractUser):
     is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
     is_pharmacist = models.BooleanField(default=False, verbose_name=" is a pharmacist?") 
     is_management = models.BooleanField(default=False, verbose_name="is the management?") 
-    phone_number = models.CharField(max_length=15, null=True, blank=True, 
+    phone_number = models.CharField(max_length=15, null=True, blank=True, unique=True,
                                     validators=[MinValueValidator("010100000"),
                                                                MaxValueValidator("099910000")])
 

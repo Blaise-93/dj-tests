@@ -1,6 +1,7 @@
 from django.forms.models import BaseModelForm
 from django.shortcuts import render
 from django.urls import reverse
+from django.conf import settings
 from django.views import generic
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -133,7 +134,7 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
         send_mail(
             subject='Invitation By the Management',
             message=render_to_string('staff/attendance-invite.html', context),
-            from_email="tests@blaise.com",
+            from_email= settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
 
@@ -322,7 +323,7 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         send_mail(
             subject='Daily Attendance Registrar',
             message=render_to_string('staff/attendance-invite.html', context),
-            from_email="tests@blaise.com",
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
         return super(ManagementCreateView, self).form_valid(form)

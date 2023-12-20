@@ -3,7 +3,7 @@ from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.views import generic
 from leads.models import Agent
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.loader import render_to_string
@@ -83,7 +83,7 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         send_mail(
             subject='Agent Invitation By the Management',
             message=render_to_string('agents/agents-invite.html', context),
-            from_email="tests@blaise.com",
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
         return super(AgentCreateView, self).form_valid(form)

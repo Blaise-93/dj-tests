@@ -56,6 +56,14 @@
               <li>
                 <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient Pharmaceutical Care Plan</a>
               </li>
+              {% comment %} Pharmacist View Section {% endcomment %}
+              {% if request.user.is_organizer %}
+              <li>
+                <a href="{% url 'pharmcare:pharmacist-list' %}"
+                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Pharmacist</a>
+
+              </li>
+              {% endif %}
             </ul>
           </div>
       </div>

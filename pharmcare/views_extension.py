@@ -4,6 +4,7 @@ from django.views import generic
 from utils import password_setter
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
+from django.conf import settings
 from django.core.paginator import (
     PageNotAnInteger, EmptyPage,
     Paginator
@@ -123,7 +124,7 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             message=\
                 render_to_string\
                     ('pharmcare/pharmacist/pharmacist-invite.html', context),
-            from_email="tests@blaise.com",
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
         

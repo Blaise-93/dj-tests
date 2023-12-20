@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from .models import Song, Category, SubscribedUsers
-from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
+from .forms import NewsletterForm, SubscribedForm
 from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
 from django.conf import settings
@@ -74,7 +74,7 @@ def newsletter(request):
                 receivers = form.cleaned_data.get('receivers').split(',')
                 email_message = form.cleaned_data.get('message')
 
-                from_email = 'blaise@gmail.com',
+                from_email = settings.FROM_EMAIL,
                 mail = EmailMessage(
                     subject,
                     email_message,
@@ -122,7 +122,7 @@ def user_unsubscribed_newsletter(request):
                 send_mail(
                     subject="Newsletter Subscription",
                     message=files('songs/mails/unsubscribed.txt'),
-                    from_email='blaise@gmail.com',
+                    from_email=settings.FROM_EMAIL,
                     recipient_list=[email, ],
                     fail_silently=False
                 )
