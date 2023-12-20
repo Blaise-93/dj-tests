@@ -4,13 +4,25 @@ from django.urls import reverse
 from django.views import generic
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from utils import password_setter, utc_standard_time, time_in_hr_min
+from utils import (
+    password_setter,
+    utc_standard_time,
+    time_in_hr_min
+    )
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from agents.mixins import OrganizerManagementLoginRequiredMixin, OrgnizerAndLoginRequiredMixin
+from agents.mixins import (
+    OrganizerManagementLoginRequiredMixin,
+    OrgnizerAndLoginRequiredMixin
+  )
+
 from .models import Management, Attendance
 from django.db.models import Q
 from django.contrib import messages
-from .forms import ManagementModelForm, AttendanceModelForm, ManagementAssignedForm
+from .forms import (
+    ManagementModelForm,
+    AttendanceModelForm,
+    ManagementAssignedForm
+    )
 
 
 class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView):

@@ -3,6 +3,7 @@ from tinymce.widgets import TinyMCE
 from tinymce.widgets import admin_widgets
 
 
+
 from .models import (
     PharmaceuticalCarePlan,
     Patient,
@@ -13,7 +14,8 @@ from .models import (
     AnalysisOfClinicalProblem,
     MonitoringPlan,
     FollowUpPlan,
-    Team
+    Team,
+    Pharmacist
 
 
 )
@@ -322,6 +324,8 @@ admin.site.register(MonitoringPlan, MonitoringPlanModelAdmin)
 admin.site.register(FollowUpPlan, FollowUpPlanModelAdmin)
 admin.site.register(PharmaceuticalCarePlan, PharmaceuticalPlanModelAdmin)
 
+
+admin.site.register(Pharmacist) #TODO - work on customizing it's admin
 
 @admin.register(Team)
 class TeamModelAdmin(admin.ModelAdmin):

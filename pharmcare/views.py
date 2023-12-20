@@ -8,14 +8,11 @@ from django.utils import timezone
 from utils import (
     files,
     slug_modifier,
-    generate_patient_unique_code,
     utc_standard_time
 )
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerAgentLoginRequiredMixin
-from django.core.mail import send_mail
-from django.db.utils import IntegrityError
 from django.db.models import Q
 from django.contrib import messages
 from django.views.generic import (
@@ -52,15 +49,15 @@ def error_403(request, exception):
     return render(request, 'snippets/403.html', status=403)
 
 
-# PHARMACEUTICALS
+# PHARMACIST VIEW -> Checkout views_extension.py where the 
+# business logics are created
+
+
+
+# PHARMACEUTICAL CARE PLAN
 class PatientDetailListView(OrganizerAgentLoginRequiredMixin, ListView):
     """ Patient view class: display the model data as a request made by 
     the client on the server when needed.
-
-    Important information:
-
-    Please note that agent and pharmacist are used interchangeable. 
-    However, for the context, it is better we use pharmacist here.
     """
 
     ordering = 'first_name'
@@ -69,7 +66,7 @@ class PatientDetailListView(OrganizerAgentLoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Any]:
         """ override the queryset via strictly checking if the user is
-        a pharmacist (agent), and if yes, then the organizer, that's the
+        a pharmacist, and if yes, then the organizer, that's the
         admin will assign him to a patient to accord him/her the
         pharmaceutical care plan s/he needs."""
 

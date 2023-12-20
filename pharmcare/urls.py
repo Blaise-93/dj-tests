@@ -56,6 +56,9 @@ from .views import (
     delete_patient_view,
     PatientsDetailView
 )
+
+from .views_extension import *
+
 app_name = 'pharmcare'
 
 urlpatterns = [
@@ -75,6 +78,9 @@ urlpatterns = [
          name='monitoring-plan'),
     path('follow-up-plan/', FollowUpPlanListView.as_view(), name='follow-up-plan'),
     path('progress-note/', ProgressNoteListView.as_view(), name='progress-notes'),
+    
+    
+    path('pharmacist/', PharmacistListView.as_view(), name="pharmacist-list"),
 
 
     # pharmcare create uris
@@ -94,6 +100,9 @@ urlpatterns = [
          name='follow-up-plan-create'),
     path('progress-note-create/', ProgressNoteCreateView.as_view(),
          name='progress-note-create'),
+    
+    
+    path('pharmacist-create/', PharmacistCreateView.as_view(), name="pharmacist-create"),
 
     # pharmcare detail uris
     
@@ -117,6 +126,8 @@ urlpatterns = [
     path("progress-note/<str:slug>/", ProgressNoteDetailView.as_view(),
          name='progress-note-detail'),
 
+    path("pharmacist/<str:slug>/", PharmacistDetailView.as_view(),
+         name='pharmacist-detail'),
 
     # pharmcare update uris
     path('<str:slug>/patient-update/',
@@ -137,6 +148,11 @@ urlpatterns = [
          FollowUpPlanUpdateView.as_view(), name='follow-up-plan-update'),
     path("progress-note/<str:slug>/update/",
          ProgressNoteUpdateView.as_view(), name='progress-note-update'),
+    
+    
+    
+    path("pharmacist/<str:slug>/update/", PharmacistUpdateView.as_view(),
+         name='pharmacist-update'),
 
 
     # pharmcare delete uris
@@ -160,6 +176,12 @@ urlpatterns = [
          FollowUpPlanDeleteView.as_view(), name='follow-up-plan-delete'),
     path("progress-note/<str:slug>/delete/",
          ProgressNoteDeleteView.as_view(), name='progress-note-delete'),
+    
+    
+    
+    path("pharmacist/<str:slug>/delete/", PharmacistDeleteView.as_view(),
+         name='pharmacist-delete'),
+
 
 
 ]

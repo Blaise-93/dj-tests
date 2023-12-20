@@ -5,6 +5,7 @@ from leads.models import Lead, Agent, UserProfile
 from django.db import models
 from datetime import datetime, timedelta
 from functools import reduce
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
@@ -19,8 +20,10 @@ class PharmaceuticalCarePlan(models.Model):
      Each patient is assigned to a unique patient code to better 
      identify the records of the user.
     """
-    user = models.ForeignKey(User,
-                             on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey("Pharmacist", on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
@@ -28,17 +31,13 @@ class PharmaceuticalCarePlan(models.Model):
     # abstract patient full name from base patients (manytomany orm) manager
     # prior to saving the entry to the db, and it is a nullable field.
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
-    organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, null=True, blank=True)
-
     has_improved = models.BooleanField(default=False,
         verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
         'MedicationChanges', on_delete=models.SET_NULL, blank=True, null=True)
-    pharmacist = models.ForeignKey(
-        Agent, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pharmacist')
+    
     analysis_of_clinical_problem = models.ForeignKey(
         'AnalysisOfClinicalProblem', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -132,6 +131,8 @@ class PharmaceuticalCarePlan(models.Model):
         super().save(*args, **kwargs)
 
 
+
+
 class Patient(models.Model):
     """ Patient model which has a many to many attribute to dynamically map out each
     patients/user details, medication history and customer leads in our db 
@@ -165,11 +166,10 @@ class Patient(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     pharmacist = models.ForeignKey(
-        Agent, on_delete=models.SET_NULL, null=True,
+        "Pharmacist", on_delete=models.CASCADE,
         blank=True, verbose_name='Pharmacist')
-
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)  # nulled?
+        UserProfile, on_delete=models.CASCADE)
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE)
@@ -293,10 +293,10 @@ class PatientDetail(models.Model):
         max_length=20, choices=PATIENT_STATE, default='Adult')
     age = models.PositiveIntegerField()
     pharmacist = models.ForeignKey(
-        Agent, on_delete=models.SET_NULL, null=True,
+        "Pharmacist", on_delete=models.CASCADE,
         blank=True, verbose_name='Pharmacist')
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, null=True, blank=True)
+        UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
     height = models.FloatField(null=True, blank=True, editable=True,
@@ -304,7 +304,8 @@ class PatientDetail(models.Model):
                                error_messages="Kindly provide the patient's")
     weight = models.IntegerField(null=True, blank=True,
                                  help_text="must be provided in kg",
-                                 editable=True, error_messages="Kindly provide the patient's weight")
+                                 editable=True,
+                                 error_messages="Kindly provide the patient's weight")
     BMI = models.CharField(max_length=10)
     patient_history = models.TextField(editable=True, blank=False)
     past_medical_history = models.CharField(
@@ -316,8 +317,6 @@ class PatientDetail(models.Model):
     slug = models.SlugField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
-    """ django.db.utils.IntegrityError: NOT NULL constraint failed: pharmcare_patientdetail.organization_id
-HTTP POST /admin/pharmcare/patientdetail/add/ 500 [0.17, 127.0.0.1:52111] """
 
     class Meta:
         ordering = ['first_name']
@@ -380,6 +379,54 @@ HTTP POST /admin/pharmcare/patientdetail/add/ 500 [0.17, 127.0.0.1:52111] """
             f'{(self.first_name + slug_modifier())}')
 
         super().save(*args, **kwargs)
+
+
+class Pharmacist(models.Model):
+    """ Pharmacist in our model. Pharmacists are assigned to each patient
+     to manage and engage them with solemn pharmaceutical care plan.
+    """
+    # Foreign (many-to-one) keys allow us to create many pharmacist for one user
+    # OneToOneField: one-to-one relationship - so no list of many managements of 
+    # one user will be returned.
+    # ManyToManyField:
+    # every agents has one user
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=15)
+    last_name = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=12,
+                                    validators=[MinValueValidator("010100000"),
+                                                MaxValueValidator("099010100000")])
+    email = models.EmailField(max_length=30, unique=True)
+    slug = models.SlugField()
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, verbose_name='Branch')
+    date_joined = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return self.user.username
+
+    def get_west_african_time_zone(self):
+        """ converts the utc time to West African time for the user 
+        on the frontend - however, the admin panel still maintained 
+        UTC+0 time integrity."""
+        date_time = datetime.strptime(
+            str(self.date_joined.date()), '%Y-%m-%d')
+        lagos_time = date_time + timedelta(hours=2)
+        return lagos_time
+
+    def save(self, *args, **kwargs):
+        """ override the original save method to set the lead 
+        according to if agent has phoned or not"""
+
+        self.slug = slugify(
+            f'{self.first_name + slug_modifier()}', allow_unicode=False)
+
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('managements:managements-detail', kwargs={
+            'slug': self.slug
+        })
 
 
 class MedicationHistory(models.Model):

@@ -209,3 +209,43 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
             'follow_up_plan',
             'discount'
         ]
+        
+""" PharmacistModelForm, PharmacistAssignedForm """
+
+# Pharmacist Forms
+
+class PharmacistModelForm(forms.ModelForm):
+    """ form class that handles organization pharmacist form for the patient
+    if the user is granted access."""
+    class Meta:
+        model = User
+        
+        fields = [
+       
+            'username',
+            'first_name',
+            "last_name",
+            'phone_number',
+            'email',
+               
+        ]
+        
+        labels = {
+            "username": "Enter your username",
+            "first_name": "Enter your first name",
+            "last_name": "Enter your last name",
+            "phone_number": "Enter your phone number",
+            'email': 'Enter your email',
+        }
+
+class PharmacistAssignedForm(forms.Form):
+    pharmacist = forms.ModelChoiceField(queryset=Pharmacist.objects.none())
+
+    def __init__(self, *args, **kwargs):
+
+        request = kwargs.pop('request')
+        pharmacist = Pharmacist.objects.filter(organization=request.user.userprofile)
+      
+        super(PharmacistAssignedForm, self).__init__(*args, **kwargs)
+       
+        self.fields['pharmacist'].queryset = pharmacist
