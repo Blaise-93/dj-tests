@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+#from django.conf.urls.defaults import *
 from django.contrib.auth.views import (
     LoginView,
     LogoutView,
@@ -14,7 +15,7 @@ from django.views.generic import TemplateView
 from django.urls import path, include
 from leads.views import LandingPageView, SignUpView
 
-admin.site.site_header = 'Bruno Enterprise'
+admin.site.site_header = 'MedConnect Pharmaceuticals'
 admin.site.index_title = 'Django_Test Administration'
 
 
@@ -23,8 +24,8 @@ urlpatterns = [
 
     # Local apps
     path('', LandingPageView.as_view(), name='landing-page'),
-    path('*',
-         TemplateView.as_view(template_name='snippets/404.html'), name='page-not-found'),
+   # path('*',
+   #      TemplateView.as_view(template_name='snippets/404.html'), name='page-not-found'),
     path('song/', include('songs.urls', namespace='songs')),
     path('leads/', include("leads.urls", namespace='leads')),
     path("agents/", include("agents.urls", namespace='agents')),
@@ -54,6 +55,11 @@ urlpatterns = [
 
 
 ]
+
+
+handler404 = 'pharmcare.views.error_404'
+handler500 =  'pharmcare.views.error_500'
+handler403 =  'pharmcare.views.error_403'
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,

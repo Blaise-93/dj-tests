@@ -1,14 +1,13 @@
 from typing import Any
-from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views import generic
-from django.contrib.auth.mixins import LoginRequiredMixin
+from agents.mixins import OrganizerAgentLoginRequiredMixin
 from pharmcare.models import Team
 from .models import Lead, Category
-from django.core.paginator import Page, Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from .forms import (LeadModelForm,
                     CategoryModelForm,
@@ -40,18 +39,15 @@ class LandingPageView(generic.TemplateView):
 
     def get(self, *args, **kwargs):
         team = Team.objects.all()
-        
+
         context = {
             'WHATSAPP_LINK': settings.WHATSAPP_LINK,
             'teams': team
         }
-    
         return render(self.request, self.template_name, context)
 
-# Leads
 
-
-class LeadsListView(LoginRequiredMixin, generic.ListView):
+class LeadsListView(OrganizerAgentLoginRequiredMixin, generic.ListView):
     """ Leads list view class: displays the model data as a request made by the client
     on the server when needed. Any request made must pass certain conditions by the 
     organization responsible for the management and assigning the leads to individual
@@ -59,39 +55,39 @@ class LeadsListView(LoginRequiredMixin, generic.ListView):
 
     template_name = 'leads/lead-list.html'
     context_object_name = 'leads'
-    paginate_by = 10
     ordering = 'id'
 
     def get_queryset(self):
         # login in user - an organizer?
         user = self.request.user
-        
+
         query = self.request.GET.get('q', '')
-        
+
         if user.is_organizer:
             queryset = Lead.objects.filter(
                 organization=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(
                 organization=user.agent.organization, agent__isnull=False)
-        
+
            # filter agent that is logged in
             queryset = queryset.filter(agent__user=self.request.user)
-          
-        # query the db via filtering the individual fields the 
+
+        # query the db via filtering the individual fields the
         # user is searching for.
         queryset.filter(
             Q(first_name__icontains=query) |
             Q(age__icontains=query) |
-            Q( social_media_accounts__icontains=query) 
-            
+            Q(social_media_accounts__icontains=query)
+
         )
-          
+        for i in queryset:
+            print(i.email)
         print(queryset)
-        
+
         # Pagination - Paginate the Lead
         search = Paginator(queryset, 10)
-        
+
         page = self.request.GET.get('page')
 
         try:
@@ -212,7 +208,6 @@ class LeadsDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     template_name = 'agents/agent-assigned.html'
     form_class = AgentAssignedForm
-  
 
     def get_form_kwargs(self, **kwargs):
         kwargs = super(AgentAssignedView, self)\
@@ -238,17 +233,16 @@ class AgentAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         return super(AgentAssignedView, self).form_valid(form)
 
 
-class CategoryListView(LoginRequiredMixin, generic.ListView):
+class CategoryListView(OrganizerAgentLoginRequiredMixin, generic.ListView):
     template_name = 'leads/category-list.html'
-    paginate_by = 10
     context_object_name = 'category_list'
     ordering = 'id'
 
     def get_queryset(self):
         # login in user - an organizer?
-        user = self.request.user
-        
         query = self.request.GET.get('q', '')
+        user = self.request.user
+
         # initial queryset of leads for the organization
         if user.is_organizer:
             queryset = Category.objects.filter(
@@ -260,11 +254,11 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
 
         queryset.order_by(self.ordering).filter(
             Q(name__icontains=query)
-         
+
         )
-           # Pagination - Paginate the Lead
+        # Pagination - Paginate the Lead
         search = Paginator(queryset, 10)
-        
+
         page = self.request.GET.get('page')
 
         try:
@@ -275,7 +269,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
 
         except EmptyPage:
             self.queryset = search.get_page(search.num_pages)
-      
+
         return self.queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -303,7 +297,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         return context
 
 
-class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
+class CategoryDetailView(OrganizerAgentLoginRequiredMixin, generic.DetailView):
     template_name = 'leads/category-detail.html'
     context_object_name = 'category'
 
@@ -339,7 +333,7 @@ class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
+class LeadCategoryUpdateView(OrganizerAgentLoginRequiredMixin, generic.UpdateView):
     template_name = 'leads/lead-category-update.html'
     form_class = LeadCategoryUpdateForm
 

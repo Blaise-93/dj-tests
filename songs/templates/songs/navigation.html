@@ -19,7 +19,9 @@
             <a href="{% url 'landing-page' %}" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0
              md:dark:text-blue-500 dark:bg-blue-600 md:dark:bg-transparent" aria-current="page">Home</a>
           </li>
-          <li>
+          <li 
+          class="relative"
+        >
               <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" 
               class="flex items-center justify-between w-full py-2 px-3 text-gray-900 
               rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0
@@ -36,11 +38,17 @@
                   <li>
                     <a href="{% url 'pharmcare:patient' %} " class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
                     dark:hover:text-white">Patient Details</a>
+                  </li> 
+                  <li>
+                    <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                    dark:hover:text-white">Medication History</a>
                   </li>
                   <li>
-                      <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
-                      dark:hover:text-white">Medication History</a>
-                    </li>
+                    <a href="{% url 'pharmcare:patient-info' %} " class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                    dark:hover:text-white">Patient</a>
+                  </li> 
+
+  
                     <li>
                       <a href="{% url 'pharmcare:medication-changes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
                       dark:hover:text-white">Medication Changes</a>
@@ -66,6 +74,11 @@
                     <li>
                       <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
                       dark:hover:text-white">Patient Pharmaceutical Care Plan</a>
+                      
+                    </li>
+                    <li>
+                      <a href="{% url 'pharmcare:pharmacist-list' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                      dark:hover:text-white">Pharmacists</a>
                       
                     </li>
                   </ul>

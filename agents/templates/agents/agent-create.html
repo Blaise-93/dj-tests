@@ -4,6 +4,7 @@
 {% load tailwind_filters %}
 
 <main class="max-w-lg mx-auto">
+  <div>{% include 'snippets/alert.html' %}</div>
   <div>
      <a class="hover:text-blue-500" href="{% url 'agents:agent-list' %}">Go back to agents</a>
     <div class="py-3 border-t border-gray-200">  

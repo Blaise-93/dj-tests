@@ -35,7 +35,7 @@ class PatientDetailForm(forms.ModelForm):
             'age': ' Enter your patient\'s age',
             'height': "Enter your patient's height in (feet)",
             'weight': "Enter your patient's weight in (kg)",
-         #   'BMI': " Enter your patient\'s BMI",
+            #   'BMI': " Enter your patient\'s BMI",
             'patient_history':  "Enter your patient's medical history",
             'past_medical_history': "Enter your patient's past medical history",
             'social_history': 'Enter the social history of your patient if any',
@@ -59,19 +59,6 @@ class MedicationHistoryForm(forms.ModelForm):
             'medication_list': " Enter your patient's medication list",
             'indication_and_evidence': "Enter your patient's indication"
         }
-
-
-class PatientModelForm(forms.ModelForm):
-    """ class that handles the patient form input and submission in our db made by our pharmacist.  """
-    class Meta:
-        model = Patient
-        fields = [
-            'medical_charge',
-            'notes',
-            'patient',
-            'medical_history',
-            'total',
-        ]
 
         labels = {
             'medical_charge': "Enter medical charge",
@@ -112,7 +99,7 @@ class MedicationChangesForm(forms.ModelForm):
             'route',
             'indication',
             'stop_date',
-            
+
         ]
 
         labels = {
@@ -172,7 +159,7 @@ class FollowUpPlanForm(forms.ModelForm):
         model = FollowUpPlan
 
         fields = [
-     
+
             'follow_up_requirement',
             'action_taken_and_future_plan',
             'state_of_improvement_by_score',
@@ -191,16 +178,30 @@ class FollowUpPlanForm(forms.ModelForm):
         error_messages = {
             'error': f"Kindly input the patient fields, Pharm."
         }
-        
+
+
+class PatientModelForm(forms.ModelForm):
+    """ class that handles the patient form input and submission in our db made by our pharmacist.  """
+    class Meta:
+        model = Patient
+        fields = [
+            'medical_charge',
+            'notes',     
+            'pharmacist',
+            'patient',
+            'medical_history',
+            # 'total',
+        ]
+
+
 class PharmaceuticalCarePlanModelForm(forms.ModelForm):
     class Meta:
         model = PharmaceuticalCarePlan
         fields = [
             "user",
             'patients',
-          #  'patient_full_name',
             'has_improved',
-            'progress_note', 
+            'progress_note',
             'medication_changes',
             'pharmacist',
             'analysis_of_clinical_problem',
@@ -209,3 +210,42 @@ class PharmaceuticalCarePlanModelForm(forms.ModelForm):
             'discount'
         ]
         
+""" PharmacistModelForm, PharmacistAssignedForm """
+
+# Pharmacist Forms
+
+class PharmacistModelForm(forms.ModelForm):
+    """ form class that handles organization pharmacist form for the patient
+    if the user is granted access."""
+    class Meta:
+        model = User
+        
+        fields = [
+       
+            'username',
+            'first_name',
+            "last_name",
+            'phone_number',
+            'email',
+               
+        ]
+        
+        labels = {
+            "username": "Enter your username",
+            "first_name": "Enter your first name",
+            "last_name": "Enter your last name",
+            "phone_number": "Enter your phone number",
+            'email': 'Enter your email',
+        }
+
+class PharmacistAssignedForm(forms.Form):
+    pharmacist = forms.ModelChoiceField(queryset=Pharmacist.objects.none())
+
+    def __init__(self, *args, **kwargs):
+
+        request = kwargs.pop('request')
+        pharmacist = Pharmacist.objects.filter(organization=request.user.userprofile)
+      
+        super(PharmacistAssignedForm, self).__init__(*args, **kwargs)
+       
+        self.fields['pharmacist'].queryset = pharmacist

@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block content %} {% comment %}
-https://flowbite.com/docs/components/tables/ {% endcomment %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
   <div class="container px-5 py-24 mx-auto">
@@ -7,7 +6,7 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
       class="leads w-full mb-6 py-6 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Management (Branch) Information</h1>
+        <h1 class="text-3xl text-gray-800">Attendance Information for {{ object.organization|title }} Branch</h1>
       </div>
       <div class="text-gray-500 hover:text-blue-500">
         <a href="{% url 'staff:attendance-create' %}"
@@ -35,10 +34,11 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
               staff daily unique attendance ref
             </th>
             <th scope="col" class="px-6 py-3">Organization</th>
-            <th scope="col" class="px-6 py-3">Sign in date</th>
+            <th scope="col" class="px-6 py-3">Sign in date</th>       
             <th scope="col" class="px-6 py-3">
               Expected Sign in time with Date in UTC
             </th>
+            <th scope="col" class="px-6 py-3"> Expected Sign Out Time</th>
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
@@ -59,6 +59,7 @@ https://flowbite.com/docs/components/tables/ {% endcomment %}
             <td class="px-6 py-4">{{ object.organization|title }}</td>
             <td class="px-6 py-4">{{ object.date_added }}</td>
             <td class="px-6 py-4">{{ object.date_created }} </td>
+            <td class="px-6 py-4">{{ object.date_sign_out_time }} </td>
             <td class="flex items-center px-6 py-4">
               <a
                 href="

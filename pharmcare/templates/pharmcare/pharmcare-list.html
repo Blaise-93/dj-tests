@@ -8,7 +8,7 @@
 {% block content %}
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
-
+   <div>{% include 'snippets/alert.html' %}</div>
   <div class="hero pt-5 px-5 ">{% include "snippets/search.html" %}</div>
   <div class="container px-5 py-20 mx-auto">
     <div
@@ -35,6 +35,9 @@
                 <a href="{% url 'pharmcare:medication-history' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication History</a>
               </li>
               <li>
+                <a href="{% url 'pharmcare:patient-info' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Patient</a>
+              </li>
+              <li>
                 <a href="{% url 'pharmcare:medication-changes' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Medication Changes</a>
               </li>
               <li>
@@ -53,6 +56,14 @@
               <li>
                 <a href="{% url 'pharmcare:patients' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View  Patient Pharmaceutical Care Plan</a>
               </li>
+              {% comment %} Pharmacist View Section {% endcomment %}
+              {% if request.user.is_organizer %}
+              <li>
+                <a href="{% url 'pharmcare:pharmacist-list' %}"
+                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Pharmacist</a>
+
+              </li>
+              {% endif %}
             </ul>
           </div>
       </div>

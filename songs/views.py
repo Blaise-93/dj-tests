@@ -3,9 +3,10 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from .models import Song, Category, SubscribedUsers
-from .forms import NewsletterForm, SubscribedForm, SubscribedModelForm
+from .forms import NewsletterForm, SubscribedForm
 from django.core.mail import send_mail, EmailMessage
 from django.urls import reverse
+from django.conf import settings
 from django.db import IntegrityError
 from utils import files, generate_patient_unique_code
 from django.http import Http404
@@ -20,23 +21,46 @@ def navigation(request):
 
 
 class FooterView(LoginRequiredMixin, generic.CreateView):
+    """ Handles mail subscription form request-response cycle.
+    If the user had subscribed, it will give the user, a response message
+    stating he/she had subscribed without throwing an IntegrityError message"""
+
     template_name = 'songs/footer.html'
-    form_class = SubscribedModelForm
-    model = SubscribedUsers       
 
-    def form_valid(self, form):
-        email = form.cleaned_data['email']
-        send_mail(
-            subject="Newsletter Subscription",
-            message=files('songs/mails/subscription.txt'),
-            from_email='blaise@gmail.com',
-            recipient_list=[email, ],
-            fail_silently=False
-        )
-        return super(FooterView, self).form_valid(form)
+    def post(self, *args, **kwargs):
 
-    def get_success_url(self):
-        return reverse('landing-page')
+        post_data = self.request.POST.copy()
+        email = post_data.get("email", None)
+        try:
+            subscribedUsers = SubscribedUsers()
+            subscribedUsers.email = email
+            subscribedUsers.save()
+
+            # send mail to the subscriber
+            send_mail(
+                subject="Newsletter Subscription",
+                message=files('songs/mails/subscription.txt'),
+                from_email=settings.FROM_EMAIL,
+                recipient_list=[email, ],
+                fail_silently=False
+            )
+            return redirect('landing-page')
+
+        except IntegrityError as e:
+            subject = 'NewsLetter Subscription'
+            message = files('songs/mails/already-subscrribed.txt')
+            email_from = settings.FROM_EMAIL
+            recipient_list = [email, ]
+            send_mail(
+                subject,
+                message,
+                email_from,
+                recipient_list,
+                # settings.DEFAULT_FROM_EMAIL,
+                # settings.EMAIL_HOST_USER,
+
+            )
+        return redirect('landing-page')
 
 
 def newsletter(request):
@@ -50,20 +74,21 @@ def newsletter(request):
                 receivers = form.cleaned_data.get('receivers').split(',')
                 email_message = form.cleaned_data.get('message')
 
-                from_email = 'blaise@gmail.com',
+                from_email = settings.FROM_EMAIL,
                 mail = EmailMessage(
                     subject,
                     email_message,
                     from_email,
                     to=[receivers, ],
                     bcc=receivers)
-                
+
                 mail.content_subtype = 'html'
 
                 if mail.send():
 
-                    messages.info(request, "The message was sent successfully.")
-                 
+                    messages.info(
+                        request, "The message was sent successfully.")
+
                 else:
                     messages.error(request, "There was an error sending email")
 
@@ -90,14 +115,14 @@ def user_unsubscribed_newsletter(request):
     }
     if request.method == 'POST':
         if form.is_valid():
-            email = email=form.cleaned_data.get('email')
+            email = email = form.cleaned_data.get('email')
             if SubscribedUsers.objects.filter(
-                
-                email= form.cleaned_data.get('email')).exists():
+
+                    email=form.cleaned_data.get('email')).exists():
                 send_mail(
                     subject="Newsletter Subscription",
                     message=files('songs/mails/unsubscribed.txt'),
-                    from_email='blaise@gmail.com',
+                    from_email=settings.FROM_EMAIL,
                     recipient_list=[email, ],
                     fail_silently=False
                 )
@@ -106,12 +131,11 @@ def user_unsubscribed_newsletter(request):
                 return redirect("leads:home-page")
 
         else:
-            return messages.info(request, 
-                    'Sorry but we did not find your email address.')
+            return messages.info(request,
+                                 'Sorry but we did not find your email address.')
         return redirect("leads:home-page")
 
     return render(request, 'unsubscribed.html', context)
-
 
 
 class ContactView(LoginRequiredMixin, generic.CreateView):
@@ -119,12 +143,12 @@ class ContactView(LoginRequiredMixin, generic.CreateView):
     template_name = 'songs/contact.html'
     form_class = ContactUsForm
     queryset = Contact
-    
+
     def get_success_url(self) -> str:
         return reverse('/')
-    
+
     def form_valid(self, form):
-        
+
         try:
             email = self.request.user.email
             # full_name = self.request.user.get_
@@ -132,12 +156,12 @@ class ContactView(LoginRequiredMixin, generic.CreateView):
             contact = form.save(commit=False)
             contact.email = email
             contact.user_ticket = generate_patient_unique_code()
-                
+
             context = {
-                    'user':form.cleaned_data['full_name'],
-                    'ticket': contact.user_ticket
-                    }
-            
+                'user': form.cleaned_data['full_name'],
+                'ticket': contact.user_ticket
+            }
+
             contact.save()
 
         # send email to the user
@@ -146,26 +170,26 @@ class ContactView(LoginRequiredMixin, generic.CreateView):
                 message=render_to_string('leads/complaint.html', context),
                 recipient_list=[email, ],
                 fail_silently=False
-                
+
             )
             return super().form_valid(form)
-        
+
         except IntegrityError:
-                subject = 'NewsLetter Subscription'
-                message = render_to_string('songs/has-subscribed.html', context)
-                print(message)
-                #email_from = settings.EMAIL_HOST_USER 
-                email_from = 'tests@gmail.com'
-                recipient_list = [email, ]
-                send_mail(
-                    subject,
-                    message,
-                    email_from,
-                    recipient_list,  
-                    fail_silently=False                
-                    )
-                return redirect('/') 
-    
+            subject = 'NewsLetter Subscription'
+            message = render_to_string('songs/has-subscribed.html', context)
+            print(message)
+            # email_from = settings.EMAIL_HOST_USER
+            email_from = 'tests@gmail.com'
+            recipient_list = [email, ]
+            send_mail(
+                subject,
+                message,
+                email_from,
+                recipient_list,
+                fail_silently=False
+            )
+            return redirect('/')
+
 
 class CategoryListView(generic.ListView):
     model = Category

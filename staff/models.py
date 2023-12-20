@@ -33,6 +33,7 @@ class Attendance(models.Model):
         UserProfile, on_delete=models.CASCADE, verbose_name="Branch")
     management = models.ForeignKey(
         "Management", on_delete=models.CASCADE, verbose_name='Management')
+    date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     slug = models.SlugField()
@@ -48,7 +49,7 @@ class Attendance(models.Model):
         """ converts the utc time to West African time for the user 
         on the frontend - however, the admin panel still maintained 
         UTC+0 time integrity."""
-        
+
         """  date_time = datetime.strptime(
             str(self.date_created.date()), '%Y-%m-%d')
         lagos_time = date_time + timedelta(hours=2)
@@ -135,7 +136,7 @@ class Management(models.Model):
     phone_number = models.CharField(max_length=12,
                                     validators=[MinValueValidator("010100000"),
                                                 MaxValueValidator("099010100000")])
-    email = models.EmailField(max_length=30)
+    email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE, verbose_name='Branch')

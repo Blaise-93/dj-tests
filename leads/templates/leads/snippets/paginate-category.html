@@ -32,13 +32,13 @@
             dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           aria-label="number of current page"
         >
-          Page {{  category_list.number }} of {{  category_list.paginator.num_pages }}
+          Page {{ category_list.number }} of {{ category_list.paginator.num_pages }}
         </span>
       </li>
       <li>
-        {% if  category_list.has_next %}
+        {% if category_list.has_next %}
         <a
-          href="?page={{  category_list.next_page_number }}"
+          href="?page={{ category_list.next_page_number }}"
           aria-label="next page"
           class="flex items-center justify-center px-4 h-10 leading-tight 
           text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 
@@ -50,7 +50,7 @@
   
       <li>
         <a
-          href="?page={{  category_list.paginator.num_pages }}" 
+          href="?page={{ category_list.paginator.num_pages }}" 
           aria-label="last page"
           class="flex items-center justify-center px-4 h-10 leading-tight
            text-gray-500 bg-white border border-gray-300 rounded-e-lg 
@@ -66,7 +66,7 @@
           aria-label="last page"
           class="flex items-center pl-2 pt-2 justify-center  
           "
-          >{{ category_list.paginator.count }} Analysis of Clincal Problem</span
+          >{{ category_list.paginator.count }} Categories</span
         >
       </li>
     </ul>

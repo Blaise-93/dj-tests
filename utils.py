@@ -2,13 +2,12 @@ import string
 import random
 from datetime import datetime, timedelta
 import uuid
-from decimal import Decimal
-
 
 def password_setter():
     """ generate a random password for each user in our database until the client/
     patients/agent changes the password when the person request to change it. While,
     we allow django auth admin to hash the user's password."""
+    
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=100))
 
 
@@ -67,12 +66,12 @@ def bmi(height, weight):
         ft_in_square = 0.3048
         pt_height = (ft_in_square) * height
         height_per_meter_squared = pt_height * pt_height
-        print(height_per_meter_squared)
         bmi = round((weight / height_per_meter_squared), 2)
         return bmi
 
 
-def _grettings_in_time_utc(name):
+def greetings_in_time_utc(name) -> str:
+    """ A helper function that greet a user after a specific task is done (in utc+0). """
     hours = datetime.now().hour
     
     if hours >=4 and hours < 12:
@@ -86,7 +85,7 @@ def _grettings_in_time_utc(name):
         return f'Good night {name}'
 
 
-print(_grettings_in_time_utc("Blaise"))
+#print(_greetings_in_time_utc("Blaise"))
 
 def utc_standard_time():
     """ strictly convert wat to utc - my playground
@@ -94,4 +93,22 @@ def utc_standard_time():
     return datetime.now() - timedelta(hours=1)
 
 
+
+def time_in_hr_min():
+    " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
+    when a staff wants to update his/her record."
+    hr = datetime.now().hour   
+    timezone = datetime.now() 
+    
+    if hr >=0 and hr < 12:
+        time_in_hr_and_min = str(timezone.time())[0:5]
+        return f'{time_in_hr_and_min } AM'
+    
+    time_in_hr_and_min = str(timezone.time())[0:5]
+    
+    return f"{time_in_hr_and_min} PM"
+
 # print(utc_standard_time())
+
+
+# print(time_in_hr_min())

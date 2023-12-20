@@ -11,10 +11,10 @@
       <a href="{% url 'pharmcare:medication-history' %}">Go to Patient Medication History Page</a>
 
   </div>
-        <h1 class="text-3xl text-gray-800" >Are you sure you want to delete this patient</h1>
+        <h1 class="text-3xl text-gray-800 text-center" >Are you sure you want to delete this patient</h1>
     <form class="mt-5" method="post" action=".">
             {% csrf_token %} {{ form|crispy }}
-            <button href="{{med.get_absolute_url}}delete " {% comment %} {{patient.get_absolute_url}}delete  {% endcomment %}
+            <button href="{{med.get_absolute_url}}delete"
             class="w-full  text-white bg-blue-500 border-0 py-1 px-6 
           focus:outline-none hover:bg-red-600 rounded"
          

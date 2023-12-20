@@ -3,11 +3,11 @@ from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.views import generic
 from leads.models import Agent
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.loader import render_to_string
-from utils import password_setter, files
+from utils import password_setter
 from django.db.models import Q
 from .forms import AgentModelForm
 from .mixins import OrgnizerAndLoginRequiredMixin
@@ -29,7 +29,6 @@ class AgentListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
             Q(first_name__icontains=query) |
             Q(user__username__icontains=query)
         )
-        print(queryset)
 
         # Pagination - Paginate the Agent list
         search = Paginator(queryset, 10)
@@ -64,6 +63,7 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         user.is_organizer = False
         # set password
         user.set_password(password_setter())
+        
         user.save()
 
         email = form.cleaned_data.get('email')
@@ -72,19 +72,18 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             user=user,
             organization=self.request.user.userprofile
         )
-        first_name = form.cleaned_data['first_name']
-        last_name = form.cleaned_data['last_name']
-        context = {
-            'user': f'{first_name}{last_name}',
-            'user_temp_password': user.set_password
-        }
+       
 
         # send email to the user
-
+        username = form.cleaned_data['username']
+    
+        context = {
+            'user': username,
+        }
         send_mail(
-            subject='Daily Attendance Registrar',
-            message=render_to_string('staff/attendance-invite.html', context),
-            from_email="tests@blaise.com",
+            subject='Agent Invitation By the Management',
+            message=render_to_string('agents/agents-invite.html', context),
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
         return super(AgentCreateView, self).form_valid(form)

@@ -1,6 +1,7 @@
 {% extends 'base.html' %} {% load static %} {% block content %}
 
 <section class="text-gray-600 body-font overflow-hidden mt-0">
+  <div>{% include 'snippets/alert.html' %}</div>
   
   <div class="hero pt-5 px-5 ">{% include "pharmcare/snippets/search-medication-history.html" %}</div>
   <div class="container px-5 py-24 mx-auto">
@@ -8,7 +9,7 @@
       class="leads w-full mb-6 py-4 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Patients Information</h1>
+        <h1 class="text-3xl text-gray-800">Patients Medical History </h1>
       </div>
 
         {% if request.user.is_organizer or request.user.is_agent %}

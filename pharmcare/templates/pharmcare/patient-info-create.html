@@ -6,16 +6,14 @@
 <main class="max-w-lg mx-auto mb-3">
     
   <div>
-    <a class="hover:text-blue-500" href="{% url 'pharmcare:medication-changes' %}">
-        Go back to Patient Summary page</a>
-   
+    <a class="hover:text-blue-500" href="{% url 'pharmcare:patient-info' %}">
+        Go back to Patient page</a>
   </div>
 
   <div class="py-3 border-t border-gray-200">  
-    
-    <h1 class="text-4xl text-gray-800 ">Create a new Patient Summary </h1 >
+    <h1 class="text-4xl text-gray-800 ">Create a new Patient Information </h1 >
   </div>
-  <form method="post" class="mt-5" action="{% url 'pharmcare:patients-create' %}">
+  <form method="post" class="mt-5" action="{% url 'pharmcare:patients-info-create' %}">
           {% csrf_token %}
           {{ form|crispy }}
           <button
