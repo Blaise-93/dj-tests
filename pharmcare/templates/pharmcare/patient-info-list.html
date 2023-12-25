@@ -57,8 +57,8 @@
                 </th>
                 <th scope="col" class="px-6 py-3">Medical Charge</th>
                 <th scope="col" class="px-6 py-3">Notes</th>
-                <th scope="col" class="px-6 py-3">Patient
-                 </th>
+                {% comment %} <th scope="col" class="px-6 py-3">Patient
+                 </th> {% endcomment %}
                 <th scope="col" class="px-6 py-3">Medical History</th>
                 <th scope="col" class="px-6 py-3">Total</th>
                 <th scope="col" class="px-6 py-3">Date Created</th>
@@ -84,8 +84,8 @@
             
                   <td class="px-6 py-4">{{ patient.get_medical_charge }}</td>
                   <td class="px-6 py-4">{{ patient.notes }}</td>
-
-                  <td class="px-6 py-4">{{ patient.patient }}</td>
+{% comment %} 
+                  <td class="px-6 py-4">{{ patient.patient }}</td> {% endcomment %}
                   <td class="px-6 py-4">{{ patient.medical_history}}</td>
                   <td class="px-6 py-4">{{ patient.total }}</td>
           

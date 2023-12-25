@@ -7,13 +7,13 @@
     
   <div>
     <a class="hover:text-blue-500" href="{% url 'pharmcare:medication-changes' %}">
-        Go back to Medication History page</a>
+        Go back to Medication Changes Page</a>
    
   </div>
 
   <div class="py-3 border-t border-gray-200">  
     
-    <h1 class="text-4xl text-gray-800 ">Create a new Patient medication history information </h1 >
+    <h1 class="text-4xl text-gray-800 ">Create a new Patient medication Changes information </h1 >
   </div>
   <form method="post" class="mt-5" action="{% url 'pharmcare:medication-changes-create' %}">
           {% csrf_token %}

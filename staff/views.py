@@ -9,12 +9,12 @@ from utils import (
     password_setter,
     utc_standard_time,
     time_in_hr_min
-    )
+)
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from agents.mixins import (
     OrganizerManagementLoginRequiredMixin,
     OrgnizerAndLoginRequiredMixin
-  )
+)
 
 from .models import Management, Attendance
 from django.db.models import Q
@@ -23,7 +23,7 @@ from .forms import (
     ManagementModelForm,
     AttendanceModelForm,
     ManagementAssignedForm
-    )
+)
 
 
 class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView):
@@ -58,11 +58,11 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
             self.queryset = self.queryset.filter(
                 management__user=self.request.user)
 
-        p = self.queryset.filter(
+        self.queryset.filter(
             Q(full_name__icontains=query) |
             Q(staff_attendance_ref__icontains=query)
-        )        
-
+        )
+   
         # Pagination - of Attendance Page
 
         search = Paginator(self.queryset, 10)
@@ -108,6 +108,7 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
     form_class = AttendanceModelForm
 
     def get_queryset(self):
+        queryset = Attendance.objects.all()
         organization = self.request.user.userprofile
 
         queryset = Attendance.objects.filter(
@@ -121,20 +122,26 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
     def form_valid(self, form):
 
         # fetch and save organization id
-        management = form.save(commit=False)
-        management.organization = self.request.user.userprofile
-        management.save()
+        attendance = form.save(commit=False)
+
+        # pharmacist_id = self.request.user.pharmacist.id
+        if attendance.organization:
+            attendance.organization = self.request.user.userprofile
+            attendance.save()
+        else:
+            attendance.management = self.request.user.management.organization
+            attendance.save()
 
         # create the mgmt from the form we saved
-        username = form.cleaned_data['username']
+        full_name = form.cleaned_data['full_name']
         email = form.cleaned_data.get('email')
         context = {
-            'user': username,
+            'user': full_name,
         }
         send_mail(
             subject='Invitation By the Management',
             message=render_to_string('staff/attendance-invite.html', context),
-            from_email= settings.FROM_EMAIL,
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email, ]
         )
 
@@ -178,14 +185,15 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
     # queryset = Attendance.objects.all()
 
     def get_success_url(self):
-        messages.info(self.request, "You have successfully updated the staff attendance record!")
+        messages.info(
+            self.request, "You have successfully updated the staff attendance record!")
         return reverse('staff:attendance')
-    
+
     def form_valid(self, form: BaseModelForm):
         """ create expected time of sign out in case the staff """
         attendance = form.save(commit=False)
         attendance.date_sign_out_time = time_in_hr_min()
-     
+
         attendance.save()
         return super(AttendanceUpdateView, self).form_valid(form)
 
@@ -212,7 +220,8 @@ class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         return queryset
 
     def get_success_url(self):
-        messages.info(self.request, "You have successfully deleted the staff attendance record!")
+        messages.info(
+            self.request, "You have successfully deleted the staff attendance record!")
         return reverse('staff:attendance')
 
 
@@ -312,8 +321,8 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             organization=self.request.user.userprofile
         )
 
-        username= form.cleaned_data['username']
-   
+        username = form.cleaned_data['username']
+
         context = {
             'user': username,
         }
@@ -327,7 +336,7 @@ class ManagementCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             recipient_list=[email, ]
         )
         return super(ManagementCreateView, self).form_valid(form)
-    
+
 
 class ManagementDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
 
@@ -358,7 +367,8 @@ class ManagementUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return Management.objects.filter(organization=userprofile)
 
     def get_success_url(self):
-        messages.info(self.request, "You have successfully updated the management!")
+        messages.info(
+            self.request, "You have successfully updated the management!")
         return reverse('staff:management-list')
 
 
@@ -370,5 +380,6 @@ class ManagementDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
         return Management.objects.filter(organization=userprofile)
 
     def get_success_url(self):
-        messages.success(self.request, "You had successfully deleted the management assigned for the attendant register.")
+        messages.success(
+            self.request, "You had successfully deleted the management assigned for the attendant register.")
         return reverse("staff:management-list")

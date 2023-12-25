@@ -11,6 +11,7 @@ from songs.models import User
 
 
 class Lead(models.Model):
+    """ Model for our business lead collation and data manipulations"""
     SOURCE_CHOICES = (
         ("Youtube", "Youtube"),
         ("Facebook", "Facebook"),
@@ -182,7 +183,7 @@ class Category(models.Model):
     """
 
     name = models.CharField(max_length=30)
-    organization = models.ForeignKey("Userprofile", on_delete=models.CASCADE)
+    organization = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
     slug = models.SlugField()
 
     class Meta:
@@ -211,10 +212,11 @@ class Category(models.Model):
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """
     # print(instance, created) # username get printed of the user
+    user = instance
     try:
         if created:
-            UserProfile.objects.create(user=instance)
-    except ObjectDoesNotExist: UserProfile.objects.create(user=instance)
+            UserProfile.objects.create(user=user)
+    except ObjectDoesNotExist: UserProfile.objects.create(user=user)
 
 post_save.connect(post_user_created_signal, sender=User)
 

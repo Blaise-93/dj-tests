@@ -1,9 +1,12 @@
 from django import forms
 from pharmcare.models import *
 from tinymce.widgets import admin_widgets
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class PatientDetailForm(forms.ModelForm):
+class PatientDetailModelForm(forms.ModelForm):
     """ Patient detail form is a form class that helps us to input, check the validility
     of the form prior to it's submission of our patient's details given. """
     class Meta:
@@ -15,9 +18,12 @@ class PatientDetailForm(forms.ModelForm):
             'email',
             'marital_status',
             'patient_class',
+            'gender',
             'age',
             "weight",
-            'gender',
+            #  "pharmacist",
+            #   'organization',
+
             'height',
             'patient_history',
             'past_medical_history',
@@ -29,9 +35,9 @@ class PatientDetailForm(forms.ModelForm):
         ]
 
         labels = {
-            'first_name': 'Enter your patient\'s full name',
+            'first_name': 'Enter your patient\'s first name',
             'last_name': 'Enter your patient\'s last name',
-            'email': ' Enter your patient\'s email',
+            'email': ' Enter your patient\'s email if any',
             'age': ' Enter your patient\'s age',
             'height': "Enter your patient's height in (feet)",
             'weight': "Enter your patient's weight in (kg)",
@@ -148,7 +154,12 @@ class MonitoringPlanForm(forms.ModelForm):
 
     class Meta:
         model = MonitoringPlan
-        fields = '__all__'
+        fields = [
+            'parameter_used',
+            'justification',
+            'frequency',
+            'results_and_action_plan'
+        ]
 
 
 class FollowUpPlanForm(forms.ModelForm):
@@ -186,8 +197,8 @@ class PatientModelForm(forms.ModelForm):
         model = Patient
         fields = [
             'medical_charge',
-            'notes',     
-            'pharmacist',
+            'notes',
+            #  'pharmacist',
             'patient',
             'medical_history',
             # 'total',
@@ -195,41 +206,43 @@ class PatientModelForm(forms.ModelForm):
 
 
 class PharmaceuticalCarePlanModelForm(forms.ModelForm):
+    """ Pharmceutical care form that handles user input and validations """
     class Meta:
         model = PharmaceuticalCarePlan
         fields = [
-            "user",
             'patients',
             'has_improved',
             'progress_note',
             'medication_changes',
-            'pharmacist',
             'analysis_of_clinical_problem',
             'monitoring_plan',
             'follow_up_plan',
             'discount'
         ]
-        
+
+
 """ PharmacistModelForm, PharmacistAssignedForm """
 
 # Pharmacist Forms
 
+
 class PharmacistModelForm(forms.ModelForm):
     """ form class that handles organization pharmacist form for the patient
     if the user is granted access."""
+
     class Meta:
         model = User
-        
+
         fields = [
-       
+
             'username',
             'first_name',
             "last_name",
             'phone_number',
             'email',
-               
+
         ]
-        
+
         labels = {
             "username": "Enter your username",
             "first_name": "Enter your first name",
@@ -238,14 +251,16 @@ class PharmacistModelForm(forms.ModelForm):
             'email': 'Enter your email',
         }
 
+
 class PharmacistAssignedForm(forms.Form):
     pharmacist = forms.ModelChoiceField(queryset=Pharmacist.objects.none())
 
     def __init__(self, *args, **kwargs):
 
         request = kwargs.pop('request')
-        pharmacist = Pharmacist.objects.filter(organization=request.user.userprofile)
-      
+        pharmacist = Pharmacist.objects.filter(
+            organization=request.user.userprofile)
+
         super(PharmacistAssignedForm, self).__init__(*args, **kwargs)
-       
+
         self.fields['pharmacist'].queryset = pharmacist

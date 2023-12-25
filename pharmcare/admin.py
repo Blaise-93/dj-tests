@@ -3,7 +3,6 @@ from tinymce.widgets import TinyMCE
 from tinymce.widgets import admin_widgets
 
 
-
 from .models import (
     PharmaceuticalCarePlan,
     Patient,
@@ -25,7 +24,7 @@ class PatientDetailModelAdmin(admin.ModelAdmin):
     """ A class model admin that modifies/overide the admin panel of patient detail """
     model = PatientDetail
     fields = (
-               'first_name',
+        'first_name',
         'last_name',
         'email',
         'marital_status',
@@ -44,7 +43,7 @@ class PatientDetailModelAdmin(admin.ModelAdmin):
         'patient_history': admin_widgets.AdminTextareaWidget(),
         'past_medical_history': admin_widgets.AdminTextareaWidget()
     }
-    
+
     list_per_page = 10
 
     list_display = [
@@ -87,11 +86,11 @@ class ProgressNoteModelAdmin(admin.ModelAdmin):
     """ A class model admin that modifies/overide the admin panel of progress note
     for our patient"""
     model = ProgressNote
-    fields = ('notes', )
 
     list_per_page = 10
-    
+
     list_display = [
+        'user',
         'notes',
         'slug',
         'date_created'
@@ -109,7 +108,6 @@ class MedicationHistoryModelAdmin(admin.ModelAdmin):
     """ A class model admin that modifies/overide the admin panel of medication history 
     for our patient"""
     model = MedicationHistory
-    fields = ('medication_list', )
     widget = {
         'medication_list': admin_widgets.AdminTextareaWidget()
     }
@@ -133,12 +131,21 @@ class MedicationChangesModelAdmin(admin.ModelAdmin):
     we want our patient information based on their respective medication to be
     rendered, like list display and the rest."""
     model = MedicationChanges
-    fields = ('route', 'frequency')
+    fields = (
+        'user',
+        'medication_list',
+        'dose',
+        'frequency',
+        'route',
+        'indication',
+        'stop_date',
+    )
     widget = {
         'indication': admin_widgets.AdminTextareaWidget()
     }
 
     list_display = [
+        'user',
         'medication_list',
         'dose',
         'frequency',
@@ -165,6 +172,7 @@ class AnalysisOfClinicalProblemModelAdmin(admin.ModelAdmin):
     model = AnalysisOfClinicalProblem
 
     list_display = [
+        'user',
         "clinical_problem",
         "assessment",
         "priority",
@@ -185,9 +193,18 @@ class MonitoringPlanModelAdmin(admin.ModelAdmin):
     to help us and prepolulate patient's monitoring plan fields like list display 
     in a nicer format etc."""
     model = MonitoringPlan
-    fields = ('parameter_used', )
+    fields = (
+        'user',
+        'parameter_used',
+        'justification',
+        'frequency',
+        'results_and_action_plan',
+        'slug',
+
+    )
 
     list_display = (
+        'user',
         'parameter_used',
         'justification',
         'frequency',
@@ -218,6 +235,7 @@ class FollowUpPlanModelAdmin(admin.ModelAdmin):
     model = FollowUpPlan
 
     list_display = [
+        'user',
         'follow_up_requirement',
         'action_taken_and_future_plan',
         'state_of_improvement_by_score',
@@ -249,6 +267,7 @@ class PatientModelAdmin(admin.ModelAdmin):
     model = Patient
 
     list_display = [
+        'user',
         'medical_charge',
         'notes',
         'patient',
@@ -276,14 +295,7 @@ class PharmaceuticalPlanModelAdmin(admin.ModelAdmin):
     to help us and prepolulate patient's monitoring plan fields like list display 
     in a nicer format etc."""
     model = PharmaceuticalCarePlan
-    
-    def get_patient_name(self, request) -> str:
-        
-        patient_list = PharmaceuticalCarePlan.objects.get(user=request.user)
-        
-        for patient_name in patient_list.patients.all():
-            return patient_name
-    
+
     list_display = [
         'user',
         'patient_unique_code',
@@ -293,16 +305,15 @@ class PharmaceuticalPlanModelAdmin(admin.ModelAdmin):
         'pharmacist',
         'analysis_of_clinical_problem',
         'date_created',
-        
-       
+
+
     ]
-    
-   
+
     list_per_page = 10
 
     list_filter = [
         'user__username',
-        'patient_unique_code', 
+        'patient_unique_code',
         'has_improved',
     ]
 
@@ -325,7 +336,8 @@ admin.site.register(FollowUpPlan, FollowUpPlanModelAdmin)
 admin.site.register(PharmaceuticalCarePlan, PharmaceuticalPlanModelAdmin)
 
 
-admin.site.register(Pharmacist) #TODO - work on customizing it's admin
+admin.site.register(Pharmacist)  # TODO - work on customizing it's admin
+
 
 @admin.register(Team)
 class TeamModelAdmin(admin.ModelAdmin):

@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models.signals import post_save, pre_save
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from leads.models import UserProfile
@@ -27,10 +26,12 @@ class Attendance(models.Model):
         # allows us to collate managements based on the organization
         max_length=5,
         null=True, blank=True,
-        help_text=f'Enter the time you closed for work in this format -> 8:00. Make sure you \
-            update this field and fill in the option before you leave your workplace, not now please.')
+        help_text=f'Enter the time you closed for work in this format ->\
+            8:00. Make sure you update this field and fill in the option \
+                before you leave your workplace, not now please.')
+    
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, verbose_name="Branch")
+        UserProfile, on_delete=models.CASCADE)
     management = models.ForeignKey(
         "Management", on_delete=models.CASCADE, verbose_name='Management')
     date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
@@ -139,7 +140,7 @@ class Management(models.Model):
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, verbose_name='Branch')
+        UserProfile, on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
