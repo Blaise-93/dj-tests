@@ -20,7 +20,7 @@
     >
 
     <div>
-        <h1 class="text-3xl text-gray-800">Patient's Account Information</h1>
+        <h1 class="text-3xl text-gray-800">Patient's Medication Changes Information</h1>
       </div>
 
         {% if request.user.is_organizer or request.user.is_pharmacist %}
@@ -35,7 +35,7 @@
         {% if med_changes|length == 0 %}
         
         <p class="p-4 w-full text-2xl text-blue-800">
-         Apologies, there is currently no medical-change with such 
+         Apologies, there is currently no medication changes with such 
          search you entered in our database. Kindly input a correct 
           data or contact the site owner. Thank you, Pharm {{ request.user.username|title }}!</p> 
           {% else %}

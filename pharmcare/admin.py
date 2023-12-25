@@ -86,11 +86,11 @@ class ProgressNoteModelAdmin(admin.ModelAdmin):
     """ A class model admin that modifies/overide the admin panel of progress note
     for our patient"""
     model = ProgressNote
-    fields = ('notes', )
 
     list_per_page = 10
 
     list_display = [
+        'user',
         'notes',
         'slug',
         'date_created'
@@ -295,13 +295,6 @@ class PharmaceuticalPlanModelAdmin(admin.ModelAdmin):
     to help us and prepolulate patient's monitoring plan fields like list display 
     in a nicer format etc."""
     model = PharmaceuticalCarePlan
-
-    def get_patient_name(self, request) -> str:
-
-        patient_list = PharmaceuticalCarePlan.objects.get(user=request.user)
-
-        for patient_name in patient_list.patients.all():
-            return patient_name
 
     list_display = [
         'user',
