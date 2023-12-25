@@ -21,7 +21,8 @@ class PharmaceuticalCarePlan(models.Model):
      identify the records of the user.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    pharmacist = models.ForeignKey("Pharmacist", on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
@@ -32,12 +33,12 @@ class PharmaceuticalCarePlan(models.Model):
     # prior to saving the entry to the db, and it is a nullable field.
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
     has_improved = models.BooleanField(default=False,
-        verbose_name="has improved (tick good, if yes, otherwise don't.)")
+                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
         'MedicationChanges', on_delete=models.SET_NULL, blank=True, null=True)
-    
+
     analysis_of_clinical_problem = models.ForeignKey(
         'AnalysisOfClinicalProblem', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -60,6 +61,31 @@ class PharmaceuticalCarePlan(models.Model):
         reverse("pharmcare:patients-detail",
                 kwargs={"pk": self.pk})
 
+    def get_analysis_of_clinical_problem(self) -> str:
+        if self.analysis_of_clinical_problem:
+            return self.analysis_of_clinical_problem
+        return 'Not yet provided'
+
+    def get_medication_changes(self) -> str:
+        if self.medication_changes:
+            return self.medication_changes
+        return 'Not yet provided'
+
+    def get_monitoring_plan(self) -> str:
+        if self.monitoring_plan:
+            return self. monitoring_plan
+        return 'Not yet provided'
+
+    def get_follow_up_plan(self) -> str:
+        if self.follow_up_plan:
+            return self.follow_up_plan
+        return 'Not yet provided'
+
+    def get_progress_note(self) -> str:
+        if self.progress_note:
+            return self.progress_note
+        return 'Not yet provided'
+
     def get_total(self) -> int:
         patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
             id=self.pk)
@@ -67,12 +93,14 @@ class PharmaceuticalCarePlan(models.Model):
         total = 0
         for patient_list in patient_pharmcare_summary:
             for patient_list in self.patients.all():
+                
                 total += patient_list.get_total_charge()
 
             if self.discount:
                 # check discount if any
-                total -= self.discount
-                print(total)
+                if total > self.discount:
+                    total -= self.discount
+                    print(total)
             return total
 
     def get_utc_by_date(self):
@@ -131,8 +159,6 @@ class PharmaceuticalCarePlan(models.Model):
         super().save(*args, **kwargs)
 
 
-
-
 class Patient(models.Model):
     """ Patient model which has a many to many attribute to dynamically map out each
     patients/user details, medication history and customer leads in our db 
@@ -166,17 +192,17 @@ class Patient(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     pharmacist = models.ForeignKey(
-        "Pharmacist", on_delete=models.CASCADE,
-        blank=True, verbose_name='Pharmacist')
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE)
-    patient = models.OneToOneField(
-        'PatientDetail', on_delete=models.CASCADE, verbose_name='Patient-detail')
+    patient = models.ForeignKey(
+        'PatientDetail', on_delete=models.CASCADE,
+        verbose_name='Patient-detail')
 
-    medical_history = models.OneToOneField(
+    medical_history = models.ForeignKey(
         'MedicationHistory',
         on_delete=models.CASCADE)
 
@@ -282,19 +308,21 @@ class PatientDetail(models.Model):
         ("Elderly", "Elderly")
 
 
+
     )
 
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
-    email = models.CharField(unique=True, max_length=30, null=True, blank=True)
+    email = models.CharField(max_length=30, null=True, blank=True)
     marital_status = models.CharField(
         max_length=20, choices=MARITAL_STATUS, default='Single')
     patient_class = models.CharField(
         max_length=20, choices=PATIENT_STATE, default='Adult')
-    age = models.PositiveIntegerField()
+    age = models.PositiveIntegerField(validators=[MinValueValidator(0),
+                                                  MaxValueValidator(150)])
     pharmacist = models.ForeignKey(
-        "Pharmacist", on_delete=models.CASCADE,
-        blank=True, verbose_name='Pharmacist')
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='Pharmacist')
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
     gender = models.CharField(
@@ -302,24 +330,25 @@ class PatientDetail(models.Model):
     height = models.FloatField(null=True, blank=True, editable=True,
                                help_text="must be provided in ft",
                                error_messages="Kindly provide the patient's")
-    weight = models.IntegerField(null=True, blank=True,
-                                 help_text="must be provided in kg",
-                                 editable=True,
-                                 error_messages="Kindly provide the patient's weight")
+    weight = models.FloatField(null=True, blank=True,
+                               help_text="must be provided in kg",
+                               editable=True,
+                               error_messages="Kindly provide the patient's weight")
     BMI = models.CharField(max_length=10)
     patient_history = models.TextField(editable=True, blank=False)
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
-    phone_number = models.CharField(max_length=12, null=True, blank=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True,
+                                    validators=[MinValueValidator("01010000000"),
+                                                MaxValueValidator("09991000000")])
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
     social_history = models.CharField(
         max_length=250, editable=True, null=True, blank=True)
     slug = models.SlugField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
-
     class Meta:
-        ordering = ['first_name']
+        ordering = ['id']
 
     def get_email(self):
         if self.email is not None:
@@ -374,6 +403,11 @@ class PatientDetail(models.Model):
     def save(self, *args, **kwargs):
         """ override the original save method to set the patient details 
         according to if agent has phoned or not"""
+        # patient_detail = PatientDetail.objects.filter(
+        #    slug=self.slug)
+
+       # for i in patient_detail:
+
         self.BMI = self.patients_bmi()
         self.slug = slugify(
             f'{(self.first_name + slug_modifier())}')
@@ -385,11 +419,7 @@ class Pharmacist(models.Model):
     """ Pharmacist in our model. Pharmacists are assigned to each patient
      to manage and engage them with solemn pharmaceutical care plan.
     """
-    # Foreign (many-to-one) keys allow us to create many pharmacist for one user
-    # OneToOneField: one-to-one relationship - so no list of many managements of 
-    # one user will be returned.
-    # ManyToManyField:
-    # every agents has one user
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
@@ -399,7 +429,7 @@ class Pharmacist(models.Model):
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, verbose_name='Branch')
+        UserProfile, on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:

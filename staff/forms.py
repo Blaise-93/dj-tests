@@ -17,8 +17,8 @@ class AttendanceModelForm(forms.ModelForm):
             'sign_in_time',
             'sign_out_time',
             'date_added',
-            'organization',
-            'management', 
+           # 'organization',
+           # 'management', 
         ]
 
 class ManagementModelForm(forms.ModelForm):

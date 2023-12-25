@@ -76,9 +76,12 @@ class AgentCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
         # send email to the user
         username = form.cleaned_data['username']
+        psw =  user.password
+        print(psw)
     
         context = {
             'user': username,
+            "psw": psw
         }
         send_mail(
             subject='Agent Invitation By the Management',

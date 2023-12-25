@@ -34,9 +34,8 @@
             <th scope="col" class="px-6 py-3">Has improved</th>
             <th scope="col" class="px-6 py-3">Progress note</th>
             <th scope="col" class="px-6 py-3">Medication changes</th>
-            {% comment %}
             <th scope="col" class="px-6 py-3">Patients</th>
-            {% endcomment %}
+        
             <th scope="col" class="px-6 py-3">Analysis of clinical problem</th>
             <th scope="col" class="px-6 py-3">Monitoring plan</th>
             <th scope="col" class="px-6 py-3">Follow up plan</th>
@@ -51,28 +50,26 @@
           >
             <td class="w-4 p-4">
               <div class="flex items-center">
-                <span>{{forloop.counter}}</span>
+                <span>{{patient_qs.id}}</span>
               </div>
             </td>
             {% for pt in patient_qs.patients.all %}
             <td class="px-6 py-4">{{ pt.get_full_name }}</td>
-            {% endfor %} {% comment %}
-            <td class="px-6 py-4">{{ patient_qs.fullname }}</td>
-            {% endcomment %}
+          {% endfor %}
             <td class="px-6 py-4">{{ patient_qs.patient_unique_code }}</td>
             <td class="px-6 py-4">{{ patient_qs.has_improved }}</td>
-            <td class="px-6 py-4">{{ patient_qs.progress_note }}</td>
-            <td class="px-6 py-4">{{ patient_qs.medication_changes }}</td>
-
-            <td class="px-6 py-4">
-              {{ patient_qs.analysis_of_clinical_problem }}
-            </td>
-            <td class="px-6 py-4">{{ patient_qs.monitoring_plan }}</td>
-            <td class="px-6 py-4">{{ patient_qs.follow_up_plan }}</td>
+            <td class="px-6 py-4">{{ patient_qs.get_progress_note }}</td>
+            <td class="px-6 py-4">{{ patient_qs.get_medication_changes }}</td>
+          {% for pt in patient_qs.patients.all %} 
+            <td class="px-6 py-4">{{ pt.patient.first_name }}</td>
+          {% endfor %}
+            <td class="px-6 py-4">{{ patient_qs.get_analysis_of_clinical_problem }}</td>
+            <td class="px-6 py-4"> {{ patient_qs.get_monitoring_plan }} </td>
+            <td class="px-6 py-4"> {{ patient_qs.get_follow_up_plan }} </td>
             {% for pt in patient_qs.patients.all %}
             <td class="px-6 py-4">₦{{ patient_qs.get_total }}</td>
             {%endfor %}
-            <td class="px-6 py-4">{{ patient_qs.date_created }} in UTC+0</td>
+            <td class="px-6 py-4"> {{ patient_qs.date_created }} in UTC </td>
 
             <td class="flex items-center px-6 py-4">
               <a

@@ -60,7 +60,8 @@
               {% if request.user.is_organizer %}
               <li>
                 <a href="{% url 'pharmcare:pharmacist-list' %}"
-                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Pharmacist</a>
+                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                dark:hover:text-white">View Pharmacist</a>
 
               </li>
               {% endif %}
@@ -68,19 +69,19 @@
           </div>
       </div>
 
-        {% if request.user.is_organizer %}
+        {% if request.user.is_organizer or request.user.is_pharmacist %}
         <div class="text-gray-500 hover:text-blue-500">
           <a href="{% url 'pharmcare:patient-create' %}">Go to Patient Create Page</a> 
         </div>
         {% endif %}
       </div>
       <div class="flex flex-wrap m-4 pb-3">
-        {% if patients|length == 0 %}
+       {% if patients|length == 0 %}
           <p class="px-4 w-full text-2xl text-blue-800">
             Apologies, there is currently no patient with such 
             search you entered in our database. Kindly input a correct 
             data or contact the site owner. Thank you,  {{ request.user.username|title }}!</p> 
-        {% else %}
+        {% else %} 
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table
             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
@@ -143,7 +144,8 @@
        
         <div class="py-4"> {% include 'snippets/pagination.html' %}</div>
       
-        {% endif %}
+    {% endif %} 
+     
 {% comment %}  {% if unassigned_patients.exists %}
 
       

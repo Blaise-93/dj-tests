@@ -9,17 +9,17 @@
       class="leads w-full mb-6 py-4 border-b border-gray-200 justify-between items-center"
     >
       <div>
-        <h1 class="text-3xl text-gray-800">Patients Information</h1>
+        <h1 class="text-3xl text-gray-800">Patients' Monitoring Plan Information</h1>
       </div>
 
-        {% if request.user.is_organizer or request.user.is_agent %}
+        {% if request.user.is_organizer or request.user.is_pharmacist %}
         <div class="text-gray-500 hover:text-blue-500">
           <a href="{% url 'pharmcare:follow-up-plan-create' %}">Go to Patient's Create Follow Up Plan Page</a> 
         </div>
         {% endif %}
       </div>
       {% if follow_up_plans|length == 0 %}
-          {% if request.user.is_agent %}
+          {% if request.user.is_pharmacist %}
             <p class="px-4 w-full text-2xl text-blue-800">
                The information you are searched does not exist in our database.
               Kindly input correct data, Pharm {{request.user|title }}.

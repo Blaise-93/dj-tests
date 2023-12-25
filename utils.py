@@ -94,6 +94,8 @@ def utc_standard_time():
 
 
 
+
+
 def time_in_hr_min():
     " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
     when a staff wants to update his/her record."

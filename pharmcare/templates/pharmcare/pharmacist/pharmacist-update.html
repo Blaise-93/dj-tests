@@ -9,7 +9,7 @@
     Go back to Pharmacist page</a>
   <div class="py-3 border-t border-gray-200">  
     <h1 class="text-4xl text-gray-800  create-pt-heading
-    ">Update Pharm {{ object.first_name|capfirst }} data.</h1 >
+    ">Update  {{ pharmacist.first_name|capfirst}} data.</h1 >
   </div>
   <form method="post" class="mt-5 pt-create" action=".">
           {% csrf_token %}

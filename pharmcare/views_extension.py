@@ -1,3 +1,5 @@
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
 from django.urls import reverse
 from agents.mixins import OrgnizerAndLoginRequiredMixin
 from django.views import generic
@@ -59,6 +61,7 @@ class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user_userprofile = self.request.user.userprofile
+        
         query = self.request.GET.get('q', '')
 
         # filter by request user organization - so that each won't see or
@@ -101,6 +104,10 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         # call form.save()
         try:
             user = form.save(commit=False)
+            
+            #pharmacist.organization = self.request.user.userprofile
+            # pharmacist.save()
+            
             # create pharmacist user
             user.is_pharmacist = True
             user.is_organizer = False
@@ -110,6 +117,7 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             user.save()
 
             email = form.cleaned_data.get('email')
+         
             # create the pharmacist from the form we saved
             Pharmacist.objects.create(
                 user=user,
@@ -117,9 +125,12 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             )
 
             username= form.cleaned_data['username']
+            psw =  user.password
+            print(psw)
     
             context = {
                 'user': username,
+                'temp_psw': psw
             }
 
             # send email to the user
@@ -136,7 +147,7 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
             messages.success(self.request, f"""The pharmacist request form was
                 created successfully! Kindly follow up {username.title()} 
                 to make sure that other registrations (like  {username.title()}'s 
-                full name,email, phone number etc) are carried out successfully.""")
+                full name, email and phone number) are carried out successfully.""")
             
             return super(PharmacistCreateView, self).form_valid(form)
         
@@ -174,6 +185,13 @@ class PharmacistUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
             """
         userprofile = self.request.user.userprofile
         return Pharmacist.objects.filter(organization=userprofile)
+    
+    """  def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        
+        form = form.save(commit=False)
+        username = form.cleaned_data['username']
+        
+        return super(PharmacistUpdateView, self).form_valid(form) """
 
     def get_success_url(self):
         messages.info(self.request, "You have successfully updated the pharmacist!")
