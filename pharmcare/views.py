@@ -1,11 +1,9 @@
-
 from typing import Any
 from django.db import models
 from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.utils import timezone
 from utils import (
     files,
     slug_modifier,
@@ -80,19 +78,19 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
         if user.is_organizer or user.is_pharmacist:
             self.queryset = PatientDetail.objects.filter(
                 organization=user.userprofile, pharmacist__isnull=True)
-            
+
            # print(user.userprofile)
         else:
             self.queryset = PatientDetail.objects.filter(
-                organization=user.pharmacist.organization,  
+                organization=user.pharmacist.organization,
                 pharmacist__isnull=True
             )
             print(user.pharmacist.organization)
 
             self.queryset = PatientDetail.objects.filter(
                 pharmacist__user=user, pharmacist__isnull=True)
-            print(self.queryset) 
-        
+            print(self.queryset)
+
         self.queryset = self.queryset.filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
@@ -130,8 +128,8 @@ class PatientDetailCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView)
 
     def get_queryset(self):
         """  Since, it is rare to see a community pharmacy or hospital not
-        managed by a pharmacists according the law of most countries in the
-        world, I think it is appropriate to give pharmacists acting as pharmacists
+        managed by a pharmacists according to the law of most countries in the
+        world, I think it is appropriate to give pharmacists
         permissions to collect and create patient data in the database. 
         This is a 50:50 win situation by the organization because it is
         quite inconvenient for each patient data collection he/she will be
@@ -140,7 +138,7 @@ class PatientDetailCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView)
 
         organization = self.request.user.userprofile
         user = self.request.user
-        
+
         if user.is_organizer or user.is_pharmacist:
             queryset = PatientDetail.objects.filter(
                 organization=organization,  organization__isnull=True)
@@ -272,41 +270,69 @@ class MedicationHistoryListView(OrganizerPharmacistLoginRequiredMixin,
 
     template_name = 'pharmcare/medication-history-list.html'
     ordering = 'id'
-    queryset = MedicationHistory.objects.all().order_by(ordering)
 
     context_object_name = 'med_history'
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
 
-    
-        query = self.request.GET.get('q', '')
+        # check for search query
+
         if query is None:
             messages.info(self.request,
-                            files('/pharmcare/mails/medhistory.txt'))
+                          files('/pharmcare/mails/medhistory.txt'))
             return render(self.request, self.template_name)
 
-        self.queryset = MedicationHistory.objects.filter(
-            Q(medication_list__icontains=query) |
-            Q(indication_and_evidence__icontains=query)
-
-
-        ).distinct()
-
-        # Pagination - of Medication History Page
-
-        search = Paginator(self.queryset, 10)
-        page = self.request.GET.get('page')
-
         try:
-            self.queryset = search.get_page(page)
+            if user.is_organizer or user.is_pharmacist:
+                self.queryset = MedicationHistory.objects\
+                    .filter(organization=organization)
+            else:
+                self.queryset = MedicationHistory.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
 
-        except PageNotAnInteger:
-            self.queryset = search.get_page(1)
+                self.queryset = self.queryset\
+                    .filter(pharmacist__user=user)
 
-        except EmptyPage:
-            self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+                # query the self.queryset via filter to
+                # allow the user search the content s/he wants
+
+            self.queryset = MedicationHistory.objects.filter(
+                Q(medication_list__icontains=query) |
+                Q(indication_and_evidence__icontains=query)
+
+
+            ).distinct()
+
+            # Pagination - of Medication History Page
+
+            search = Paginator(self.queryset, 10)
+            page = self.request.GET.get('page')
+
+            try:
+                self.queryset = search.get_page(page)
+
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
+
+            context = {
+                'med_history': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient medication history you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:medication-history')
 
 
 class MedicationHistoryCreateView(OrganizerPharmacistLoginRequiredMixin,
@@ -316,18 +342,37 @@ class MedicationHistoryCreateView(OrganizerPharmacistLoginRequiredMixin,
 
     template_name = 'pharmcare/medication-history-create.html'
     form_class = MedicationHistoryForm
-    queryset = MedicationHistory.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationHistory.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationHistory.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+
+        user = self.request.user
+
+        form = form.save(commit=False)
+        form.user = user
+        form.organization = user.userprofile
+        # form.organization = user.pharmacist.organization
+        form.save()
+        return super(MedicationHistoryCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.success(self.request,
-            "The patient's medication history was successfully created!")
+                         "The patient's medication history was successfully created!")
         return reverse('pharmcare:medication-history')
-
-    def form_valid(self, form):
-        form = form.save(commit=False)
-        form.date_created = utc_standard_time()
-        form.save()
-        return super(MedicationHistoryCreateView, self).form_valid(form)
 
 
 class MedicationHistoryDetailView(OrganizerPharmacistLoginRequiredMixin,
@@ -336,8 +381,22 @@ class MedicationHistoryDetailView(OrganizerPharmacistLoginRequiredMixin,
     if the admin/pharmacists wants. """
 
     template_name = 'pharmcare/medication-history-detail.html'
-    queryset = MedicationHistory.objects.all()
     context_object_name = 'med_history'
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationHistory.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationHistory.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
 
 class MedicationHistoryUpdateView(OrganizerPharmacistLoginRequiredMixin,
@@ -346,12 +405,26 @@ class MedicationHistoryUpdateView(OrganizerPharmacistLoginRequiredMixin,
     admin/pharmacists wants. """
     form_class = MedicationHistoryForm
     template_name = 'pharmcare/medication-history-update.html'
-    queryset = MedicationHistory.objects.all()
     context_object_name = 'med_history'
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationHistory.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationHistory.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
     def get_success_url(self) -> str:
         messages.success(self.request,
-            "The patient's medication history was successfully updated!")
+                         "The patient's medication history was successfully updated!")
         return reverse('pharmcare:medication-history')
 
 
@@ -361,12 +434,26 @@ class MedicationHistoryDeleteView(OrganizerPharmacistLoginRequiredMixin,
     the admin/pharmacists wants. """
 
     template_name = 'pharmcare/medication-history-delete.html'
-    queryset = MedicationHistory.objects.all()
     context_object_name = 'med_history'
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationHistory.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationHistory.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
     def get_success_url(self) -> str:
         messages.success(self.request,
-            "The patient's medication history was successfully deleted!")
+                         "The patient's medication history was successfully deleted!")
         return reverse('pharmcare:medication-history')
 
 
@@ -378,19 +465,31 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
 
     template_name = 'pharmcare/medication-changes-list.html'
     ordering = 'id'
-    queryset = MedicationChanges.objects.all().order_by(ordering)
 
     context_object_name = 'med_changes'
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
 
-        if user.is_organizer or user.is_pharmacist:
-            query = self.request.GET.get('q', '')
-            if query is None:
-                messages.info(self.request,
-                              files('/pharmcare/mails/medchanges.txt'))
-                return render(self.request, self.template_name)
+        # check for search query
+        if query is None:
+            messages.info(self.request,
+                          files('/pharmcare/mails/medchanges.txt'))
+            return render(self.request, self.template_name)
+
+        try:
+            if user.is_organizer or user.is_pharmacist:
+                self.queryset = MedicationChanges.objects\
+                    .filter(organization=organization)
+            else:
+                self.queryset = MedicationChanges.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
+
+                self.queryset = self.queryset\
+                    .filter(pharmacist__user=user)
 
             # filter by dose an route based on user's search
             self.queryset = MedicationChanges.objects.filter(
@@ -413,7 +512,19 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
 
             except EmptyPage:
                 self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+
+            context = {
+                'med_changes': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient medication changes you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:medication-changes')
 
 
 class MedicationChangesCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
@@ -422,24 +533,43 @@ class MedicationChangesCreateView(OrganizerPharmacistLoginRequiredMixin, CreateV
 
     template_name = 'pharmcare/medication-changes-create.html'
     form_class = MedicationChangesForm
-    queryset = MedicationChanges.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationChanges.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationChanges.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        """ instantously create and save patient's slug and start_or_continued
+        date to our db prior to saving every entry provided that form is
+        valid."""
+
+        user = self.request.user
+
+        # instances to save when the form is called
+        med_changes = form.save(commit=False)
+        med_changes.user = user
+        med_changes.organization = user.userprofile
+        med_changes.start_or_continued_date = utc_standard_time().date()
+
+        # med_changes.organization = user.pharmacist.organization
+        med_changes.save()
+        return super(MedicationChangesCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.success(
             self.request, 'Medication changes was created successfully.')
         return reverse('pharmcare:medication-changes')
-
-    def form_valid(self, form):
-        """ instantously create and save patient's slug and start_or_continued
-        date to our db prior to saving every entry provided that form is
-        valid."""
-
-        form = form.save(commit=False)
-        form.slug = slug_modifier()
-        form.date_created = utc_standard_time()
-        form.start_or_continued_date = utc_standard_time().date()
-        form.save()
-        return super(MedicationChangesCreateView, self).form_valid(form)
 
 
 class MedicationChangesDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
@@ -447,7 +577,21 @@ class MedicationChangesDetailView(OrganizerPharmacistLoginRequiredMixin, DetailV
     if the admin/pharmacists wants. """
 
     template_name = 'pharmcare/medication-changes-detail.html'
-    queryset = MedicationChanges.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationChanges.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationChanges.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
 
 class MedicationChangesUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
@@ -456,17 +600,26 @@ class MedicationChangesUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateV
 
     form_class = MedicationChangesForm
     template_name = 'pharmcare/medication-changes-update.html'
-    queryset = MedicationChanges.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationChanges.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationChanges.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
     def get_success_url(self) -> str:
         messages.success(self.request,
-            "The patient's medication changes  was successfully updated!")
+                         "The patient's medication changes  was successfully updated!")
         return reverse('pharmcare:medication-changes')
-
-    """ def get_success_url(self) -> str:
-        # call self.get_object() to return the actual lead
-        pk = self.get_object().id
-        return reverse('pharmcare:medication-changes', kwargs={"pk": pk}) """
 
 
 class MedicationChangesDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
@@ -474,7 +627,21 @@ class MedicationChangesDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteV
     the admin/pharmacists wants. """
 
     template_name = 'pharmcare/medication-history-delete.html'
-    queryset = MedicationChanges.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = MedicationChanges.objects.filter(
+                organization=organization)
+        else:
+            queryset = MedicationChanges.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
     def get_success_url(self) -> str:
 
@@ -491,32 +658,40 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
 
     template_name = 'pharmcare/analysis-of-clinical-problem-list.html'
     ordering = 'id'
-    queryset = AnalysisOfClinicalProblem.objects.all().order_by(ordering)
 
     context_object_name = 'analysis_of_cp'  # cp -> clinical problem
+    
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
+    
 
-        if user.is_organizer or user.is_pharmacist:
-            query = self.request.GET.get('q', '')
-            if query is None:
-                messages.info(self.request,
-                              files('/pharmcare/mails/analysisofcp.txt'))
-                return render(self.request, self.template_name)
+        try:
+            if user.is_organizer or user.is_pharmacist:
+                queryset = AnalysisOfClinicalProblem.objects\
+                    .filter(organization=organization)
+            else:
+                queryset = AnalysisOfClinicalProblem.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
 
-            # filter by dose an route based on user's search
+                queryset = queryset\
+                    .filter(pharmacist__user=user)
+
+             # filter by dose an route based on user's search
             self.queryset = AnalysisOfClinicalProblem.objects.filter(
 
                 Q(clinical_problem__icontains=query) |
                 Q(priority__icontains=query) |
                 Q(slug__icontains=query)
 
-            ).distinct()
+                )\
+                    .order_by('id')
 
             # Pagination - of Medication History Page
 
-            search = Paginator(self.queryset, 10)
+            search = Paginator(queryset, 10)
             page = self.request.GET.get('page')
 
             try:
@@ -527,7 +702,19 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
 
             except EmptyPage:
                 self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+
+            context = {
+                'analysis_of_cp': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient analysis of clinical problem you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:monitoring-plan')
 
 
 class AnalysisOfClinicalProblemCreateView(OrganizerPharmacistLoginRequiredMixin,
@@ -537,7 +724,33 @@ class AnalysisOfClinicalProblemCreateView(OrganizerPharmacistLoginRequiredMixin,
 
     template_name = 'pharmcare/analysis-of-clinical-problem-create.html'
     form_class = AnalysisOfClinicalProblemForm
-    queryset = AnalysisOfClinicalProblem.objects.all()
+    
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        user = self.request.user
+        
+        form = form.save(commit=False)
+        form.user = user
+        form.organization = user.userprofile
+        form.slug = slug_modifier()
+        # form.organization = user.pharmacist.organization
+        form.save()
+
+        return super(AnalysisOfClinicalProblemCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.success(
@@ -545,18 +758,30 @@ class AnalysisOfClinicalProblemCreateView(OrganizerPharmacistLoginRequiredMixin,
                 was created successfully.')
         return reverse('pharmcare:analysis-of-cp')
 
-    def form_valid(self, form):
-        form = form.save(commit=False)
-        form.slug = slug_modifier()
-        form.save()
-        return super(AnalysisOfClinicalProblemCreateView, self).form_valid(form)
+ 
 
 
-class AnalysisOfClinicalProblemDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
+class AnalysisOfClinicalProblemDetailView(OrganizerPharmacistLoginRequiredMixin,
+                                        DetailView):
     """ View responsible to display patient's changes detai analysis of clinical 
     problem records if the admin/pharmacists wants. """
+    
     template_name = 'pharmcare/analysis-of-clinical-problem-detail.html'
-    queryset = AnalysisOfClinicalProblem.objects.all()
+
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                organization=organization)
+        else:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
 
 
 class AnalysisOfClinicalProblemUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
@@ -565,7 +790,22 @@ class AnalysisOfClinicalProblemUpdateView(OrganizerPharmacistLoginRequiredMixin,
 
     form_class = AnalysisOfClinicalProblemForm
     template_name = 'pharmcare/analysis-of-clinical-problem-update.html'
-    queryset = AnalysisOfClinicalProblem.objects.all()
+    
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                organization=organization)
+        else:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
+
 
     def get_success_url(self) -> str:
         messages.info(
@@ -577,7 +817,22 @@ class AnalysisOfClinicalProblemDeleteView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to delete patient' analysis of clinical problem  records if
     the admin/pharmacists wants. """
     template_name = 'pharmcare/analysis-of-clinical-problem-update.html'
-    queryset = AnalysisOfClinicalProblem.objects.all()
+    
+    def get_queryset(self):
+
+        organization = self.request.user.userprofile
+        user = self.request.user
+        if user.is_organizer or user.is_pharmacist:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                organization=organization)
+        else:
+            queryset = AnalysisOfClinicalProblem.objects.filter(
+                pharmacist=user.pharmacist.organization
+            )
+            queryset = queryset.filter(pharmacist__user=user)
+
+        return queryset
+
 
     def get_success_url(self) -> str:
         messages.info(
@@ -590,32 +845,39 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     to display the monitoring plan of the patients in our db record."""
     template_name = 'pharmcare/monitoring-plan-list.html'
     ordering = 'id'
-    queryset = MonitoringPlan.objects.all().order_by(ordering)
+   # queryset = ProgressNote.objects.all().order_by(ordering)
     has_improved = models.BooleanField(default=False)
 
     context_object_name = 'monitoring_plan'
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
 
-        if user.is_pharmacist and user.is_pharmacist:
-            query = self.request.GET.get('q', '')
-            if query is None:
-                messages.info(self.request,
-                              files('/pharmcare/mails/monitoring-plan.txt'))
-                return render(self.request, self.template_name)
+        try:
+            if user.is_organizer or user.is_pharmacist:
+                monitoring_plan_qs = MonitoringPlan.objects\
+                    .filter(organization=organization)
+            else:
+                monitoring_plan_qs = MonitoringPlan.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
 
-            # filter by frqeuncy, slug an parameter_used based on user's search
-            self.queryset = MonitoringPlan.objects.filter(
+                monitoring_plan_qs = monitoring_plan_qs\
+                    .filter(pharmacist__user=user)
 
-                Q(parameter_used__icontains=query) |
-                Q(frequency__icontains=query)
+                # query the monitoring_plan_qs via filter to
+                # allow the user search the content s/he wants
+                monitoring_plan_qs.filter(
+                    Q(frequency__icontains=query) |
+                    Q(parameter_used__icontains=query)
 
-            ).distinct()
+                )\
+                    .order_by('id')
 
             # Pagination - of Medication History Page
 
-            search = Paginator(self.queryset, 10)
+            search = Paginator(monitoring_plan_qs, 10)
             page = self.request.GET.get('page')
 
             try:
@@ -626,7 +888,19 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             except EmptyPage:
                 self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+
+            context = {
+                'monitoring_plan': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient monitoring record you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:monitoring-plan')
 
 
 class MonitoringPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
@@ -635,18 +909,45 @@ class MonitoringPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
 
     template_name = 'pharmcare/monitoring-plan-create.html'
     form_class = MonitoringPlanForm
-    queryset = MonitoringPlan.objects.all()
+   # queryset = MonitoringPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        user = self.request.user
+
+        form = form.save(commit=False)
+        form.user = user
+        form.organization = user.userprofile
+        # form.organization = user.pharmacist.organization
+        form.save()
+
+        return super(MonitoringPlanCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.info(
             self.request, 'Patient\'s monitoring plan was created successfully.')
         return reverse('pharmcare:monitoring-plan')
 
+    """ 
     def form_valid(self, form):
         form = form.save(commit=False)
         form.slug = slug_modifier()
         form.save()
-        return super(MonitoringPlanCreateView, self).form_valid(form)
+        return super(MonitoringPlanCreateView, self).form_valid(form) """
 
 
 class MonitoringPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
@@ -654,7 +955,21 @@ class MonitoringPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView
     medication records if the admin/pharmacists wants. """
 
     template_name = 'pharmcare/monitoring-plan-detail.html'
-    queryset = MonitoringPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
 
 class MonitoringPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
@@ -663,7 +978,22 @@ class MonitoringPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView
 
     form_class = MonitoringPlanForm
     template_name = 'pharmcare/monitoring-plan-update.html'
-    queryset = MonitoringPlan.objects.all()
+   # queryset = MonitoringPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:monitoring-plan')
@@ -674,7 +1004,21 @@ class MonitoringPlanDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView
     the admin/pharmacists wants. """
 
     template_name = 'pharmcare/monitoring-plan-delete.html'
-    queryset = MonitoringPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = MonitoringPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:monitoring-plan')
@@ -686,29 +1030,42 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
     template_name = 'pharmcare/follow-up-plan-list.html'
     ordering = 'id'
-    queryset = FollowUpPlan.objects.all().order_by(ordering)
 
     context_object_name = 'follow_up_plans'
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+
+        query = self.request.GET.get('q', '')
+
+        organization = self.request.user.userprofile
         user = self.request.user
 
-        if user.is_pharmacist and user.is_pharmacist:
-            query = self.request.GET.get('q', '')
+        if query is None:
+            messages.info(self.request,
+                          files('pharmcare/mails/follow-up-plan.txt'))
+            return render(self.request, self.template_name)
 
-            if query is None:
-                messages.info(self.request,
-                              files('pharmcare/mails/follow-up-plan.txt'))
-                return render(self.request, self.template_name)
+        try:
 
-            # filter by frqeuncy, slug an parameter_used based on user's search
-            self.queryset = FollowUpPlan.objects.filter(
+            if user.is_organizer or user.is_pharmacist:
 
-                Q(state_of_improvement_by_score__icontains=query) |
-                Q(adhered_to_medications_given__icontains=query) |
-                Q(referral__icontains=query)
+                self.queryset = FollowUpPlan.objects\
+                    .filter(organization=organization)
+            else:
+                self.queryset = FollowUpPlan.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
 
-            )
+                self.queryset = self.queryset\
+                    .filter(pharmacist__user=user)
+
+                # query the self.queryset via filter to
+                # allow the user search the content s/he wants
+                self.queryset.filter(
+                    Q(state_of_improvement_by_score__icontains=query) |
+                    Q(adhered_to_medications_given__icontains=query) |
+                    Q(referral__icontains=query)
+                )\
+                    .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -723,7 +1080,19 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             except EmptyPage:
                 self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+
+            context = {
+                'follow_up_plans': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient follow-up plans record you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:follow-up-plan')
 
 
 class FollowUpPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
@@ -732,18 +1101,37 @@ class FollowUpPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
 
     template_name = 'pharmcare/follow-up-plan-create.html'
     form_class = FollowUpPlanForm
-    queryset = FollowUpPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        user = self.request.user
+
+        form = form.save(commit=False)
+        form.user = user
+        form.organization = user.userprofile
+        # form.organization = user.pharmacist.organization
+        form.save()
+
+        return super(FollowUpPlanCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.info(
             self.request, 'Patient\'s follow up plan was created successfully.')
         return reverse('pharmcare:follow-up-plan')
-
-    def form_valid(self, form):
-        form = form.save(commit=False)
-        form.slug = slug_modifier()
-        form.save()
-        return super(FollowUpPlanCreateView, self).form_valid(form)
 
 
 class FollowUpPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
@@ -751,7 +1139,21 @@ class FollowUpPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     medication records if the admin/pharmacists wants. """
 
     template_name = 'pharmcare/follow-up-plan-detail.html'
-    queryset = FollowUpPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
 
 class FollowUpPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
@@ -760,7 +1162,21 @@ class FollowUpPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 
     form_class = FollowUpPlanForm
     template_name = 'pharmcare/follow-up-plan-update.html'
-    queryset = FollowUpPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:follow-up-plan')
@@ -770,7 +1186,21 @@ class FollowUpPlanDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's follow up plan records if
     the admin/pharmacists wants. """
     template_name = 'pharmcare/follow-up-plan-delete.html'
-    queryset = FollowUpPlan.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = FollowUpPlan.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:follow-up-plan')
@@ -782,28 +1212,38 @@ class ProgressNoteListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
     template_name = 'pharmcare/progress-note-list.html'
     ordering = 'id'
-    queryset = ProgressNote.objects.all().order_by(ordering)
 
     context_object_name = 'progress_notes'
 
-    def get_queryset(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
 
-        if user.is_organizer or user.is_pharmacist:
-            query = self.request.GET.get('q', '')
+        if query is None:
+            messages.info(self.request,
+                          files('pharmcare/mails/progress-note.txt'))
+            return render(self.request, self.template_name)
 
-            if query is None:
-                messages.info(self.request,
-                              files('pharmcare/mails/progress-note.txt'))
-                return render(self.request, self.template_name)
+        try:
+            if user.is_organizer or user.is_pharmacist:
+                self.queryset = ProgressNote.objects\
+                    .filter(organization=organization)
+            else:
+                self.queryset = ProgressNote.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
 
-            # filter by frqeuncy, slug an parameter_used based on user's search
-            self.queryset = ProgressNote.objects.filter(
+                self.queryset = self.queryset\
+                    .filter(pharmacist__user=user)
 
-                Q(notes__icontains=query) |
-                Q(slug__icontains=query)
+                # query the self.queryset via filter to
+                # allow the user search the content s/he wants
+                self.queryset.filter(
+                    Q(frequency__icontains=query) |
+                    Q(parameter_used__icontains=query)
 
-            ).distinct()
+                )\
+                    .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -818,7 +1258,19 @@ class ProgressNoteListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             except EmptyPage:
                 self.queryset = search.get_page(search.num_pages)
-        return self.queryset
+
+            context = {
+                'progress_notes': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the patient progress note record you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:progress-notes')
 
 
 class ProgressNoteCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
@@ -826,27 +1278,58 @@ class ProgressNoteCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/progress-note-create.html'
     form_class = ProgressNoteForm
-    queryset = ProgressNote.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        user = self.request.user
+
+        form = form.save(commit=False)
+        form.user = user
+        form.organization = user.userprofile
+        # form.organization = user.pharmacist.organization
+        form.save()
+
+        return super(ProgressNoteCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         messages.info(
             self.request, 'Patient\'s progress note was created successfully.')
         return reverse('pharmcare:progress-notes')
 
-    def form_valid(self, form):
-        """ dynamically create and save patient's slug identifier in our db. """
-        progress_note = form.save(commit=False)
-        progress_note.slug = slug_modifier()
-        progress_note.date_created = utc_standard_time()
-        progress_note.save()
-        return super(ProgressNoteCreateView, self).form_valid(form)
-
 
 class ProgressNoteDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     """ View responsible to display patient's progress note detail medication records 
     if the admin/pharmacists wants. """
     template_name = 'pharmcare/progress-note-detail.html'
-    queryset = ProgressNote.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
 
 class ProgressNoteUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
@@ -854,7 +1337,21 @@ class ProgressNoteUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     admin/pharmacists wants. """
     form_class = ProgressNoteForm
     template_name = 'pharmcare/progress-note-update.html'
-    queryset = ProgressNote.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:progress-notes')
@@ -864,7 +1361,21 @@ class ProgressNoteDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's progress note records if
     the admin/pharmacists wants. """
     template_name = 'pharmcare/progress-note-delete.html'
-    queryset = ProgressNote.objects.all()
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_organizer:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = ProgressNote.objects.filter(
+                organization=user.pharmacist.organization)
+
+            self.queryset = self.queryset.filter(
+                pharmacist__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:progress-notes')
@@ -885,6 +1396,24 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
         try:
             if user.is_pharmacist or user.is_organizer:
+
+                self.queryset = Patient.objects\
+                    .filter(organization=user.userprofile)
+            else:
+                self.queryset = Patient.objects\
+                    .filter(pharmacist=user.pharmacist.organization)
+
+                self.queryset = self.queryset\
+                    .filter(pharmacist__user=user)
+
+                # query the self.queryset via filter to
+                # allow the user search the content s/he wants
+                self.queryset.filter(
+                    Q(patient_unique_code__icontains=query) |
+                    Q(has_improved__icontains=query) |
+                    Q(patient_full_name__icontains=query)
+                )\
+                    .order_by('id')
                 # filter by frqeuncy, slug an parameter_used based on user's search
                 self.queryset = Patient.objects.filter(
 
@@ -942,18 +1471,18 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
             queryset = queryset.filter(pharmacist__user=user)
 
         return queryset
-    
+
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        user= self.request.user
-      
+        user = self.request.user
+
         form = form.save(commit=False)
-        
+
         form.user = user
         form.organization = user.userprofile
         # form.organization = user.pharmacist.organization
         form.save()
-        
-        #Patient.objects.create(pharmacist=user.pharmacist.organization)
+
+        # Patient.objects.create(pharmacist=user.pharmacist.organization)
         return super(PatientCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
@@ -999,8 +1528,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     def get_queryset(self):
 
         user = self.request.user
-        
-       
+
         if user.is_organizer or user.is_pharmacist:
 
             queryset = Patient.objects.filter(
@@ -1141,18 +1669,17 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
 
         return self.queryset
 
-    
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        user= self.request.user
-      
+        user = self.request.user
+
         form = form.save(commit=False)
-        
+
         form.user = user
         form.organization = user.userprofile
         # form.organization = user.pharmacist.organization
         form.save()
-        return super(PatientSummaryCreateView,self).form_valid(form)
-        
+        return super(PatientSummaryCreateView, self).form_valid(form)
+
     def get_success_url(self) -> str:
         return reverse('pharmcare:patients')
 
@@ -1194,7 +1721,7 @@ class PatientSummaryUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView)
         """ function that gets the specific queryset of the user for 
         pharmacist/organization to view for further records. """
         user = self.request.user
-        if user.is_organizer  or user.is_pharmacist:
+        if user.is_organizer or user.is_pharmacist:
             self.queryset = PharmaceuticalCarePlan.objects.filter(
                 organization=user.userprofile)
 

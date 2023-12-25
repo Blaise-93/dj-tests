@@ -464,7 +464,13 @@ class MedicationHistory(models.Model):
     class Meta:
         verbose_name_plural = 'Medication History'
         ordering = ['id',]
-
+        
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
+    
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
     slug = models.SlugField(blank=True, null=True)
@@ -487,7 +493,11 @@ class ProgressNote(models.Model):
     """ Model class that handles the progress note of each patient. """
     class Meta:
         ordering = ['id',]
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField()
@@ -517,7 +527,11 @@ class MedicationChanges(models.Model):
     class Meta:
         verbose_name_plural = 'Medication Changes'
         ordering = ['id']
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
     medication_list = models.CharField(max_length=100)
     dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
@@ -543,10 +557,16 @@ class MonitoringPlan(models.Model):
 
     class Meta:
         ordering = ['id',]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
+    
     parameter_used = models.CharField(max_length=100)
     justification = models.CharField(max_length=300)
     frequency = models.CharField(
-        max_length=100, default='On admission and then 6 hours after',
+        max_length=100,
         verbose_name='Result(s) and Action Plan')
     results_and_action_plan = models.CharField(max_length=300)
     slug = models.SlugField()
@@ -573,7 +593,12 @@ class AnalysisOfClinicalProblem(models.Model):
         ('Medium', 'Medium'),
         ('Low', 'Low'),
     )
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
+    
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
     priority = models.CharField(max_length=50, choices=PRORITY_CHOICES)
@@ -602,6 +627,12 @@ class FollowUpPlan(models.Model):
 
     class Meta:
         ordering = ['id',]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacist = models.ForeignKey(
+        "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE)
 
     patient = models.ForeignKey(PatientDetail,
                                 on_delete=models.SET_NULL, blank=True, null=True)

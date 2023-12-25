@@ -21,9 +21,9 @@ class PatientDetailModelForm(forms.ModelForm):
             'gender',
             'age',
             "weight",
-          #  "pharmacist",
-         #   'organization',
-          
+            #  "pharmacist",
+            #   'organization',
+
             'height',
             'patient_history',
             'past_medical_history',
@@ -154,7 +154,12 @@ class MonitoringPlanForm(forms.ModelForm):
 
     class Meta:
         model = MonitoringPlan
-        fields = '__all__'
+        fields = [
+            'parameter_used',
+            'justification',
+            'frequency',
+            'results_and_action_plan'
+        ]
 
 
 class FollowUpPlanForm(forms.ModelForm):
@@ -193,7 +198,7 @@ class PatientModelForm(forms.ModelForm):
         fields = [
             'medical_charge',
             'notes',
-          #  'pharmacist',
+            #  'pharmacist',
             'patient',
             'medical_history',
             # 'total',
