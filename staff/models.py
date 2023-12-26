@@ -59,7 +59,7 @@ class Attendance(models.Model):
 
         lagos_time = timezone.localtime(
             self.date_created, timezone.get_fixed_timezone(120))
-        print(lagos_time)
+
         return lagos_time
 
     def get_fullname(self) -> str:

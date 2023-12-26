@@ -1,7 +1,7 @@
 from django.db import models
 from songs.models import User
 from django.shortcuts import get_object_or_404
-from leads.models import Lead, Agent, UserProfile
+from leads.models import UserProfile
 from django.db import models
 from datetime import datetime, timedelta
 from functools import reduce
@@ -11,7 +11,7 @@ from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
 
 
-# PHARMACEUTICALS MGMT - CARE PLAN TODO
+# PHARMACEUTICALS MGMT - CARE PLAN 
 
 class PharmaceuticalCarePlan(models.Model):
     """ 
@@ -100,7 +100,7 @@ class PharmaceuticalCarePlan(models.Model):
                 # check discount if any
                 if total > self.discount:
                     total -= self.discount
-                    print(total)
+                
             return total
 
     def get_utc_by_date(self):
@@ -111,40 +111,6 @@ class PharmaceuticalCarePlan(models.Model):
         self.total_payment = self.get_total()
         return super().save(self, *args, **kwargs)
 
-    def get_patient_fullname(self, request, slug):
-        """ a helper function to dynamically abstract each patient
-        full name and force it to be saved in our db."""
-        # get the id of the patients from patientdetail table
-        item = get_object_or_404(PatientDetail, slug=slug)
-
-        # get  or create the patient queryset which is a
-        # a many to many model.
-        patient_qs, created = Patient.objects.get_or_create(
-            user=request.user, patient=item
-        )
-        # filter out the user making the request
-        # and check  whether the object exist
-        pharmcare_qs = PharmaceuticalCarePlan.objects.filter(user=request.user)
-
-        if pharmcare_qs.exists():
-
-            patients_qs = pharmcare_qs[0]
-            if patients_qs.patients.filter(patient__slug=item.slug).exists():
-
-                # for items in self.patients.all():
-
-                first_name = patient_qs.patient.first_name
-                last_name = patient_qs.patient.last_name
-                if len(full_name) <= 20:
-                    full_name = f'{first_name} {last_name}'
-                    print(full_name)
-                else:
-                    full_name = f'{first_name} {last_name[:1].capitalize()}'
-                print(full_name)
-                return full_name
-
-        return self.patients
-
     def save(self, *args, **kwargs):
         """
         Override the original save method to set the order number
@@ -153,7 +119,7 @@ class PharmaceuticalCarePlan(models.Model):
         if not self.patient_unique_code:
 
             self.patient_unique_code = generate_patient_unique_code()
-            # self.patient_full_name = self.get_patient_fullname()
+           
             self.total_payment = self.get_total()
 
         super().save(*args, **kwargs)
@@ -243,7 +209,9 @@ class Patient(models.Model):
             total += amount_charged
             return total
         total += self.patient.consultation
+        
         return total
+    
 
     def save(self, *args, **kwargs):
         # commit and overide the total if the user did not sum it up prior to
@@ -348,7 +316,7 @@ class PatientDetail(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id']
+        ordering = ['id', 'first_name']
 
     def get_email(self):
         if self.email is not None:

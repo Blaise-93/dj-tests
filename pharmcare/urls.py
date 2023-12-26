@@ -1,36 +1,30 @@
 from django.urls import path
+from pharmcare.views.pharmacists import *
 
-from .views import (
+from pharmcare.views.patient_details import (
     PatientDetailListView,
     PatientDetailCreateView,
     PatientDetailView,
     UpdatePatientDetailView,
     DeletePatientDetailView,
+)
 
+from pharmcare.views.medication_history import (
     MedicationHistoryListView,
     MedicationHistoryCreateView,
     MedicationHistoryDeleteView,
     MedicationHistoryUpdateView,
     MedicationHistoryDetailView,
+)
 
-    PatientSummaryListView,
-    PatientSummaryCreateView,
-    delete_patient_summary,
-    PatientSummaryDetailView,
-    PatientSummaryUpateView,
-    #  PatientSummaryDeleteView,
-
+from pharmcare.views.medication_changes import (
     MedicationChangesListView,
     MedicationChangesCreateView,
     MedicationChangesDetailView,
     MedicationChangesUpdateView,
     MedicationChangesDeleteView,
-
-    AnalysisOfClinicalProblemListView,
-    AnalysisOfClinicalProblemCreateView,
-    AnalysisOfClinicalProblemDetailView,
-    AnalysisOfClinicalProblemUpdateView,
-    AnalysisOfClinicalProblemDeleteView,
+)
+from pharmcare.views.monitoring_plans import (
 
     MonitoringPlanListView,
     MonitoringPlanCreateView,
@@ -38,18 +32,47 @@ from .views import (
     MonitoringPlanUpdateView,
     MonitoringPlanDeleteView,
 
-    FollowUpPlanListView,
-    FollowUpPlanCreateView,
-    FollowUpPlanDetailView,
-    FollowUpPlanUpdateView,
-    FollowUpPlanDeleteView,
+)
+
+from pharmcare.views.analysis_of_cp import (
+
+    AnalysisOfClinicalProblemListView,
+    AnalysisOfClinicalProblemCreateView,
+    AnalysisOfClinicalProblemDetailView,
+    AnalysisOfClinicalProblemUpdateView,
+    AnalysisOfClinicalProblemDeleteView,
+
+)
+
+from pharmcare.views.pharmaceutical_care_plan import (
+    PatientSummaryListView,
+    PatientSummaryCreateView,
+    delete_patient_summary,
+    PatientSummaryDetailView,
+    PatientSummaryUpateView,
+    #  PatientSummaryDeleteView,
+)
+
+from pharmcare.views.progess_notes import (
 
     ProgressNoteListView,
     ProgressNoteCreateView,
     ProgressNoteDetailView,
     ProgressNoteUpdateView,
     ProgressNoteDeleteView,
-    
+)
+
+from pharmcare.views.follow_up_plans import (
+
+    FollowUpPlanListView,
+    FollowUpPlanCreateView,
+    FollowUpPlanDetailView,
+    FollowUpPlanUpdateView,
+    FollowUpPlanDeleteView,
+
+)
+
+from pharmcare.views.patients import (
     PatientListView,
     PatientCreateView,
     PatientUpateView,
@@ -57,7 +80,6 @@ from .views import (
     PatientsDetailView
 )
 
-from .views_extension import *
 
 app_name = 'pharmcare'
 
@@ -78,14 +100,15 @@ urlpatterns = [
          name='monitoring-plan'),
     path('follow-up-plan/', FollowUpPlanListView.as_view(), name='follow-up-plan'),
     path('progress-note/', ProgressNoteListView.as_view(), name='progress-notes'),
-    
-    
+
+
     path('pharmacist/', PharmacistListView.as_view(), name="pharmacist-list"),
 
 
     # pharmcare create uris
     path('patient-create/', PatientDetailCreateView.as_view(), name='patient-create'),
-    path('patient-info-create/', PatientCreateView.as_view(), name='patients-info-create'),
+    path('patient-info-create/', PatientCreateView.as_view(),
+         name='patients-info-create'),
     path('medication-history-create/', MedicationHistoryCreateView.as_view(),
          name='medication-history-create'),
     path('patients-create/',  PatientSummaryCreateView.as_view(),
@@ -100,20 +123,22 @@ urlpatterns = [
          name='follow-up-plan-create'),
     path('progress-note-create/', ProgressNoteCreateView.as_view(),
          name='progress-note-create'),
-    
-    
-    path('pharmacist-create/', PharmacistCreateView.as_view(), name="pharmacist-create"),
+
+
+    path('pharmacist-create/', PharmacistCreateView.as_view(),
+         name="pharmacist-create"),
 
     # pharmcare detail uris
-    
-   
+
+
     path('<str:slug>/', PatientDetailView.as_view(), name='patient-detail'),
-     path('patient-info/<int:pk>/', PatientsDetailView.as_view(), name='patients-info-detail'),
+    path('patient-info/<int:pk>/', PatientsDetailView.as_view(),
+         name='patients-info-detail'),
     path("medication-changes/<str:slug>/",
          MedicationChangesDetailView.as_view(), name='medication-changes-detail'),
     path('medication-history/<int:pk>/', MedicationHistoryDetailView.as_view(),
          name='medication-history-detail'),
-  
+
     path("analysis-of-clincal-problem/<str:slug>/",
          AnalysisOfClinicalProblemDetailView.as_view(), name='analysis-of-cp-detail'),
     path('patient-list/<int:pk>/',
@@ -137,7 +162,7 @@ urlpatterns = [
     path('patient-list/<int:pk>/patients-update/',
          PatientSummaryUpateView.as_view(), name='patients-update'),
     path('patient-info/<int:pk>/update/',
-        PatientUpateView.as_view(), name='patients-info-update'),
+         PatientUpateView.as_view(), name='patients-info-update'),
     path("medication-changes/<str:slug>/update/",
          MedicationChangesUpdateView.as_view(), name='medication-changes-update'),
     path("analysis-of-clincal-problem/<str:slug>/update/",
@@ -148,9 +173,9 @@ urlpatterns = [
          FollowUpPlanUpdateView.as_view(), name='follow-up-plan-update'),
     path("progress-note/<str:slug>/update/",
          ProgressNoteUpdateView.as_view(), name='progress-note-update'),
-    
-    
-    
+
+
+
     path("pharmacist/<str:slug>/update/", PharmacistUpdateView.as_view(),
          name='pharmacist-update'),
 
@@ -164,7 +189,8 @@ urlpatterns = [
 
     path('patient-list/<int:pk>/patients-delete/',
          delete_patient_summary, name='patients-delete'),
-    path('patients-info/<int:pk>/delete/', delete_patient_view, name='patient-info-delete'),
+    path('patients-info/<int:pk>/delete/',
+         delete_patient_view, name='patient-info-delete'),
 
     path("medication-changes/<str:slug>/delete/",
          MedicationChangesDeleteView.as_view(), name='medication-changes-delete'),
@@ -176,9 +202,9 @@ urlpatterns = [
          FollowUpPlanDeleteView.as_view(), name='follow-up-plan-delete'),
     path("progress-note/<str:slug>/delete/",
          ProgressNoteDeleteView.as_view(), name='progress-note-delete'),
-    
-    
-    
+
+
+
     path("pharmacist/<str:slug>/delete/", PharmacistDeleteView.as_view(),
          name='pharmacist-delete'),
 

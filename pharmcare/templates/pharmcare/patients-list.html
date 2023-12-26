@@ -95,9 +95,9 @@
                   <td class="px-6 py-4">{{ patient_qs.get_analysis_of_clinical_problem }}</td>
                   <td class="px-6 py-4"> {{ patient_qs.get_monitoring_plan }} </td>
                   <td class="px-6 py-4"> {{ patient_qs.get_follow_up_plan }} </td>
-                  {% for pt in patient_qs.patients.all %}
+                  
                   <td class="px-6 py-4">₦{{ patient_qs.get_total }}</td>
-                  {%endfor %}
+           
                   <td class="px-6 py-4"> {{ patient_qs.date_created }} in UTC </td>
             
                   <td class="flex items-center px-6 py-4">

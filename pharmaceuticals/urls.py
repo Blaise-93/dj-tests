@@ -57,9 +57,9 @@ urlpatterns = [
 ]
 
 
-handler404 = 'pharmcare.views.error_404'
-handler500 =  'pharmcare.views.error_500'
-handler403 =  'pharmcare.views.error_403'
+handler404 = 'pharmcare.views.patient_details.error_404'
+handler500 =  'pharmcare.views.patient_details.error_500'
+handler403 =  'pharmcare.views.patient_details.error_403'
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,

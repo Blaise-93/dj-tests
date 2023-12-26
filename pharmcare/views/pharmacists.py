@@ -1,9 +1,7 @@
-from django.forms.models import BaseModelForm
-from django.http import HttpResponse
 from django.urls import reverse
 from agents.mixins import OrgnizerAndLoginRequiredMixin
 from django.views import generic
-from django.shortcuts import render, redirect
+from django.shortcuts import  redirect
 from utils import password_setter
 from django.db import IntegrityError
 from django.template.loader import render_to_string
@@ -15,8 +13,8 @@ from django.core.paginator import (
     )
 from django.contrib import messages
 from django.db.models import Q
-from .models import Pharmacist, PatientDetail
-from .forms import PharmacistModelForm, PharmacistAssignedForm
+from pharmcare.models import Pharmacist, PatientDetail
+from pharmcare.forms import PharmacistModelForm, PharmacistAssignedForm
 
 
 
