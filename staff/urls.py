@@ -1,10 +1,14 @@
 from django.urls import path
-from .views import (
+from views.attendance import (
     AttendanceListView,
     AttendanceCreateView,
     AttendanceDetailView,
     AttendanceUpdateView,
     AttendanceDeleteView,
+    
+)
+
+from views.management import (
     ManagementAssignedView,
     
     ManagementDetailView,
@@ -34,8 +38,7 @@ urlpatterns = [
     
     path('<str:slug>/delete/', AttendanceDeleteView.as_view(), name='attendance-delete'),
     path('management/<str:slug>/delete/', ManagementDeleteView.as_view(), name='management-delete'),
-    
-    # eg - http://127.0.0.1:8000/staff-attendance/ejkeme-blaise9w7lomruiwrjaqp/assigned-management/
+   
     path('<str:slug>/assigned-management/', ManagementAssignedView.as_view(), name='assigned-management')
 ]
     

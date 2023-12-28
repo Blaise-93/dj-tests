@@ -1,5 +1,4 @@
 from django.contrib import admin
-from tinymce.widgets import TinyMCE
 from tinymce.widgets import admin_widgets
 
 

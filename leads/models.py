@@ -1,17 +1,16 @@
 from django.db import models
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-from django.views.generic import View
 from django_countries.fields import CountryField
 from songs.models import User
 
 
 class Lead(models.Model):
     """ Model for our business lead collation and data manipulations"""
+
     SOURCE_CHOICES = (
         ("Youtube", "Youtube"),
         ("Facebook", "Facebook"),
@@ -26,18 +25,12 @@ class Lead(models.Model):
         ("Snapchat", "Snapchat"),
 
     )
+
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     age = models.IntegerField(default=0, verbose_name="client Age")
-    # allows us to collate agents based on the organization
+
     organization = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
-
-    # the quotation mark "" on Agent tells Django that Agent is inside this file, Lead
-    # agent -> foreign key allows us to set one agent to many leads assigned to an
-    # agent. Foreign keys allows us to create many agents for one user.
-    # we reassign the agent if the agent leads are deleted from db
-    # related_name => to do relationship modeling
-
     agent = models.ForeignKey(
         "Agent", on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Agent')
     category = models.ForeignKey("Category", related_name='leads',
@@ -121,10 +114,7 @@ class Lead(models.Model):
 
 class Agent(models.Model):
     """ Agent of our models. Agents are assigned to each leads or to our patients. """
-    # Foreign (many-to-one) keys allow us to create many agents for one user
-    # OneToOneField: one-to-one relationship - so no list of many agents of one user will be returned.
-    # ManyToManyField:
-    # every agents has one user
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, default=1)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
@@ -174,7 +164,7 @@ class UserProfile(models.Model):
 
 class PharmacistProfile(models.Model):
     """ model that create user one to one field  for the pharmacist"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -182,7 +172,7 @@ class PharmacistProfile(models.Model):
 
 class ManagementProfile(models.Model):
     """ model that create user one to one field  for the management"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -218,8 +208,6 @@ class Category(models.Model):
     def get_category_absolute_url(self):
         return reverse("leads:category-update", kwargs={"slug": self.slug})
 
-    # reverse('category-update', args=[category.slug])
-
 
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """
@@ -233,7 +221,7 @@ def post_user_created_signal(sender, instance, created, **kwargs):
                 PharmacistProfile.objects.create(user=user)
             elif sender.is_management:
                 ManagementProfile.objects.create(user=user)
-                
+
     except ObjectDoesNotExist:
         UserProfile.objects.create(user=user)
 

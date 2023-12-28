@@ -32,6 +32,10 @@ class Attendance(models.Model):
     
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
+    
+    user = models.ForeignKey(
+        'leads.ManagementProfile', on_delete=models.CASCADE)
+    
     management = models.ForeignKey(
         "Management", on_delete=models.CASCADE, verbose_name='Management')
     date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
@@ -127,10 +131,7 @@ class Management(models.Model):
     """ Management of our models. Managements are assigned to each attendance
     made by our staff in our compnay
     """
-    # Foreign (many-to-one) keys allow us to create many managements for one user
-    # OneToOneField: one-to-one relationship - so no list of many managements of one user will be returned.
-    # ManyToManyField:
-    # every agents has one user
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
