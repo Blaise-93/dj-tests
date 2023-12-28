@@ -1,6 +1,11 @@
 from django.db import models
 from django.urls import reverse
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    MinValueValidator,
+    MaxValueValidator,
+    MinLengthValidator
+
+)
 from leads.models import UserProfile
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
@@ -13,7 +18,8 @@ class Attendance(models.Model):
     """ A model responsible for creating attendance table of an instance made in our db
     with relationship mapping of the organization and an assigned management."""
 
-    full_name = models.CharField(max_length=30)
+    full_name = models.CharField(
+        max_length=30, validators=[MinLengthValidator(8)])
     sign_in_time = models.CharField(
         max_length=5,
         help_text='Enter the time you resumed for work in this format -> 8:00')
@@ -29,15 +35,16 @@ class Attendance(models.Model):
         help_text=f'Enter the time you closed for work in this format ->\
             8:00. Make sure you update this field and fill in the option \
                 before you leave your workplace, not now please.')
-    
+
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
-    
+
     user = models.ForeignKey(
-        'leads.ManagementProfile', on_delete=models.CASCADE)
-    
+        User, on_delete=models.CASCADE)
+
     management = models.ForeignKey(
-        "Management", on_delete=models.CASCADE, verbose_name='Management')
+        "Management", on_delete=models.CASCADE, verbose_name='Management',
+        null=True, blank=True)
     date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -68,7 +75,7 @@ class Attendance(models.Model):
 
     def get_fullname(self) -> str:
         """ validates full name input by the user """
-        if self.full_name <= 8:
+        if len(self.full_name) <= 8:
             return 'Kindly enter your full name'
         return self.full_name
 
@@ -82,6 +89,8 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
+        
+
 
     def get_sign_in_time(self):
         """ a helper function to accurately output when the staff signed out 
@@ -93,6 +102,8 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
+        
+    
 
     def time_utc(self):
         """ a helper function to accurately output when attendance starts to 
@@ -131,7 +142,7 @@ class Management(models.Model):
     """ Management of our models. Managements are assigned to each attendance
     made by our staff in our compnay
     """
-    
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)

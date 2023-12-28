@@ -1,11 +1,12 @@
 from django.forms.models import BaseModelForm
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.conf import settings
 from django.views import generic
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from utils import time_in_hr_min
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from agents.mixins import (
@@ -13,7 +14,7 @@ from agents.mixins import (
     OrgnizerAndLoginRequiredMixin
 )
 
-from staff.models import Attendance
+from staff.models import Attendance, Management
 from django.db.models import Q
 from django.contrib import messages
 from staff.forms import AttendanceModelForm
@@ -34,43 +35,58 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
     context_object_name = 'attendance'
     ordering = 'id'
 
-    def get_queryset(self):
-        # login in user - an organizer?
+    def get(self, *args, **kwargs):
+        query = self.request.GET.get('q', '')
+        organization = self.request.user.userprofile
         user = self.request.user
 
-        query = self.request.GET.get('q', '')
-
-        if user.is_organizer:
-            self.queryset = Attendance.objects.filter(
-                organization=user.userprofile, management__isnull=False)
-        else:
-            self.queryset = Attendance.objects.filter(
-                organization=user.management.organization, management__isnull=False)
-
-           # filter the mgmt that is logged in
-            self.queryset = self.queryset.filter(
-                management__user=self.request.user)
-
-        self.queryset.filter(
-            Q(full_name__icontains=query) |
-            Q(staff_attendance_ref__icontains=query)
-        )
-
-        # Pagination - of Attendance Page
-
-        search = Paginator(self.queryset, 10)
-        page = self.request.GET.get('page')
-
         try:
-            self.queryset = search.get_page(page)
+            if user.is_organizer or user.is_management:
+                self.queryset = Attendance.objects\
+                    .filter(organization=organization)
+            else:
+                self.queryset = Attendance.objects\
+                    .filter(management=user.management.organization)
 
-        except PageNotAnInteger:
-            self.queryset = search.get_page(1)
+                self.queryset = self.queryset\
+                    .filter(management__user=user)
 
-        except EmptyPage:
-            self.queryset = search.get_page(search.num_pages)
+                # query the self.queryset via filter to
+                # allow the user search the content s/he wants
+                self.queryset.filter(
 
-        return self.queryset
+                    Q(full_name__icontains=query) |
+                    Q(staff_attendance_ref__icontains=query)
+
+                )\
+                    .order_by(self.ordering)
+
+            # Pagination - of Medication History Page
+
+            search = Paginator(self.queryset, 10)
+            page = self.request.GET.get('page')
+
+            try:
+                self.queryset = search.get_page(page)
+
+            except PageNotAnInteger:
+                self.queryset = search.get_page(1)
+
+            except EmptyPage:
+                self.queryset = search.get_page(search.num_pages)
+
+            context = {
+                'attendance': self.queryset
+            }
+
+            return render(self.request, self.template_name, context)
+
+        except ObjectDoesNotExist:
+            messages.info(self.request,
+                          f"""Apologies, the staff attendance record you are \
+                              searching for does not exist.
+                It was deleted by {self.request.user.username.title()}""")
+            return redirect('pharmcare:attendance')
 
     def get_context_data(self, **kwargs):
         """function that helps us to filter and split attendance that have not been 
@@ -105,7 +121,7 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
         organization = self.request.user.userprofile
 
         queryset = Attendance.objects.filter(
-            organization=organization, organization__isnull=True)
+            organization=organization)
 
         return queryset
 
@@ -113,33 +129,16 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
         return reverse('staff:attendance')
 
     def form_valid(self, form):
-
-        # fetch and save organization id
-        attendance = form.save(commit=False)
-
-        # pharmacist_id = self.request.user.pharmacist.id
-        if attendance.organization:
-            attendance.organization = self.request.user.userprofile
-            attendance.save()
-        else:
-            attendance.management = self.request.user.management.organization
-            attendance.save()
-
-        # create the mgmt from the form we saved
+        user = self.request.user
         full_name = form.cleaned_data['full_name']
-        email = form.cleaned_data.get('email')
-        context = {
-            'user': full_name,
-        }
-        send_mail(
-            subject='Invitation By the Management',
-            message=render_to_string('staff/attendance-invite.html', context),
-            from_email=settings.FROM_EMAIL,
-            recipient_list=[email, ]
-        )
 
-        # fetch user email from already validated form
-        messages.info(self.request, "Your attendance was created successfully")
+        attendance = form.save(commit=False)
+        attendance.user = user
+        attendance.organization = user.userprofile
+        attendance.save()
+
+        messages.info(self.request,
+                      f"{full_name.title()} today's attendance was created successfully!")
         return super(AttendanceCreateView, self).form_valid(form)
 
 
@@ -154,13 +153,13 @@ class AttendanceDetailView(OrganizerManagementLoginRequiredMixin, generic.Detail
     def get_queryset(self):
         user = self.request.user
         # login in user - an organizer?
-        if user.is_organizer:
+        if user.is_organizer or user.is_management:
             queryset = Attendance.objects.filter(organization=user.userprofile)
         else:
             queryset = Attendance.objects.filter(
                 organization=user.management.organization)
 
-            queryset = queryset.filter(management__user=self.request.user)
+            queryset = queryset.filter(management__user=user)
             # when returned django then evaluate what you filtered
         return queryset
 
@@ -177,24 +176,33 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
     form_class = AttendanceModelForm
     # queryset = Attendance.objects.all()
 
-    def get_success_url(self):
-        messages.info(
-            self.request, "You have successfully updated the staff attendance record!")
-        return reverse('staff:attendance')
-
     def form_valid(self, form: BaseModelForm):
         """ create expected time of sign out in case the staff """
+        full_name = form.cleaned_data['full_name']
         attendance = form.save(commit=False)
+
         attendance.date_sign_out_time = time_in_hr_min()
-
         attendance.save()
+        
+        messages.info(
+            self.request, f"You have successfully updated {full_name.title()} attendance record!")
         return super(AttendanceUpdateView, self).form_valid(form)
+  
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        # login in user - an organizer?
-        if user.is_organizer:
-            return Attendance.objects.filter(organization=user.userprofile)
+        if user.is_organizer or user.is_management:
+            self.queryset = Attendance.objects.filter(
+                organization=user.userprofile)
+
+        else:
+            self.queryset = Attendance.objects.filter(
+                organization=user.management.organization)
+
+            self.queryset = self.queryset.filter(
+                management__user=self.request.user)
+
+        return self.queryset
 
 
 class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
@@ -205,12 +213,20 @@ class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
     """
     template_name = 'staff/attendance-delete.html'
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        # initial queryset for entire organization?
-        queryset = Attendance.objects.filter(organization=user.userprofile)
+        if user.is_organizer or user.is_management:
+            self.queryset = Attendance.objects.filter(
+                organization=user.userprofile)
 
-        return queryset
+        else:
+            self.queryset = Attendance.objects.filter(
+                organization=user.management.organization)
+
+            self.queryset = self.queryset.filter(
+                management__user=self.request.user)
+
+        return self.queryset
 
     def get_success_url(self):
         messages.info(

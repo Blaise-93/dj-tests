@@ -1,5 +1,5 @@
 from django.urls import path
-from views.attendance import (
+from .views.attendance import (
     AttendanceListView,
     AttendanceCreateView,
     AttendanceDetailView,
@@ -8,7 +8,7 @@ from views.attendance import (
     
 )
 
-from views.management import (
+from .views.management import (
     ManagementAssignedView,
     
     ManagementDetailView,

@@ -164,7 +164,7 @@ class UserProfile(models.Model):
 
 class PharmacistProfile(models.Model):
     """ model that create user one to one field  for the pharmacist"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -172,7 +172,7 @@ class PharmacistProfile(models.Model):
 
 class ManagementProfile(models.Model):
     """ model that create user one to one field  for the management"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username

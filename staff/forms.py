@@ -2,7 +2,6 @@ from django import forms
 from .models import Management, Attendance
 from django import forms
 from django.contrib.auth import get_user_model
-from leads.forms import CustomUserForm
 
 User = get_user_model()
 
@@ -17,8 +16,7 @@ class AttendanceModelForm(forms.ModelForm):
             'sign_in_time',
             'sign_out_time',
             'date_added',
-           # 'organization',
-           # 'management', 
+        
         ]
 
 class ManagementModelForm(forms.ModelForm):
