@@ -48,7 +48,8 @@ class Lead(models.Model):
     phoned = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=12)
     description = models.TextField()
-    email = models.EmailField(unique=True, max_length=100, null=True, blank=True)
+    email = models.EmailField(
+        unique=True, max_length=100, null=True, blank=True)
     address = models.CharField(max_length=50,  null=True, blank=True)
     files = models.FileField(blank=True, null=True,
                              upload_to="media/products/")
@@ -60,38 +61,36 @@ class Lead(models.Model):
 
     def __str__(self) -> str:
         return f'{self.first_name} {self.last_name}'
-    
+
     def get_email(self):
         if self.email is not None:
             return self.email
         return 'No email provided'
-    
+
     def get_phone_number(self):
         if self.phone_number:
             return self.phone_number
         return 'No phone number provided'
-    
+
     def get_description(self):
         if self.description:
             return self.description
         return 'No description provided'
-    
+
     def get_social_media_account(self):
         if self.social_media_accounts:
             return self.social_media_accounts
         return 'Social account not provided'
-    
+
     def get_file(self):
         if self.files:
             return self.files
         return 'File not provided'
-    
+
     def get_address(self):
-        if self.address:       
+        if self.address:
             return self.address
         return 'Address not provided'
-    
-    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 
@@ -136,18 +135,16 @@ class Agent(models.Model):
 
     def __str__(self) -> str:
         return self.user.username
-    
-    def get_email(self) :
+
+    def get_email(self):
         if self.email is not None:
             return self.email
         return 'Not email provided'
-    
-    def get_full_name(self) :
+
+    def get_full_name(self):
         if self.email is not None:
             return f'{self.first_name} {self.last_name}'
         return 'Not yet provided'
-    
-    
 
     def save(self, *args, **kwargs):
         """ override the original save method to set the lead 
@@ -168,7 +165,23 @@ class Agent(models.Model):
 
 
 class UserProfile(models.Model):
-    """ model that create user one to one field  """
+    """ model that create user one to one field for the organization """
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.user.username
+
+
+class PharmacistProfile(models.Model):
+    """ model that create user one to one field  for the pharmacist"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.user.username
+
+
+class ManagementProfile(models.Model):
+    """ model that create user one to one field  for the management"""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
@@ -208,15 +221,22 @@ class Category(models.Model):
     # reverse('category-update', args=[category.slug])
 
 
-
 def post_user_created_signal(sender, instance, created, **kwargs):
     """ Listening to events using signals """
     # print(instance, created) # username get printed of the user
     user = instance
     try:
         if created:
-            UserProfile.objects.create(user=user)
-    except ObjectDoesNotExist: UserProfile.objects.create(user=user)
+            if sender.is_organizer:
+                UserProfile.objects.create(user=user)
+            elif sender.is_pharmacist:
+                PharmacistProfile.objects.create(user=user)
+            elif sender.is_management:
+                ManagementProfile.objects.create(user=user)
+                
+    except ObjectDoesNotExist:
+        UserProfile.objects.create(user=user)
+
 
 post_save.connect(post_user_created_signal, sender=User)
 
@@ -227,7 +247,7 @@ class Contact(models.Model):
         max_length=30, help_text='Enter your full name')
     email = models.EmailField(help_text='Input your Email', unique=True)
     country = CountryField(blank_label="--Select a Country-- *",
-               null=False, blank=False)
+                           null=False, blank=False)
     subject = models.CharField(
         max_length=100, help_text='Kindly enter your request subject...')
     message = models.TextField(help_text="Kindly express your words to us...")

@@ -16,6 +16,7 @@ from pharmcare.models import *
 from pharmcare.forms import *
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
+
 class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ Handles request-response cycle made by the admin/pharmacists regarding 
     the patients pharmacautical care record in our db
@@ -242,7 +243,7 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the patient_pharmcare_summary via filter to
                 # allow the user search the content s/he wants
-               
+
                 patient_pharmcare_summary.filter(
                     Q(patient_unique_code__icontains=query) |
                     Q(has_improved__icontains=query) |
@@ -318,6 +319,29 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:patients')
+    
+    
+
+
+def pharmcare_total_payment_view(request, *args, **kwargs):
+    """ A view that get called once submission of user input is made 
+    for the patient data - thereby collating the total payment made dynamically
+    and storing it in the database"""
+
+    patient = PharmaceuticalCarePlan.objects.get(
+        user=request.user, *args, **kwargs)
+    patient_total_payment = int(patient.get_total())
+
+    try:
+        # assigment payment to the pharmaceutical care
+        payment = PharmaceuticalCarePlan()
+        payment.total_payment = patient_total_payment
+        payment.save()
+    except ObjectDoesNotExist:
+
+        messages.info(
+            request, f"There was an error during the form submission")
+    return redirect("pharmcare:patients")
 
 
 class PatientSummaryDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):

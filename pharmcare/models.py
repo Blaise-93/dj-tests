@@ -1,17 +1,18 @@
 from django.db import models
 from songs.models import User
-from django.shortcuts import get_object_or_404
 from leads.models import UserProfile
 from django.db import models
 from datetime import datetime, timedelta
 from functools import reduce
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
 
 
-# PHARMACEUTICALS MGMT - CARE PLAN 
+# PHARMACEUTICALS MGMT - CARE PLAN
+
+phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
 
 class PharmaceuticalCarePlan(models.Model):
     """ 
@@ -33,7 +34,8 @@ class PharmaceuticalCarePlan(models.Model):
     # prior to saving the entry to the db, and it is a nullable field.
     patient_full_name = models.CharField(max_length=20, null=True, blank=True)
     has_improved = models.BooleanField(default=False,
-                                       verbose_name="has improved (tick good, if yes, otherwise don't.)")
+                                       verbose_name="has improved \
+                                    (tick good, if yes, otherwise don't.)")
     progress_note = models.ForeignKey(
         'ProgressNote', on_delete=models.SET_NULL, blank=True, null=True)
     medication_changes = models.ForeignKey(
@@ -48,7 +50,7 @@ class PharmaceuticalCarePlan(models.Model):
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
     total_payment = models.PositiveBigIntegerField(null=True, blank=True)
     discount = models\
-        .PositiveBigIntegerField(null=True, blank=True,
+        .PositiveBigIntegerField(null=True, blank=True, default=0,
                                  help_text="discount given to patient,\
             perhaps due to his/her consistent loyalty, if any.")
 
@@ -86,22 +88,24 @@ class PharmaceuticalCarePlan(models.Model):
             return self.progress_note
         return 'Not yet provided'
 
+
     def get_total(self) -> int:
-        patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+        patient_pharmcare_summary = PharmaceuticalCarePlan.\
+            objects.filter(
             id=self.pk)
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
         for patient_list in patient_pharmcare_summary:
             for patient_list in self.patients.all():
-                
-                total += patient_list.get_total_charge()
 
+                total += patient_list.get_total_charge()
             if self.discount:
                 # check discount if any
                 if total > self.discount:
                     total -= self.discount
-                
+                    
             return total
+        return patient_list.get_total_charge()
 
     def get_utc_by_date(self):
         if self.date_created.now() >= 17:
@@ -109,6 +113,7 @@ class PharmaceuticalCarePlan(models.Model):
 
     def save(self, *args, **kwargs):
         self.total_payment = self.get_total()
+        print(self.total_payment)
         return super().save(self, *args, **kwargs)
 
     def save(self, *args, **kwargs):
@@ -119,7 +124,7 @@ class PharmaceuticalCarePlan(models.Model):
         if not self.patient_unique_code:
 
             self.patient_unique_code = generate_patient_unique_code()
-           
+
             self.total_payment = self.get_total()
 
         super().save(*args, **kwargs)
@@ -174,6 +179,8 @@ class Patient(models.Model):
 
     total = models.PositiveBigIntegerField(editable=True, blank=True,
                                            null=True, verbose_name="Total (auto-add)")
+
+    slug = models.SlugField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -209,22 +216,21 @@ class Patient(models.Model):
             total += amount_charged
             return total
         total += self.patient.consultation
-        
-        return total
-    
 
-    def save(self, *args, **kwargs):
-        # commit and overide the total if the user did not sum it up prior to
-       # saving the patient data.
-        self.total = self.get_total_charge()
-        super().save(self, *args, **kwargs)
+        return total
+
 
     def sum_number(acc, total): return acc + total  # sum numbers fn
     """  def get_cummulative(self):
         cumm_total = reduce(self.sum_number, self.get_total_charge())
         print(cumm_total)
         return cumm_total  """
-
+        
+    """   def save(self, *args, **kwargs):
+        self.total = self.get_total_charge()
+        
+        return super().save(self, *args, **kwargs)
+     """
 
 class PatientDetail(models.Model):
 
@@ -307,8 +313,7 @@ class PatientDetail(models.Model):
     past_medical_history = models.CharField(
         max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True,
-                                    validators=[MinValueValidator("01010000000"),
-                                                MaxValueValidator("09991000000")])
+                                    validators=[phone_regex])
     consultation = models.PositiveBigIntegerField(null=True, blank=True)
     social_history = models.CharField(
         max_length=250, editable=True, null=True, blank=True)
@@ -391,9 +396,8 @@ class Pharmacist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
-    phone_number = models.CharField(max_length=12,
-                                    validators=[MinValueValidator("010100000"),
-                                                MaxValueValidator("099010100000")])
+    phone_number = models.CharField(max_length=15, null=True, blank=True,
+                                    validators=[phone_regex])
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
@@ -432,13 +436,13 @@ class MedicationHistory(models.Model):
     class Meta:
         verbose_name_plural = 'Medication History'
         ordering = ['id',]
-        
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
-    
+
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
     slug = models.SlugField(blank=True, null=True)
@@ -530,7 +534,7 @@ class MonitoringPlan(models.Model):
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
-    
+
     parameter_used = models.CharField(max_length=100)
     justification = models.CharField(max_length=300)
     frequency = models.CharField(
@@ -566,7 +570,7 @@ class AnalysisOfClinicalProblem(models.Model):
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE)
-    
+
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
     priority = models.CharField(max_length=50, choices=PRORITY_CHOICES)
@@ -595,7 +599,7 @@ class FollowUpPlan(models.Model):
 
     class Meta:
         ordering = ['id',]
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)

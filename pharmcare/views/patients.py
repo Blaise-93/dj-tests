@@ -1,3 +1,6 @@
+from typing import Any
+from django.db.models.base import Model as Model
+from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -15,6 +18,7 @@ from django.views.generic import (
 from pharmcare.models import *
 from pharmcare.forms import *
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
 
 class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ Handles request-response cycle made by the admin/pharmacists regarding 
@@ -107,21 +111,22 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
 
         return queryset
 
-    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+    def form_valid(self,  form: BaseModelForm) -> HttpResponse:
         user = self.request.user
 
         form = form.save(commit=False)
-
+       # form.patient_id = self.kwargs['pk']
+        print(self.kwargs['pk'])
         form.user = user
+
         form.organization = user.userprofile
-        # form.organization = user.pharmacist.organization
         form.save()
 
         # Patient.objects.create(pharmacist=user.pharmacist.organization)
         return super(PatientCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
-        pk = self.get_object().id
+        # slug = self.get_object().id
         return reverse('pharmcare:patient-info')
 
 
@@ -213,4 +218,3 @@ def delete_patient_view(request, pk, *args, **kwargs):
             request, 'The patient information you are looking for \
                 does not exist.')
         return render(request, "pharmcare/patient-info-list")
-

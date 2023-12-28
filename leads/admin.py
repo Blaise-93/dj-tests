@@ -8,6 +8,8 @@ from .models import (
     Category,
     UserProfile,
     Contact,
+    ManagementProfile,
+    PharmacistProfile
 )
 
 class AgentAdmin(admin.ModelAdmin):
@@ -89,6 +91,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(UserProfile)
+admin.site.register(ManagementProfile)
+admin.site.register(PharmacistProfile)
 admin.site.register(Lead, LeadAdmin)
 admin.site.register(Category, CategoryAdmin )
 
