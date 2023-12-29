@@ -23,7 +23,7 @@ class ProgressNoteListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ A class view that handles registered/allowed user's request cycle
     to display the progress note of the patients in our db record."""
 
-    template_name = 'pharmcare/progress-note-list.html'
+    template_name = 'pharmcare/progress_notes/progress-note-list.html'
     ordering = 'id'
 
     context_object_name = 'progress_notes'
@@ -51,12 +51,12 @@ class ProgressNoteListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(frequency__icontains=query) |
-                    Q(parameter_used__icontains=query)
+            self.queryset = self.queryset.filter(
+                Q(notes__icontains=query) |
+                Q(date_created__icontains=query)
 
-                )\
-                    .order_by('id')
+            )\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -89,7 +89,7 @@ class ProgressNoteListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 class ProgressNoteCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
     """ View responsible to display patient's create progress note records 
     if the admin/pharmacists wants. """
-    template_name = 'pharmcare/progress-note-create.html'
+    template_name = 'pharmcare/progress_notes/progress-note-create.html'
     form_class = ProgressNoteForm
 
     def get_queryset(self, *args, **kwargs):
@@ -127,7 +127,7 @@ class ProgressNoteCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
 class ProgressNoteDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     """ View responsible to display patient's progress note detail medication records 
     if the admin/pharmacists wants. """
-    template_name = 'pharmcare/progress-note-detail.html'
+    template_name = 'pharmcare/progress_notes/progress-note-detail.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -149,7 +149,7 @@ class ProgressNoteUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     """ View responsible for updating patient's progress note records if the
     admin/pharmacists wants. """
     form_class = ProgressNoteForm
-    template_name = 'pharmcare/progress-note-update.html'
+    template_name = 'pharmcare/progress_notes/progress-note-update.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -173,7 +173,7 @@ class ProgressNoteUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 class ProgressNoteDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's progress note records if
     the admin/pharmacists wants. """
-    template_name = 'pharmcare/progress-note-delete.html'
+    template_name = 'pharmcare/progress_notes/progress-note-delete.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -192,4 +192,3 @@ class ProgressNoteDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:progress-notes')
-

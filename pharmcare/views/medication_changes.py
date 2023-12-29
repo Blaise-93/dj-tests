@@ -26,7 +26,7 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
 
     """
 
-    template_name = 'pharmcare/medication-changes-list.html'
+    template_name = 'pharmcare/medication_changes/medication-changes-list.html'
     ordering = 'id'
 
     context_object_name = 'med_changes'
@@ -59,11 +59,11 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(dose__icontains=query) |
-                    Q(route__icontains=query)
-                )\
-                    .order_by('id')
+            self.queryset = self.queryset.filter(
+                Q(dose__icontains=query) |
+                Q(route__icontains=query)
+            )\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -98,7 +98,7 @@ class MedicationChangesCreateView(OrganizerPharmacistLoginRequiredMixin, CreateV
     """ View responsible to display patient's create medication changes
     records if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-changes-create.html'
+    template_name = 'pharmcare/medication_changes/medication-changes-create.html'
     form_class = MedicationChangesForm
 
     def get_queryset(self):
@@ -143,7 +143,7 @@ class MedicationChangesDetailView(OrganizerPharmacistLoginRequiredMixin, DetailV
     """ View responsible to display patient's changes detail medication records 
     if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-changes-detail.html'
+    template_name = 'pharmcare/medication_changes/medication-changes-detail.html'
 
     def get_queryset(self):
 
@@ -166,7 +166,7 @@ class MedicationChangesUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateV
     if the admin/pharmacists wants. """
 
     form_class = MedicationChangesForm
-    template_name = 'pharmcare/medication-changes-update.html'
+    template_name = 'pharmcare/medication_changes/medication-changes-update.html'
 
     def get_queryset(self):
 
@@ -193,7 +193,7 @@ class MedicationChangesDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteV
     """ View responsible to delete patient's medication changes records if
     the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-history-delete.html'
+    template_name = 'pharmcare/medication_changes/medication-history-delete.html'
 
     def get_queryset(self):
 

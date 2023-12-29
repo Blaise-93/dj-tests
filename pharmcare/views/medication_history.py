@@ -1,7 +1,7 @@
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from utils import  files
+from utils import files
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerPharmacistLoginRequiredMixin
 from django.db.models import Q
@@ -17,13 +17,12 @@ from pharmcare.forms import *
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
-
 class MedicationHistoryListView(OrganizerPharmacistLoginRequiredMixin,
                                 ListView):
     """ View responsible to display patient's medication history medication records 
     if the admin/pharmacists wants, and limit the list by 10 via pagination. """
 
-    template_name = 'pharmcare/medication-history-list.html'
+    template_name = 'pharmcare/medication_history/medication-history-list.html'
     ordering = 'id'
 
     context_object_name = 'med_history'
@@ -56,11 +55,11 @@ class MedicationHistoryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(medication_list__icontains=query) |
-                    Q(indication_and_evidence__icontains=query)
-                )\
-                    .order_by('id')
+            self.queryset = self.queryset.filter(
+                Q(medication_list__icontains=query) |
+                Q(indication_and_evidence__icontains=query)
+            )\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -96,7 +95,7 @@ class MedicationHistoryCreateView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to display patient's medication history create medication records 
     if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-history-create.html'
+    template_name = 'pharmcare/medication_history/medication-history-create.html'
     form_class = MedicationHistoryForm
 
     def get_queryset(self):
@@ -136,7 +135,7 @@ class MedicationHistoryDetailView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to display patient's detail medication records 
     if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-history-detail.html'
+    template_name = 'pharmcare/medication_history/medication-history-detail.html'
     context_object_name = 'med_history'
 
     def get_queryset(self):
@@ -160,7 +159,7 @@ class MedicationHistoryUpdateView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible for updating patient's medication records if the
     admin/pharmacists wants. """
     form_class = MedicationHistoryForm
-    template_name = 'pharmcare/medication-history-update.html'
+    template_name = 'pharmcare/medication_history/medication-history-update.html'
     context_object_name = 'med_history'
 
     def get_queryset(self):
@@ -189,7 +188,7 @@ class MedicationHistoryDeleteView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to delete patient's medication records if
     the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/medication-history-delete.html'
+    template_name = 'pharmcare/medication_history/medication-history-delete.html'
     context_object_name = 'med_history'
 
     def get_queryset(self):
@@ -211,4 +210,3 @@ class MedicationHistoryDeleteView(OrganizerPharmacistLoginRequiredMixin,
         messages.success(self.request,
                          "The patient's medication history was successfully deleted!")
         return reverse('pharmcare:medication-history')
-

@@ -56,8 +56,8 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
     ordering = 'first_name'
     context_object_name = 'patients'
-    template_name = 'pharmcare/pharmcare-list.html'
-    
+    template_name = 'pharmcare/patient_details/pharmcare-list.html'
+
     def get(self, *args, **kwargs):
         """  Since, it is rare to see a community pharmacy or hospital not
         managed by a pharmacists according to the law of most countries in the
@@ -72,12 +72,11 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
         organization = self.request.user.userprofile
         user = self.request.user
-        
+
         if query is None:
             messages.info(self.request, files(
                 '/pharmcare/mails/patient-list.txt'))
             return render(self.request, self.template_name)
-
 
         try:
 
@@ -90,25 +89,23 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 self.queryset = PatientDetail.objects\
                     .filter(pharmacist=user.pharmacist.organization,
                             pharmacist__isnull=True)
-                    
+
                 self.queryset = self.queryset\
                     .filter(pharmacist__user=user,
                             pharmacist__isnull=True)
 
                 # query the self.queryset via filter to
-                # allow the user search the content s/he 
-              
-                self.queryset.filter(
-                    Q(gender__icontains=query) |
-                     Q(last_name__icontains=query) |
-                    Q(age__icontains=query) |
-                    Q(first_name__icontains=query)
+                # allow the user search the content s/he
 
-                )\
-                 . distinct()\
-                      .order_by('id')
-               
-                print(query)
+            self.queryset = self.queryset.filter(
+                Q(gender__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(age__icontains=query) |
+                Q(first_name__icontains=query)
+
+            )\
+                . distinct()\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -144,10 +141,10 @@ class PatientDetailCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView)
     """ View that handles creating a patient details in our database by the 
     assigned pharmacists or the admin."""
 
-    template_name = 'pharmcare/pharmcare-create.html'
+    template_name = 'pharmcare/patient_details/pharmcare-create.html'
     form_class = PatientDetailModelForm
     context_object_name = 'patient'
-    
+
     def get_queryset(self):
         """  get the specific queryset of the user for pharmacist/organization 
         to view for further records. """
@@ -164,8 +161,6 @@ class PatientDetailCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView)
             queryset = queryset.filter(pharmacist__user=user)
 
         return queryset
-
-
 
     def get_success_url(self) -> str:
         messages.success(
@@ -188,8 +183,7 @@ class PatientDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     """ This class shows the pharmacist/organization a detailed information of
     the patient extracted from pharmcare_patientdetail table.
     """
-    template_name = "pharmcare/pharmcare-detail.html"
-    # queryset = PatientDetail.objects.all()
+    template_name = "pharmcare/patient_details/pharmcare-detail.html"
 
     def get_queryset(self):
         """  get the specific queryset of the user for pharmacist/organization 
@@ -213,7 +207,7 @@ class UpdatePatientDetailView(OrganizerPharmacistLoginRequiredMixin, UpdateView)
     """ View that handles users (pharmacists/organization) requests to
     update the form input of our registered patients."""
 
-    template_name = 'pharmcare/pharmcare-update.html'
+    template_name = 'pharmcare/patient_details/pharmcare-update.html'
     form_class = PatientDetailModelForm
     context_object_name = 'patient'
 
@@ -253,7 +247,7 @@ class UpdatePatientDetailView(OrganizerPharmacistLoginRequiredMixin, UpdateView)
 class DeletePatientDetailView(OrganizerPharmacistLoginRequiredMixin,
                               DeleteView):
     """ Handles all the delete entry request made by the registered user """
-    template_name = 'pharmcare/pharmcare-delete.html'
+    template_name = 'pharmcare/patient_details/pharmcare-delete.html'
 
     def get_queryset(self):
         """  get the specific queryset of the user for pharmacist/organization 
@@ -274,4 +268,3 @@ class DeletePatientDetailView(OrganizerPharmacistLoginRequiredMixin,
 
     def get_success_url(self):
         return reverse("pharmcare:patient")
-

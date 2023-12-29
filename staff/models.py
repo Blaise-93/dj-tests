@@ -3,7 +3,8 @@ from django.urls import reverse
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
-    MinLengthValidator
+    MinLengthValidator,
+    RegexValidator
 
 )
 from leads.models import UserProfile
@@ -16,13 +17,21 @@ from django.utils import timezone
 
 class Attendance(models.Model):
     """ A model responsible for creating attendance table of an instance made in our db
-    with relationship mapping of the organization and an assigned management."""
-
+    with relationship mapping of the organization and an assigned management."""    
+    
+    # NB: time regex ensures that each string input by the user is enforced to 
+    # be a number and a colon
+    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',  message=("Enter a \
+        valid value that consist of number from 0-9 with a colon (:) in between the two numbers."))
+    
+    
     full_name = models.CharField(
         max_length=30, validators=[MinLengthValidator(8)])
+    
     sign_in_time = models.CharField(
-        max_length=5,
+        max_length=5, validators=[time_regex],
         help_text='Enter the time you resumed for work in this format -> 8:00')
+    
     date_added = models.CharField(
         max_length=10, help_text='Enter the date you resumed for work in this format -> 12/12/2023')
     staff_attendance_ref = models.CharField(
@@ -32,6 +41,7 @@ class Attendance(models.Model):
         # allows us to collate managements based on the organization
         max_length=5,
         null=True, blank=True,
+        validators=[time_regex],
         help_text=f'Enter the time you closed for work in this format ->\
             8:00. Make sure you update this field and fill in the option \
                 before you leave your workplace, not now please.')
@@ -70,7 +80,7 @@ class Attendance(models.Model):
 
         lagos_time = timezone.localtime(
             self.date_created, timezone.get_fixed_timezone(120))
-
+           
         return lagos_time
 
     def get_fullname(self) -> str:
@@ -135,20 +145,21 @@ class Attendance(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("staff:staff-detail", kwargs={"slug": self.slug})
+        return reverse("staff:attendance-detail", kwargs={"slug": self.slug})
 
 
 class Management(models.Model):
     """ Management of our models. Managements are assigned to each attendance
     made by our staff in our compnay
     """
+    
+    phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     phone_number = models.CharField(max_length=12,
-                                    validators=[MinValueValidator("010100000"),
-                                                MaxValueValidator("099010100000")])
+                                    validators=[phone_regex])
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(

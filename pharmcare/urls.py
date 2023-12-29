@@ -50,7 +50,7 @@ from pharmcare.views.pharmaceutical_care_plan import (
     delete_patient_summary,
     PatientSummaryDetailView,
     PatientSummaryUpateView,
-    pharmcare_total_payment_view
+
 )
 
 from pharmcare.views.progress_notes import (
@@ -123,13 +123,9 @@ urlpatterns = [
          name='follow-up-plan-create'),
     path('progress-note-create/', ProgressNoteCreateView.as_view(),
          name='progress-note-create'),
-    path('pharmcare_total_payment/',
-         pharmcare_total_payment_view, name="patient-payment"),
-
 
     path('pharmacist-create/', PharmacistCreateView.as_view(),
          name="pharmacist-create"),
-
 
 
     # pharmcare detail uris

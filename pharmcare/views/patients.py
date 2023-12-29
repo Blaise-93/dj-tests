@@ -25,7 +25,7 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     the patients pharmacautical care record in our db
     """
 
-    template_name = 'pharmcare/patient-info-list.html'
+    template_name = 'pharmcare/patients/patient-info-list.html'
    # queryset = Patient.objects.all()
     context_object_name = 'patient_info'
 
@@ -45,21 +45,12 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 self.queryset = self.queryset\
                     .filter(pharmacist__user=user)
 
-                # query the self.queryset via filter to
-                # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(patient_unique_code__icontains=query) |
-                    Q(has_improved__icontains=query) |
-                    Q(patient_full_name__icontains=query)
-                )\
-                    .order_by('id')
-                # filter by frqeuncy, slug an parameter_used based on user's search
-                self.queryset = Patient.objects.filter(
+             # filter by total and medical charge based on user's search
+            self.queryset = Patient.objects.filter(
 
-                    Q(total__icontains=query) |
+                    Q(date_created__icontains=query) |
                     Q(medical_charge__icontains=query)
-
-                ).distinct()
+                ).order_by('id')
 
             # Pagination - of Patient
 
@@ -92,7 +83,7 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
     """ Handles request-response cycle made by the admin/pharmacists to create
     a patient"""
 
-    template_name = 'pharmcare/patient-info-create.html'
+    template_name = 'pharmcare/patients/patient-info-create.html'
     form_class = PatientModelForm
     # queryset = Patient.objects.all()
 
@@ -133,9 +124,9 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
 class PatientsDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     """ Handles request-response cycle made by the admin/pharmacists to 
     delete a patient record"""
-    template_name = 'pharmcare/patient-info-detail.html'
+    template_name = 'pharmcare/patients/patient-info-detail.html'
     context_object_name = "patient_qs"
-    # queryset = Patient.objects.all()
+  
 
     def get_success_url(self):
         return reverse('pharmcare:patients-detail')
@@ -158,8 +149,9 @@ class PatientsDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
 class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     """ Handles request-response cycle made by the admin/pharmacists to update 
     a patient record"""
-    template_name = 'pharmcare/patient-info-update.html'
-    # queryset = Patient.objects.all()
+    
+    template_name = 'pharmcare/patients/patient-info-update.html'
+
     form_class = PatientModelForm
 
     def get_success_url(self):
@@ -174,9 +166,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
             queryset = Patient.objects.filter(
                 organization=user.userprofile)
         else:
-            """ queryset = Category.objects.filter(
-                organization=user.pharmacist.organization) """
-
+        
             queryset = Patient.objects.filter(
                 pharmacist=user.pharmacist.organization
             )
@@ -189,7 +179,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 def delete_patient_view(request, pk, *args, **kwargs):
     """Handles request-response cycle made by the admin/pharmacists to delete
     each patient record."""
-    template_name = 'pharmcare/patient-info-detail.html'
+    template_name = 'pharmcare/patients/patient-info-detail.html'
 
     user = request.user
 
@@ -218,3 +208,7 @@ def delete_patient_view(request, pk, *args, **kwargs):
             request, 'The patient information you are looking for \
                 does not exist.')
         return render(request, "pharmcare/patient-info-list")
+
+
+
+

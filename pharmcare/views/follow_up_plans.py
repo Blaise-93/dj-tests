@@ -21,7 +21,7 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ A class view that handles registered/allowed user's request 
     cycle to display the follow up plan of the patients in our db record."""
 
-    template_name = 'pharmcare/follow-up-plan-list.html'
+    template_name = 'pharmcare/follow_up_plans/follow-up-plan-list.html'
     ordering = 'id'
 
     context_object_name = 'follow_up_plans'
@@ -53,12 +53,12 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(state_of_improvement_by_score__icontains=query) |
-                    Q(adhered_to_medications_given__icontains=query) |
-                    Q(referral__icontains=query)
-                )\
-                    .order_by('id')
+            self.queryset = self.queryset.filter(
+                Q(state_of_improvement_by_score__icontains=query) |
+                Q(adhered_to_medications_given__icontains=query) |
+                Q(referral__icontains=query)
+            )\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -92,7 +92,7 @@ class FollowUpPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
     """ View responsible to display patient's create follow up plan records 
     if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/follow-up-plan-create.html'
+    template_name = 'pharmcare/follow_up_plans/follow-up-plan-create.html'
     form_class = FollowUpPlanForm
 
     def get_queryset(self, *args, **kwargs):
@@ -131,7 +131,7 @@ class FollowUpPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     """ View responsible to display patient's follow up plan detail
     medication records if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/follow-up-plan-detail.html'
+    template_name = 'pharmcare/follow_up_plans/follow-up-plan-detail.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -154,7 +154,7 @@ class FollowUpPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     admin/pharmacists wants. """
 
     form_class = FollowUpPlanForm
-    template_name = 'pharmcare/follow-up-plan-update.html'
+    template_name = 'pharmcare/follow_up_plans/follow-up-plan-update.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -178,7 +178,7 @@ class FollowUpPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 class FollowUpPlanDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient's follow up plan records if
     the admin/pharmacists wants. """
-    template_name = 'pharmcare/follow-up-plan-delete.html'
+    template_name = 'pharmcare/follow_up_plans/follow-up-plan-delete.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -197,4 +197,3 @@ class FollowUpPlanDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:follow-up-plan')
-

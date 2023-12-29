@@ -4,7 +4,7 @@ from django.shortcuts import render
 from utils import (
     files,
     slug_modifier,
-  
+
 )
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerPharmacistLoginRequiredMixin
@@ -27,7 +27,7 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
     to display the analysis of clinical problem of the patients in our
     db record."""
 
-    template_name = 'pharmcare/analysis-of-clinical-problem-list.html'
+    template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-list.html'
     ordering = 'id'
 
     context_object_name = 'analysis_of_cp'  # cp -> clinical problem
@@ -59,12 +59,12 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
-                    Q(clinical_problem__icontains=query) |
-                    Q(priority__icontains=query) |
-                    Q(slug__icontains=query)
-                )\
-                    .order_by('id')
+            self.queryset = self.queryset.filter(
+                Q(clinical_problem__icontains=query) |
+                Q(priority__icontains=query) |
+                Q(slug__icontains=query)
+            )\
+                .order_by('id')
 
             # Pagination - of Medication History Page
 
@@ -98,7 +98,7 @@ class AnalysisOfClinicalProblemCreateView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to display patient's create 'analysis of clinical 
     problem'  records if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/analysis-of-clinical-problem-create.html'
+    template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-create.html'
     form_class = AnalysisOfClinicalProblemForm
 
     def get_queryset(self, *args, **kwargs):
@@ -140,7 +140,7 @@ class AnalysisOfClinicalProblemDetailView(OrganizerPharmacistLoginRequiredMixin,
     """ View responsible to display patient's changes detai analysis of clinical 
     problem records if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/analysis-of-clinical-problem-detail.html'
+    template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-detail.html'
 
     def get_queryset(self):
 
@@ -163,7 +163,7 @@ class AnalysisOfClinicalProblemUpdateView(OrganizerPharmacistLoginRequiredMixin,
     records if the admin/pharmacists wants. """
 
     form_class = AnalysisOfClinicalProblemForm
-    template_name = 'pharmcare/analysis-of-clinical-problem-update.html'
+    template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-update.html'
 
     def get_queryset(self):
 
@@ -189,7 +189,7 @@ class AnalysisOfClinicalProblemUpdateView(OrganizerPharmacistLoginRequiredMixin,
 class AnalysisOfClinicalProblemDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView):
     """ View responsible to delete patient' analysis of clinical problem  records if
     the admin/pharmacists wants. """
-    template_name = 'pharmcare/analysis-of-clinical-problem-update.html'
+    template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-update.html'
 
     def get_queryset(self):
 
@@ -210,4 +210,3 @@ class AnalysisOfClinicalProblemDeleteView(OrganizerPharmacistLoginRequiredMixin,
         messages.info(
             self.request, 'Analysis of clinical problem form of the patient was deleted successfully.')
         return reverse('pharmcare:analysis-of-cp')
-

@@ -53,13 +53,13 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                self.queryset.filter(
+            self.queryset = self.queryset.filter(
 
-                    Q(full_name__icontains=query) |
-                    Q(staff_attendance_ref__icontains=query)
+                Q(full_name__icontains=query) |
+                Q(staff_attendance_ref__icontains=query)
 
-                )\
-                    .order_by(self.ordering)
+            )\
+                .order_by(self.ordering)
 
             # Pagination - of Medication History Page
 
@@ -89,8 +89,8 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
             return redirect('pharmcare:attendance')
 
     def get_context_data(self, **kwargs):
-        """function that helps us to filter and split attendance that have not been 
-        assigned yet to a manager """
+        """function that helps us to filter and split attendance that \
+            have not been assigned yet to a manager """
 
         context = super(AttendanceListView, self).get_context_data(**kwargs)
         user = self.request.user
@@ -110,7 +110,8 @@ class AttendanceListView(OrganizerManagementLoginRequiredMixin, generic.ListView
         return context
 
 
-class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.CreateView):
+class AttendanceCreateView(OrganizerManagementLoginRequiredMixin,
+                           generic.CreateView):
     """ A view responsible for creation of attendance, (validate the form)
     when needed by the assigned management (branch) and or organizer. """
     template_name = 'staff/attendance-create.html'
@@ -142,7 +143,8 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin, generic.Create
         return super(AttendanceCreateView, self).form_valid(form)
 
 
-class AttendanceDetailView(OrganizerManagementLoginRequiredMixin, generic.DetailView):
+class AttendanceDetailView(OrganizerManagementLoginRequiredMixin,
+                           generic.DetailView):
     """ A view that handles each user attendance detail in our db for further information 
     about the record.
     """
@@ -183,11 +185,11 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
 
         attendance.date_sign_out_time = time_in_hr_min()
         attendance.save()
-        
+
         messages.info(
-            self.request, f"You have successfully updated {full_name.title()} attendance record!")
+            self.request, f"You have successfully updated {full_name.title()}\
+                attendance record!")
         return super(AttendanceUpdateView, self).form_valid(form)
-  
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -203,6 +205,10 @@ class AttendanceUpdateView(OrganizerManagementLoginRequiredMixin, generic.Update
                 management__user=self.request.user)
 
         return self.queryset
+
+    def get_success_url(self):
+
+        return reverse('staff:attendance')
 
 
 class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
@@ -230,5 +236,6 @@ class AttendanceDeleteView(OrgnizerAndLoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         messages.info(
-            self.request, "You have successfully deleted the staff attendance record!")
+            self.request, "You have successfully deleted the staff \
+                attendance record!")
         return reverse('staff:attendance')

@@ -20,7 +20,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ A class view that handles registered/allowed user's request cycle
     to display the monitoring plan of the patients in our db record."""
-    template_name = 'pharmcare/monitoring-plan-list.html'
+    template_name = 'pharmcare/monitoring_plans/monitoring-plan-list.html'
     ordering = 'id'
 
     has_improved = models.BooleanField(default=False)
@@ -34,18 +34,18 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
         try:
             if user.is_organizer or user.is_pharmacist:
-                monitoring_plan_qs = MonitoringPlan.objects\
+                self.queryset = MonitoringPlan.objects\
                     .filter(organization=organization)
             else:
-                monitoring_plan_qs = MonitoringPlan.objects\
+                self.queryset = MonitoringPlan.objects\
                     .filter(pharmacist=user.pharmacist.organization)
 
-                monitoring_plan_qs = monitoring_plan_qs\
+                self.queryset = self.queryset\
                     .filter(pharmacist__user=user)
 
-                # query the monitoring_plan_qs via filter to
+                # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-                monitoring_plan_qs.filter(
+            self.queryset =  self.queryset.filter(
                     Q(frequency__icontains=query) |
                     Q(parameter_used__icontains=query)
 
@@ -54,7 +54,7 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             # Pagination - of Medication History Page
 
-            search = Paginator(monitoring_plan_qs, 10)
+            search = Paginator(self.queryset, 10)
             page = self.request.GET.get('page')
 
             try:
@@ -84,7 +84,7 @@ class MonitoringPlanCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
     """ View responsible to display patient's create  monitoring plan records 
     if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/monitoring-plan-create.html'
+    template_name = 'pharmcare/monitoring_plans/monitoring-plan-create.html'
     form_class = MonitoringPlanForm
    # queryset = MonitoringPlan.objects.all()
 
@@ -131,7 +131,7 @@ class MonitoringPlanDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView
     """ View responsible to display patient's  monitoring plan detail
     medication records if the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/monitoring-plan-detail.html'
+    template_name = 'pharmcare/monitoring_plans/monitoring-plan-detail.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -154,7 +154,7 @@ class MonitoringPlanUpdateView(OrganizerPharmacistLoginRequiredMixin, UpdateView
     admin/pharmacists wants. """
 
     form_class = MonitoringPlanForm
-    template_name = 'pharmcare/monitoring-plan-update.html'
+    template_name = 'pharmcare/monitoring_plans/monitoring-plan-update.html'
    # queryset = MonitoringPlan.objects.all()
 
     def get_queryset(self, *args, **kwargs):
@@ -180,7 +180,7 @@ class MonitoringPlanDeleteView(OrganizerPharmacistLoginRequiredMixin, DeleteView
     """ View responsible to delete patient's  monitoring plan records if
     the admin/pharmacists wants. """
 
-    template_name = 'pharmcare/monitoring-plan-delete.html'
+    template_name = 'pharmcare/monitoring_plans/monitoring-plan-delete.html'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
