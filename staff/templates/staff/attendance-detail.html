@@ -33,7 +33,7 @@
             <th scope="col" class="px-6 py-3">
               staff daily unique attendance ref
             </th>
-            <th scope="col" class="px-6 py-3">Organization</th>
+           {% comment %}  <th scope="col" class="px-6 py-3">Organization</th> {% endcomment %}
             <th scope="col" class="px-6 py-3">Sign in date</th>       
             <th scope="col" class="px-6 py-3">
               Expected Sign in time with Date in UTC
@@ -52,19 +52,21 @@
               </div>
             </td>
 
-            <td class="px-6 py-4">{{ object.full_name }}</td>
+            <td class="px-6 py-4">{{ object.full_name|title }}</td>
             <td class="px-6 py-4">{{ object.get_sign_in_time }}</td>
             <td class="px-6 py-4">{{ object.get_sign_out_time }}</td>
             <td class="px-6 py-4">{{ object.staff_attendance_ref }}</td>
-            <td class="px-6 py-4">{{ object.organization|title }}</td>
+           {% comment %}  <td class="px-6 py-4">{{ object.organization|title }}</td> {% endcomment %}
             <td class="px-6 py-4">{{ object.date_added }}</td>
             <td class="px-6 py-4">{{ object.date_created }} </td>
-            <td class="px-6 py-4">{{ object.date_sign_out_time }} </td>
+           {% if  object.date_sign_out_time %}
+           <td class="px-6 py-4">{{ object.date_sign_out_time }} </td>
+           {% else%}
+           <td class="px-6 py-4">Not yet provided </td>
+           {%endif %}
             <td class="flex items-center px-6 py-4">
               <a
-                href="
-                {% url 'staff:attendance-update' object.slug %}
-                "
+                href=" {{ attendance.get_absolute_url }}update/ "
                 class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                 >Edit</a
               >

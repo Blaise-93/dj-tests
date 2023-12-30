@@ -1,39 +1,62 @@
 from django.db import models
 from django.urls import reverse
-from django.core.validators import MinValueValidator, MaxValueValidator
-from leads.models import UserProfile
+from django.core.validators import (
+    MinLengthValidator,
+    RegexValidator
+
+)
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
-from songs.models import User
 from datetime import datetime, timedelta
 from django.utils import timezone
 
 
 class Attendance(models.Model):
     """ A model responsible for creating attendance table of an instance made in our db
-    with relationship mapping of the organization and an assigned management."""
-
-    full_name = models.CharField(max_length=30)
+    with relationship mapping of the organization and an assigned management."""    
+    
+    # NB: time regex ensures that each string input by the user is enforced to 
+    # be a number and a colon
+    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',  
+                    message=("Enter a \
+        valid value that consist of number from 0-9 with a colon \
+            (:) in between the two numbers."))
+    
+    
+    full_name = models.CharField(
+        max_length=30, validators=[MinLengthValidator(8)])
+    
     sign_in_time = models.CharField(
-        max_length=5,
+        max_length=5, validators=[time_regex],
         help_text='Enter the time you resumed for work in this format -> 8:00')
+    
     date_added = models.CharField(
-        max_length=10, help_text='Enter the date you resumed for work in this format -> 12/12/2023')
+        max_length=10, help_text='Enter the date you resumed for work in\
+            this format -> 12/12/2023')
+    
     staff_attendance_ref = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name="Staff Daily Attendance Ref ")
+        max_length=15, blank=True, null=True,
+        verbose_name="Staff Daily Attendance Ref "
+        )
 
     sign_out_time = models.CharField(
         # allows us to collate managements based on the organization
         max_length=5,
         null=True, blank=True,
+        validators=[time_regex],
         help_text=f'Enter the time you closed for work in this format ->\
             8:00. Make sure you update this field and fill in the option \
                 before you leave your workplace, not now please.')
-    
+
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
+
+    user = models.ForeignKey(
+        'songs.User', on_delete=models.CASCADE)
+
     management = models.ForeignKey(
-        "Management", on_delete=models.CASCADE, verbose_name='Management')
+        "Management", on_delete=models.CASCADE, verbose_name='Management',
+        null=True, blank=True)
     date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -59,12 +82,12 @@ class Attendance(models.Model):
 
         lagos_time = timezone.localtime(
             self.date_created, timezone.get_fixed_timezone(120))
-        print(lagos_time)
+           
         return lagos_time
 
     def get_fullname(self) -> str:
         """ validates full name input by the user """
-        if self.full_name <= 8:
+        if len(self.full_name) <= 8:
             return 'Kindly enter your full name'
         return self.full_name
 
@@ -78,6 +101,8 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
+        
+
 
     def get_sign_in_time(self):
         """ a helper function to accurately output when the staff signed out 
@@ -89,6 +114,8 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
+        
+    
 
     def time_utc(self):
         """ a helper function to accurately output when attendance starts to 
@@ -120,27 +147,25 @@ class Attendance(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("staff:staff-detail", kwargs={"slug": self.slug})
+        return reverse("staff:attendance-detail", kwargs={"slug": self.slug})
 
 
 class Management(models.Model):
     """ Management of our models. Managements are assigned to each attendance
     made by our staff in our compnay
     """
-    # Foreign (many-to-one) keys allow us to create many managements for one user
-    # OneToOneField: one-to-one relationship - so no list of many managements of one user will be returned.
-    # ManyToManyField:
-    # every agents has one user
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    
+    phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
+
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     phone_number = models.CharField(max_length=12,
-                                    validators=[MinValueValidator("010100000"),
-                                                MaxValueValidator("099010100000")])
+                                    validators=[phone_regex])
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:

@@ -41,7 +41,9 @@
               </li> {% endcomment %}
               {% if request.user.is_organizer %}
               <li>
-                <a href="{% url 'staff:management-list' %}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View Management </a>
+                <a href="{% url 'staff:management-list' %}" 
+                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                View Management </a>
               </li>
               {% endif %}
               <li>
@@ -51,7 +53,7 @@
 
         {% if request.user.is_organizer or request.user.is_management %}
         <div class="text-gray-500 hover:text-blue-500">
-          <a href="{% url 'staff:attendance-create' %}">Go to Management Create Page</a> 
+          <a href="{% url 'staff:attendance-create' %}">Go to Attendance Create Page</a> 
         </div>
         {% endif %}
       </div>
@@ -80,7 +82,7 @@
                 <th scope="col" class="px-6 py-3">Sign out time</th>
                 <th scope="col" class="px-6 py-3">staff daily unique attendance ref</th>
                 <th scope="col" class="px-6 py-3">Sign in Date</th>
-                <th scope="col" class="px-6 py-3">Organization</th>
+             {% comment %}    <th scope="col" class="px-6 py-3">Organization</th> {% endcomment %}
                 <th scope="col" class="px-6 py-3">Action</th>
               </tr>
             </thead>
@@ -95,12 +97,12 @@
                     <span>{{staff.id }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-4">{{ staff.full_name }}</td>
+                <td class="px-6 py-4">{{ staff.full_name|title }}</td>
                 <td class="px-6 py-4">{{ staff.get_sign_in_time }}</td>
                 <td class="px-6 py-4">{{ staff.get_sign_out_time }}</td>
                 <td class="px-6 py-4">{{ staff.staff_attendance_ref }}</td>
                 <td class="px-6 py-4">{{ staff.date_added  }}</td>
-                <td class="px-6 py-4">{{ staff.organization|title }}</td>
+             {% comment %}    <td class="px-6 py-4">{{ staff.organization|title }}</td> {% endcomment %}
               
                 <td class="flex items-center px-6 py-4">
                    <a href="{% url "staff:attendance-detail" staff.slug %}"

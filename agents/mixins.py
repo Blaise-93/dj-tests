@@ -49,7 +49,7 @@ class OrganizerManagementLoginRequiredMixin(AccessMixin):
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated  \
-             or not request.user.is_management or not request.user.is_organizer:
+             or not request.user.is_management :
             messages.info(
                 request, "You are not an organizer or the management, \
                     please you cannot access this information.")

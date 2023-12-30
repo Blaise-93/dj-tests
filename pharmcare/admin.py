@@ -1,5 +1,4 @@
 from django.contrib import admin
-from tinymce.widgets import TinyMCE
 from tinymce.widgets import admin_widgets
 
 
@@ -24,6 +23,7 @@ class PatientDetailModelAdmin(admin.ModelAdmin):
     """ A class model admin that modifies/overide the admin panel of patient detail """
     model = PatientDetail
     fields = (
+        'organization',
         'first_name',
         'last_name',
         'email',
@@ -61,7 +61,8 @@ class PatientDetailModelAdmin(admin.ModelAdmin):
         'social_history',
         'slug',
         'phone_number',
-        'consultation'
+        'consultation',
+        'organization',
     ]
 
     list_per_page = 10

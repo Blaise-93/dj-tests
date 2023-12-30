@@ -1,9 +1,7 @@
-from django.forms.models import BaseModelForm
-from django.http import HttpResponse
 from django.urls import reverse
 from agents.mixins import OrgnizerAndLoginRequiredMixin
 from django.views import generic
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from utils import password_setter
 from django.db import IntegrityError
 from django.template.loader import render_to_string
@@ -12,13 +10,11 @@ from django.conf import settings
 from django.core.paginator import (
     PageNotAnInteger, EmptyPage,
     Paginator
-    )
+)
 from django.contrib import messages
 from django.db.models import Q
-from .models import Pharmacist, PatientDetail
-from .forms import PharmacistModelForm, PharmacistAssignedForm
-
-
+from pharmcare.models import Pharmacist, PatientDetail
+from pharmcare.forms import PharmacistModelForm, PharmacistAssignedForm
 
 
 class PharmacistAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
@@ -26,7 +22,7 @@ class PharmacistAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
     to a specific patient(s) required by the organizer when created."""
 
     template_name = 'pharmcare/pharmacist/assigned-pharmacist.html'
-    form_class =  PharmacistAssignedForm
+    form_class = PharmacistAssignedForm
     context_object_name = 'assigned_pharmacist'
 
     def get_form_kwargs(self, **kwargs):
@@ -50,7 +46,6 @@ class PharmacistAssignedView(OrgnizerAndLoginRequiredMixin, generic.FormView):
         patient_detail.pharmacist = pharmacist
         patient_detail.save()
         return super(PharmacistAssignedView, self).form_valid(form)
-  
 
 
 class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
@@ -61,12 +56,8 @@ class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user_userprofile = self.request.user.userprofile
-        
-        query = self.request.GET.get('q', '')
 
-        # filter by request user organization - so that each won't see or
-        # have access to every pharmacist in other organization
-        # except their respective organization
+        query = self.request.GET.get('q', '')
 
         self.queryset = Pharmacist.objects.filter(organization=user_userprofile)\
             .filter(
@@ -104,30 +95,30 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
         # call form.save()
         try:
             user = form.save(commit=False)
-            
-            #pharmacist.organization = self.request.user.userprofile
+
+            # pharmacist.organization = self.request.user.userprofile
             # pharmacist.save()
-            
+
             # create pharmacist user
             user.is_pharmacist = True
             user.is_organizer = False
-        
+
             # set password
             user.set_password(password_setter())
             user.save()
 
             email = form.cleaned_data.get('email')
-         
+
             # create the pharmacist from the form we saved
             Pharmacist.objects.create(
                 user=user,
                 organization=self.request.user.userprofile
             )
 
-            username= form.cleaned_data['username']
-            psw =  user.password
+            username = form.cleaned_data['username']
+            psw = user.password
             print(psw)
-    
+
             context = {
                 'user': username,
                 'temp_psw': psw
@@ -137,25 +128,23 @@ class PharmacistCreateView(OrgnizerAndLoginRequiredMixin, generic.CreateView):
 
             send_mail(
                 subject='Pharmaceutical Care Mangement Invitation',
-                message=\
-                    render_to_string\
+                message=render_to_string
                         ('pharmcare/pharmacist/pharmacist-invite.html', context),
                 from_email=settings.FROM_EMAIL,
                 recipient_list=[email, ]
             )
-            
+
             messages.success(self.request, f"""The pharmacist request form was
-                created successfully! Kindly follow up {username.title()} 
-                to make sure that other registrations (like  {username.title()}'s 
+                created successfully! Kindly follow up {username.title()}
+                to make sure that other registrations (like  {username.title()}'s
                 full name, email and phone number) are carried out successfully.""")
-            
+
             return super(PharmacistCreateView, self).form_valid(form)
-        
+
         except IntegrityError as e:
             messages.info(self.request, "User's email already exist in our database.\
                           Kindly input another email")
             return redirect("pharmcare:pharmacist-list")
-            
 
 
 class PharmacistDetailView(OrgnizerAndLoginRequiredMixin, generic.DetailView):
@@ -185,7 +174,7 @@ class PharmacistUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
             """
         userprofile = self.request.user.userprofile
         return Pharmacist.objects.filter(organization=userprofile)
-    
+
     """  def form_valid(self, form: BaseModelForm) -> HttpResponse:
         
         form = form.save(commit=False)
@@ -194,7 +183,8 @@ class PharmacistUpdateView(OrgnizerAndLoginRequiredMixin, generic.UpdateView):
         return super(PharmacistUpdateView, self).form_valid(form) """
 
     def get_success_url(self):
-        messages.info(self.request, "You have successfully updated the pharmacist!")
+        messages.info(
+            self.request, "You have successfully updated the pharmacist!")
         return reverse('pharmcare:pharmacist-list')
 
 

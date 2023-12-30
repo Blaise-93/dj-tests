@@ -21,9 +21,6 @@ class PatientDetailModelForm(forms.ModelForm):
             'gender',
             'age',
             "weight",
-            #  "pharmacist",
-            #   'organization',
-
             'height',
             'patient_history',
             'past_medical_history',
@@ -41,7 +38,6 @@ class PatientDetailModelForm(forms.ModelForm):
             'age': ' Enter your patient\'s age',
             'height': "Enter your patient's height in (feet)",
             'weight': "Enter your patient's weight in (kg)",
-            #   'BMI': " Enter your patient\'s BMI",
             'patient_history':  "Enter your patient's medical history",
             'past_medical_history': "Enter your patient's past medical history",
             'social_history': 'Enter the social history of your patient if any',

@@ -14,7 +14,7 @@
 
         {% if request.user.is_organizer or request.user.is_pharmacist %}
         <div class="text-gray-500 hover:text-blue-500">
-          <a href="{% url 'pharmcare:analysis-of-cp-create' %}">Go to PatientClinical Problem</a> 
+          <a href="{% url 'pharmcare:analysis-of-cp-create' %}">Go to Patient Clinical Problem Page</a> 
         </div>
         {% endif %}
       </div>
@@ -70,13 +70,11 @@
                 </td>
                 <td class="px-6 py-4">{{ analysis.clinical_problem }}</td>
                 <td class="px-6 py-4">{{ analysis.assessment }}</td>
-                <td class="px-6 py-4">{{ analysis.priority}}</td>
+                <td class="px-6 py-4">{{ analysis.priority }}</td>
                 <td class="px-6 py-4"> {{ analysis.action_taken_or_future_plan|truncatechars:100 }} </td>
                 <td class="flex items-center px-6 py-4">
                   <a
-                    href="{% url "pharmcare:analysis-of-cp-detail" analysis.slug %}
-                      {% comment %} {{ analysis.get_medication_absolute_url }} {% endcomment %}
-                    "
+                    href="{% url "pharmcare:analysis-of-cp-detail" analysis.slug %}"
                     class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     >For further Details</a
                   >
