@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from utils import slug_modifier
 from django.core.exceptions import ObjectDoesNotExist
 from django_countries.fields import CountryField
-from songs.models import User
+
 
 
 class Lead(models.Model):
@@ -115,7 +115,7 @@ class Lead(models.Model):
 class Agent(models.Model):
     """ Agent of our models. Agents are assigned to each leads or to our patients. """
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, default=1)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE, default=1)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now=True)
@@ -156,7 +156,7 @@ class Agent(models.Model):
 
 class UserProfile(models.Model):
     """ model that create user one to one field for the organization """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -164,7 +164,7 @@ class UserProfile(models.Model):
 
 class PharmacistProfile(models.Model):
     """ model that create user one to one field  for the pharmacist"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -172,7 +172,7 @@ class PharmacistProfile(models.Model):
 
 class ManagementProfile(models.Model):
     """ model that create user one to one field  for the management"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.user.username
@@ -226,7 +226,7 @@ def post_user_created_signal(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=user)
 
 
-post_save.connect(post_user_created_signal, sender=User)
+post_save.connect(post_user_created_signal, sender='songs.User')
 
 
 class Contact(models.Model):

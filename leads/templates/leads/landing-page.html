@@ -8,7 +8,9 @@
 </div>
  {% endcomment %}
 
+{% if request.user.is_authenticated %}
  <div>{% include 'snippets/alert.html' %}</div>
+ {% endif %}
 {% comment %} JUMBOTRON ALERT SECTION {% endcomment %}
 {% comment %} <section
   class="bg-white

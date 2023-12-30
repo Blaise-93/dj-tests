@@ -1,6 +1,4 @@
-from typing import Any
 from django.db.models.base import Model as Model
-from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -26,7 +24,7 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """
 
     template_name = 'pharmcare/patients/patient-info-list.html'
-   # queryset = Patient.objects.all()
+    ordering = 'id'
     context_object_name = 'patient_info'
 
     def get(self, *args, **kwargs):

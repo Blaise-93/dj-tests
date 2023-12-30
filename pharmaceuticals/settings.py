@@ -8,9 +8,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# AUTH_USER_MODEL = 'leads.User'
-# SECURITY WARNING: keep the secret key used in production secret!
-
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -56,7 +53,7 @@ INSTALLED_APPS = [
     'crispy_tailwind',
     'compressor',
     'rest_framework',
-    'rest_framework.authtoken',
+    #'rest_framework.authtoken',
     'tinymce',
 ]
 
@@ -275,11 +272,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # TAILWIND_APP_NAME = 'themw'
 
-LOGIN_REDIRECT_URL = '/leads'
+LOGIN_REDIRECT_URL = '/song/contact/'
 LOGIN_URL = '/login'
 LOGOUT_REDIRECT_URL = '/leads'
 
-# ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = True
 
 
 # NPM_BIN_PATH = "/Program Files/nodejs/node_modules/npm/bin/npm.cmd"

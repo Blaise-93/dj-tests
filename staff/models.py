@@ -1,16 +1,12 @@
 from django.db import models
 from django.urls import reverse
 from django.core.validators import (
-    MinValueValidator,
-    MaxValueValidator,
     MinLengthValidator,
     RegexValidator
 
 )
-from leads.models import UserProfile
 from django.utils.text import slugify
 from utils import slug_modifier, generate_patient_unique_code
-from songs.models import User
 from datetime import datetime, timedelta
 from django.utils import timezone
 
@@ -21,8 +17,10 @@ class Attendance(models.Model):
     
     # NB: time regex ensures that each string input by the user is enforced to 
     # be a number and a colon
-    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',  message=("Enter a \
-        valid value that consist of number from 0-9 with a colon (:) in between the two numbers."))
+    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',  
+                    message=("Enter a \
+        valid value that consist of number from 0-9 with a colon \
+            (:) in between the two numbers."))
     
     
     full_name = models.CharField(
@@ -33,9 +31,13 @@ class Attendance(models.Model):
         help_text='Enter the time you resumed for work in this format -> 8:00')
     
     date_added = models.CharField(
-        max_length=10, help_text='Enter the date you resumed for work in this format -> 12/12/2023')
+        max_length=10, help_text='Enter the date you resumed for work in\
+            this format -> 12/12/2023')
+    
     staff_attendance_ref = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name="Staff Daily Attendance Ref ")
+        max_length=15, blank=True, null=True,
+        verbose_name="Staff Daily Attendance Ref "
+        )
 
     sign_out_time = models.CharField(
         # allows us to collate managements based on the organization
@@ -47,10 +49,10 @@ class Attendance(models.Model):
                 before you leave your workplace, not now please.')
 
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE)
+        'songs.User', on_delete=models.CASCADE)
 
     management = models.ForeignKey(
         "Management", on_delete=models.CASCADE, verbose_name='Management',
@@ -155,7 +157,7 @@ class Management(models.Model):
     
     phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     phone_number = models.CharField(max_length=12,
@@ -163,7 +165,7 @@ class Management(models.Model):
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:

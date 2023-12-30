@@ -2,21 +2,20 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
-from django.core.validators import MinValueValidator, MaxValueValidator
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.auth.models import AbstractUser
-
+from pharmcare.models import phone_regex
 
 class User(AbstractUser):
+    
     """ User model helps us gather users in our database and categorize
     their respective tasks in our organization. """
-    is_organizer = models.BooleanField(default=True, verbose_name="is an organizer?")
+    is_organizer = models.BooleanField(default=False, verbose_name="is an organizer?")
     is_agent = models.BooleanField(default=False,  verbose_name="is an agent?")
     is_pharmacist = models.BooleanField(default=False, verbose_name=" is a pharmacist?") 
     is_management = models.BooleanField(default=False, verbose_name="is the management?") 
     phone_number = models.CharField(max_length=15, null=True, blank=True, unique=True,
-                                    validators=[MinValueValidator("010100000"),
-                                                               MaxValueValidator("099910000")])
+                                    validators=[phone_regex])
 
 
 

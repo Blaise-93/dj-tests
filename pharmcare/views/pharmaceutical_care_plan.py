@@ -44,7 +44,6 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-
             self.queryset = self.queryset.filter(
                 Q(patient_unique_code__icontains=query) |
                 Q(has_improved__icontains=query) |

@@ -1,18 +1,23 @@
 from django.db import models
-from songs.models import User
-from leads.models import UserProfile
 from django.db import models
 from datetime import datetime, timedelta
-from functools import reduce
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.validators import (
+    MinValueValidator,
+    MaxValueValidator,
+    RegexValidator
+    )
 from django.urls import reverse
 from django.utils.text import slugify
-from utils import slug_modifier, generate_patient_unique_code
+from utils import (
+    slug_modifier,
+    generate_patient_unique_code
+    )
 
 
 # PHARMACEUTICALS MGMT - CARE PLAN
 
 phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
+
 
 class PharmaceuticalCarePlan(models.Model):
     """ 
@@ -21,11 +26,14 @@ class PharmaceuticalCarePlan(models.Model):
      Each patient is assigned to a unique patient code to better 
      identify the records of the user.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    class Meta:
+        ordering = ['id', '-date_created']
+    
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     patients = models.ManyToManyField('Patient')
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
@@ -88,11 +96,10 @@ class PharmaceuticalCarePlan(models.Model):
             return self.progress_note
         return 'Not yet provided'
 
-
     def get_total(self) -> int:
         patient_pharmcare_summary = PharmaceuticalCarePlan.\
             objects.filter(
-            id=self.pk)
+                id=self.pk)
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
         for patient_list in patient_pharmcare_summary:
@@ -103,7 +110,7 @@ class PharmaceuticalCarePlan(models.Model):
                 # check discount if any
                 if total > self.discount:
                     total -= self.discount
-                    
+
             return total
         return patient_list.get_total_charge()
 
@@ -165,10 +172,10 @@ class Patient(models.Model):
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE)
+        'songs.User', on_delete=models.CASCADE)
     patient = models.ForeignKey(
         'PatientDetail', on_delete=models.CASCADE,
         verbose_name='Patient-detail')
@@ -184,7 +191,7 @@ class Patient(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id']
+        ordering = ['id', '-date_created']
 
     def __str__(self):
         return self.patient.first_name
@@ -219,18 +226,18 @@ class Patient(models.Model):
 
         return total
 
-
     def sum_number(acc, total): return acc + total  # sum numbers fn
     """  def get_cummulative(self):
         cumm_total = reduce(self.sum_number, self.get_total_charge())
         print(cumm_total)
         return cumm_total  """
-        
+
     """   def save(self, *args, **kwargs):
         self.total = self.get_total_charge()
         
         return super().save(self, *args, **kwargs)
      """
+
 
 class PatientDetail(models.Model):
 
@@ -298,7 +305,7 @@ class PatientDetail(models.Model):
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name='Pharmacist')
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     gender = models.CharField(
         choices=GENDER_CHOICES, max_length=10)
     height = models.FloatField(null=True, blank=True, editable=True,
@@ -321,7 +328,7 @@ class PatientDetail(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id', 'first_name']
+        ordering = ['id', '-date_created']
 
     def get_email(self):
         if self.email is not None:
@@ -393,7 +400,7 @@ class Pharmacist(models.Model):
      to manage and engage them with solemn pharmaceutical care plan.
     """
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=15)
     last_name = models.CharField(max_length=15)
     phone_number = models.CharField(max_length=15, null=True, blank=True,
@@ -401,7 +408,7 @@ class Pharmacist(models.Model):
     email = models.EmailField(max_length=30, unique=True)
     slug = models.SlugField()
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
@@ -433,15 +440,16 @@ class Pharmacist(models.Model):
 
 class MedicationHistory(models.Model):
     """ A model that handles all our patients detail medical history """
+    
     class Meta:
         verbose_name_plural = 'Medication History'
-        ordering = ['id',]
+        ordering =  ['id', '-date_created']
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     medication_list = models.CharField(max_length=600)
     indication_and_evidence = models.CharField(max_length=600)
@@ -464,12 +472,12 @@ class MedicationHistory(models.Model):
 class ProgressNote(models.Model):
     """ Model class that handles the progress note of each patient. """
     class Meta:
-        ordering = ['id',]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+        ordering = ['id', '-date_created']
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+       'leads.UserProfile', on_delete=models.CASCADE)
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField()
@@ -498,12 +506,12 @@ class MedicationChanges(models.Model):
     """ a model class for patients posology """
     class Meta:
         verbose_name_plural = 'Medication Changes'
-        ordering = ['id']
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+        ordering = ['id', '-date_created']
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     medication_list = models.CharField(max_length=100)
     dose = models.CharField(max_length=150)
     frequency = models.CharField(max_length=30, default='BD')
@@ -528,12 +536,13 @@ class MonitoringPlan(models.Model):
     to monitor patients plan and justification of the patient wellbeing."""
 
     class Meta:
-        ordering = ['id',]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+        ordering =  ['id', '-date_created']
+        
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     parameter_used = models.CharField(max_length=100)
     justification = models.CharField(max_length=300)
@@ -558,18 +567,18 @@ class AnalysisOfClinicalProblem(models.Model):
 
     class Meta:
         verbose_name_plural = 'Analysis of Clinical Problems'
-        ordering = ['id',]
+        ordering = ['id', '-date_created']
 
     PRORITY_CHOICES = (
         ('High', 'High'),
         ('Medium', 'Medium'),
         ('Low', 'Low'),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     clinical_problem = models.CharField(max_length=50)
     assessment = models.CharField(max_length=50)
@@ -598,13 +607,12 @@ class FollowUpPlan(models.Model):
     """
 
     class Meta:
-        ordering = ['id',]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+        ordering =  ['id', '-date_created']
+    user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
 
     patient = models.ForeignKey(PatientDetail,
                                 on_delete=models.SET_NULL, blank=True, null=True)
@@ -636,6 +644,8 @@ class Team(models.Model):
     """ Team model in our db """
     class Meta:
         verbose_name_plural = 'Med-Connect Staff'
+    
+        
     full_name = models.CharField(max_length=50, verbose_name="Full name")
     position = models.CharField(max_length=25)
     image = models.ImageField()

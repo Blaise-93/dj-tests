@@ -24,9 +24,8 @@ urlpatterns = [
 
     # Local apps
     path('', LandingPageView.as_view(), name='landing-page'),
-   # path('*',
-   #      TemplateView.as_view(template_name='snippets/404.html'), name='page-not-found'),
     path('song/', include('songs.urls', namespace='songs')),
+     path('accounts/', include('allauth.urls')),
     path('leads/', include("leads.urls", namespace='leads')),
     path("agents/", include("agents.urls", namespace='agents')),
     path('pharmcare/', include('pharmcare.urls', namespace='pharmcare')),
@@ -36,16 +35,16 @@ urlpatterns = [
 
 
     # Registration URL - inherited for django.contrib.auths views
-    path('login/', LoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('signup/', SignUpView.as_view(), name='signup'),
-    path('reset-password/', PasswordResetView.as_view(), name='reset-password'),
-    path('password-reset-done/', PasswordResetDoneView.as_view(),
-         name='password_reset_done'),
-    path('password-reset-confirm/<uidb64>/<token>/',
-         PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('password-reset-complete/', PasswordResetCompleteView.as_view(),
-         name='password_reset_complete'),
+   # path('login/', LoginView.as_view(), name='login'),
+    #path('logout/', LogoutView.as_view(), name='logout'),
+    #path('signup/', SignUpView.as_view(), name='signup'),
+    #path('reset-password/', PasswordResetView.as_view(), name='reset-password'),
+    #path('password-reset-done/', PasswordResetDoneView.as_view(),
+     #    name='password_reset_done'),
+   # path('password-reset-confirm/<uidb64>/<token>/',
+    #     PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    #path('password-reset-complete/', PasswordResetCompleteView.as_view(),
+     #    name='password_reset_complete'),
 
 
     # third party
