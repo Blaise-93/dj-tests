@@ -65,12 +65,12 @@
             <td class="flex items-center px-6 py-4">
               {% if request.user.is_organizer%}
               <a
-                href="{% url 'pharmcare:patients-info-update' object.pk %}"
+                href="{% url 'pharmcare:patients-info-update' object.slug %}"
                 class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                 >Edit</a
               >
               <a
-                href=" {% url 'pharmcare:patient-info-delete' object.pk %}"
+                href=" {% url 'pharmcare:patient-info-delete' object.slug %}"
                 class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
                 >Remove</a
               >

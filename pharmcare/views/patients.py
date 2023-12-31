@@ -104,8 +104,6 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
         user = self.request.user
 
         form = form.save(commit=False)
-       # form.patient_id = self.kwargs['pk']
-        print(self.kwargs['pk'])
         form.user = user
 
         form.organization = user.userprofile
@@ -174,7 +172,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 
 
 @login_required
-def delete_patient_view(request, pk, *args, **kwargs):
+def delete_patient_view(request, slug, *args, **kwargs):
     """Handles request-response cycle made by the admin/pharmacists to delete
     each patient record."""
     template_name = 'pharmcare/patients/patient-info-detail.html'
@@ -183,14 +181,14 @@ def delete_patient_view(request, pk, *args, **kwargs):
 
     if user.is_organizer:
         patient = Patient.objects.get(
-            organization=user.userprofile, pk=pk, *args, **kwargs)
+            organization=user.userprofile, slug=slug, *args, **kwargs)
 
     else:
         patient = Patient.objects.get(
-            organization=user.pharmacist.organization, pk=pk, *args, **kwargs)
+            organization=user.pharmacist.organization, slug=slug, *args, **kwargs)
 
         patient = Patient.objects.get(
-            pharmacist__user=user, pk=pk, *args, **kwargs)
+            pharmacist__user=user, slug=slug, *args, **kwargs)
 
     context = {"patient-info": patient}
     try:

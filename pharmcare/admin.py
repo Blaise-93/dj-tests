@@ -303,7 +303,7 @@ class PharmaceuticalPlanModelAdmin(admin.ModelAdmin):
         'has_improved',
         'progress_note',
         'medication_changes',
-        'pharmacist',
+     #   'total_payment',
         'analysis_of_clinical_problem',
         'date_created',
 

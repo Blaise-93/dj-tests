@@ -1,6 +1,6 @@
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
-from django.views import View
+from django.db.models import Max, Avg, Sum, Min
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -44,13 +44,16 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
+            
+            
+            
             self.queryset = self.queryset.filter(
                 Q(patient_unique_code__icontains=query) |
                 Q(has_improved__icontains=query) |
                 Q(patient_full_name__icontains=query)
             )\
                 .order_by('id')
-
+            
             # Pagination - of Pharmacutical Care Plan Page
 
             search = Paginator(self.queryset, 10)
