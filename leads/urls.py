@@ -2,11 +2,14 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic import TemplateView
-from .views import (
-
+from leads.views.leads import (
     LeadsListView, LeadsDetailView,
     LeadsCreateView, LeadsUpdateView,
     LeadsDeleteView, AgentAssignedView,
+)
+from leads.views.category import (
+
+
     CategoryListView, CategoryDetailView,
     LeadCategoryUpdateView, CategoryCreateView,
     CategoryUpdateView, CategoryDeleteView,
@@ -20,7 +23,7 @@ from .drf_views import (
     LeadListView,
     LeadDeleteView,
     LeadRetrieveView,
-    
+
 
 )
 
@@ -31,7 +34,7 @@ urlpatterns = [
     # LEADS
 
     path('', LeadsListView.as_view(), name="home-page"),
- 
+
     path('alert/', TemplateView.as_view(template_name='snippets/alert.html'), name='alert'),
     path('categories/', CategoryListView.as_view(), name="category-list"),
     path('category-create/', CategoryCreateView.as_view(), name="category-create"),

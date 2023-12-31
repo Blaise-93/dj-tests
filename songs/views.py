@@ -46,15 +46,15 @@ class FooterView(LoginRequiredMixin, generic.CreateView):
             )
             return redirect('landing-page')
 
-        except IntegrityError as e:
+        except IntegrityError:
             subject = 'NewsLetter Subscription'
             message = files('songs/mails/already-subscrribed.txt')
-            email_from = settings.FROM_EMAIL
+            from_email = settings.FROM_EMAIL
             recipient_list = [email, ]
             send_mail(
                 subject,
                 message,
-                email_from,
+                from_email,
                 recipient_list,
                 # settings.DEFAULT_FROM_EMAIL,
                 # settings.EMAIL_HOST_USER,

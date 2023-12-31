@@ -187,7 +187,7 @@ class Category(models.Model):
 
     name = models.CharField(max_length=30)
     organization = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
-    slug = models.SlugField()
+    slug = models.SlugField(help_text="Enter the category's name")
 
     class Meta:
         verbose_name_plural = 'Categories'

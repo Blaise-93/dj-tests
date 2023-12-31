@@ -1,16 +1,14 @@
-{% extends "account/base.html" %} {% load i18n %} {% load account %}
- {% block head_title %}{% trans "Confirm E-mail Address" %}{% endblock %} 
- {% block content%} {% load tailwind_filters %}
+{% extends "account/base.html" %} {% load i18n %} {% load account %} 
+{% block head_title %}{% trans "Confirm E-mail Address" %}{% endblock %} {% block content%} {% load tailwind_filters %}
 
 <main class="max-w-lg mx-auto">
   <div class="py-5 border-b border-gray-200">
     <section class="border-b border-gray-200">
-      <h1 class='pl-2 text-gray-500'>{% trans "Confirm E-mail Address" %}</h1>
+      <h1 class="pl-2 text-gray-500">{% trans "Confirm E-mail Address" %}</h1>
 
-      {% if confirmation %} {% user_display confirmation.email_address.user as
-      user_display %}
+      {% if confirmation %} {% user_display confirmation.email_address.user as user_display %}
 
-      <p class='px-2 text-2xl text-gray-800'>
+      <p class="px-2 text-2xl text-gray-800">
         {% blocktrans with confirmation.email_address.email as email %} Please
         confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail
         address for user {{ user_display }}.{% endblocktrans %}
@@ -28,11 +26,10 @@
 
       {% else %} {% url 'account_email' as email_url %}
 
-      <p class='px-2 text-2xl text-gray-800'>
+      <p class="px-2 text-2xl text-gray-800">
         {% blocktrans %}This e-mail confirmation link expired or is invalid.
         Please
-        <a href="{{ email_url }}">issue a new e-mail confirmation request</a>.{%
-        endblocktrans %}
+        <a href="{{ email_url }}">issue a new e-mail confirmation request</a>.{% endblocktrans %}
       </p>
 
       {% endif %}
