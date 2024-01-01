@@ -17,6 +17,7 @@ from utils import (
 # PHARMACEUTICALS MGMT - CARE PLAN
 
 phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
+score_regex = RegexValidator(regex=r'^[0-9%]+$')
 
 
 class PharmaceuticalCarePlan(models.Model):
@@ -61,7 +62,7 @@ class PharmaceuticalCarePlan(models.Model):
         .PositiveBigIntegerField(null=True, blank=True,
                                  help_text="discount given to patient,\
             perhaps due to his/her consistent loyalty, if any.")
-    
+
     slug = models.SlugField(null=True, blank=True)
 
     date_created = models.DateTimeField(auto_now_add=True)
@@ -116,20 +117,19 @@ class PharmaceuticalCarePlan(models.Model):
                 return total
 
         return patient_list.get_total_charge()
-        
+
     def get_patient_full_name(self):
-        
+
         for patient in self.patients.all():
             patient_name = patient.get_full_name()
             return patient_name
-        
 
     def get_utc_by_date(self):
         if self.date_created.now() >= 17:
             return self.date_created.now()
 
     def update(self, *args, **kwargs):
-        #self.patient_full_name = self.get_patient_full_name()
+        # self.patient_full_name = self.get_patient_full_name()
         self.total_payment = self.get_total()
 
         return super(PharmaceuticalCarePlan, self).update(self, *args, **kwargs)
@@ -177,7 +177,7 @@ class Patient(models.Model):
     """
 
     medical_charge = models.PositiveBigIntegerField(blank=True, null=True,
-                         verbose_name="amount paid (medical charge if any)")
+                                                    verbose_name="amount paid (medical charge if any)")
     notes = models.TextField(null=True, blank=True)
 
     pharmacist = models.ForeignKey(
@@ -195,8 +195,8 @@ class Patient(models.Model):
         'MedicationHistory',
         on_delete=models.CASCADE)
 
-    total = models.PositiveBigIntegerField(editable=True, blank=True,\
-                    null=True, verbose_name="Total (auto-add)")
+    total = models.PositiveBigIntegerField(editable=True, blank=True,
+                                           null=True, verbose_name="Total (auto-add)")
 
     slug = models.SlugField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -241,7 +241,7 @@ class Patient(models.Model):
         return total
 
     # super has no attribute update()
-    #AttributeError: 'super' object has no attribute 'update'
+    # AttributeError: 'super' object has no attribute 'update'
     def update(self, *args, **kwargs):
         """ override the update method to dynamically update the 
         total and slug in the db whenever form_valid()  of the patient is 
@@ -250,7 +250,6 @@ class Patient(models.Model):
         self.total = self.get_total_charge()
         self.slug = slug_modifier()
         return super(Patient, self).update(self, *args, **kwargs)
- 
 
     def sum_number(acc, total): return acc + total  # sum numbers fn
     """  def get_cummulative(self):
@@ -282,7 +281,7 @@ class PatientDetail(models.Model):
         - Not all collected leads of our clients are actually patients, so that's why we 
     have a separate model to better record our patients and give them all the medical
     support they need during the pharmaceutical care process.
-       
+
         - Some clients can later turn to patient in the future so keeping the leads
         record separately is great so that you can know who came in the pharmacy or the 
         organization and at what time.
@@ -534,6 +533,7 @@ class MedicationChanges(models.Model):
     class Meta:
         verbose_name_plural = 'Medication Changes'
         ordering = ['id', '-date_created']
+
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
@@ -646,8 +646,8 @@ class FollowUpPlan(models.Model):
     follow_up_requirement = models.CharField(max_length=100)
     action_taken_and_future_plan = models.CharField(max_length=100,
                                                     verbose_name="Action Taken/Future Plan")
-    state_of_improvement_by_score = models.CharField(max_length=4,
-                                                     default='for example -> 70%')
+    state_of_improvement_by_score = models.CharField(
+        max_length=3, validators=[score_regex], default='for example -> 70%')
     has_improved_than_before = models.BooleanField(default=False)
     slug = models.SlugField()
     adhered_to_medications_given = models.BooleanField(default=False)
@@ -656,7 +656,7 @@ class FollowUpPlan(models.Model):
 
     def __str__(self) -> str:
 
-        return f'''
+        return f''' {self.patient.first_name.title()}
             state of improvement by score is
             {self.state_of_improvement_by_score}
 
