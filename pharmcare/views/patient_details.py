@@ -116,6 +116,7 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 . distinct()\
                 .order_by('id')
 
+            # TODO - or use aggregate built in :/
             consultation = []
             for consultations in self.queryset:
                 total = 0

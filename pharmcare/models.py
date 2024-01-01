@@ -282,6 +282,7 @@ class PatientDetail(models.Model):
         - Not all collected leads of our clients are actually patients, so that's why we 
     have a separate model to better record our patients and give them all the medical
     support they need during the pharmaceutical care process.
+       
         - Some clients can later turn to patient in the future so keeping the leads
         record separately is great so that you can know who came in the pharmacy or the 
         organization and at what time.
