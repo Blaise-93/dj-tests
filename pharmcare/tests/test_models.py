@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from songs.models import User
-from utils import slug_modifier
+from utils import slug_modifier, generate_patient_unique_code
 from leads.models import UserProfile
 
 
@@ -637,11 +637,11 @@ class FollowUpPlanTest(TestCase):
 # Patient - Many to Many Relationship Model
 
 class PatientTest(TestCase):
-    """ Unit tests for our Patient follow up plan of our model """
+    """ Unit tests for our pharmaceutical_care_plan of our model """
 
     @classmethod
     def setUpClass(cls):
-        ''' set up non-modified patient follow up plan object used by
+        ''' set up non-modified patient object used by
          by all class method: this action is performed once '''
 
         super(PatientTest, cls).setUpClass()
@@ -731,10 +731,7 @@ class PatientTest(TestCase):
                 + self.patients.patient.consultation
             total += amount_charged
             self.assertEqual(total, 6000)
-            
- 
         
-
     def test_patients_user_profile(self):
         """ function that assert follow up plan user profile username """
         userprofile, created = UserProfile.objects.get_or_create(
@@ -760,3 +757,236 @@ class PatientTest(TestCase):
 
         self.assertEqual(self.patients.patient.first_name,
                          self.patient_detail.first_name)
+
+
+#Pharmaceutical Care Plan Test Suites
+
+class PharmaceuticalCarePlanTest(TestCase):
+    """ Unit tests for our Patient pharmacutical care planof our model """
+
+    @classmethod
+    def setUpClass(cls):
+        ''' set up non-modified patient pharmacutical care planobject used by
+         by all class method: this action is performed once '''
+
+        super(PharmaceuticalCarePlanTest, cls).setUpClass()
+
+        cls.user = User.objects.create(
+            username='Bruno',
+            first_name='Bruno',
+            last_name='Marz',
+            email='test_email',
+            password='test_password'
+        )
+
+        profile_user, created = UserProfile.objects.get_or_create(
+            user=cls.user)
+
+        cls.patient_detail = PatientDetail.objects.create(
+            first_name='John',
+            last_name='Philips',
+            email='johnphilips@gmail.com',
+            marital_status='marital_status',
+            patient_class='adult',
+            organization=profile_user,
+            gender='male',
+            age=60,
+            weight=78,
+            height=6,
+            BMI=None,
+            patient_history='Philip patient_history',
+            past_medical_history='BP patient',
+            social_history='smoker',
+            slug=slug_modifier(),
+            phone_number='08076543487',
+            consultation=1000
+        )
+
+        cls.medical_history = MedicationHistory.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            medication_list="Amatem softgel, Paractamol",
+            indication_and_evidence="For treatment of malaria and fever",
+            slug=slug_modifier(),
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+        
+        
+        cls.medication_changes = MedicationChanges.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            medication_list="Amatem softgel, Paractamol",
+            dose='Amatem 500mg',
+            frequency='BD',
+            route='oral',
+            slug=slug_modifier(),
+            start_or_continued_date='12/12/2023',
+            stop_date='10/1/2024',
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+        
+        cls.progress_notes = ProgressNote.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            notes='Hello my patient\'s note',
+            slug=slug_modifier(),
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+ 
+        cls.monitoring_plan = MonitoringPlan.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            slug=slug_modifier(),
+            parameter_used=" patient parameter used",
+            justification="justification of the patient",
+            frequency="BD",
+            results_and_action_plan='results and action plan',
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+      
+        cls.analysis_of_cp = AnalysisOfClinicalProblem.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            slug=slug_modifier(),
+            clinical_problem='clinical problem',
+            assessment='the assessment',
+            priority='prioritized patient health challanges',
+            action_taken_or_future_plan='take future action if any',
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+        
+        cls.follow_up_plan = FollowUpPlan.objects.create(
+
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            slug=slug_modifier(),
+            patient=cls.patient_detail,
+            follow_up_requirement='follow up plan',
+            action_taken_and_future_plan='action taken and future plan',
+            state_of_improvement_by_score='state of improvement by score',
+            has_improved_than_before=True,
+            adhered_to_medications_given=True,
+            referral='UNTH',
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+
+        cls.patients = Patient.objects.create(
+
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            slug=slug_modifier(),
+            patient=cls.patient_detail,
+            medical_charge=5000,
+            notes="patient notes",
+            medical_history=cls.medical_history,
+            total=None,
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+        
+       
+        
+        cls.pharmaceutical_care_plan = PharmaceuticalCarePlan.objects.create(
+
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            patients=cls.patients,
+            slug=slug_modifier(),
+        
+            patient_unique_code=generate_patient_unique_code(),
+            has_improved=True,
+            progress_note=cls.progress_notes,
+            medication_changes=cls.medication_changes,
+            analysis_of_clinical_problem=cls.analysis_of_cp,
+            monitoring_plan=cls.monitoring_plan,
+            follow_up_plan=cls.follow_up_plan,
+            total_payment=None,
+            discount= 500,
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+        
+        
+
+    def test_pharmaceutical_care_plan_patient_unique_code(self):
+        """ assert the state of notes length given """
+        notes_length = self.pharmaceutical_care_plan._meta.\
+            get_field('patient_unique_code').max_length
+
+        # NB - patient notes was not given
+        self.assertEqual(notes_length, 20)
+
+    def test_pharmaceutical_care_plan_slug(self):
+        """function that assert the slug field name of the patient. """
+
+        slug_field_name = self.pharmaceutical_care_plan._meta.\
+            get_field('slug').verbose_name
+        self.assertEqual(slug_field_name,
+                         "slug")
+
+    def test_pharmaceutical_care_plan_total_payment(self):
+        """function that assert the total payment of the patient. """
+        
+        self.assertEqual(self.pharmaceutical_care_plan.get_total(), 5500)
+        
+    def test_pharmaceutical_care_plan_user_profile(self):
+        """ function that assert pharmacutical care planuser profile username """
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(userprofile.user.username, "Bruno")
+
+    def test_pharmaceutical_care_plan_user_organization(self):
+        """ function that assert pharmacutical care plan organization is same with the  userprofile
+        during post_save signal instance."""
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(self.pharmaceutical_care_plan.organization, userprofile)
+
+    def test_pharmaceutical_care_plan_user(self):
+        """ function that assert pharmacutical care plan organization is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.pharmaceutical_care_plan.user, self.user)
+
+    def test_pharmaceutical_care_plan_patient_name(self):
+        """ function that assert pharmacutical care plan organization is same with the  userprofile
+        during post_save signal instance."""
+
+        if self.pharmaceutical_care_plan.patients.exists():
+            for patients in self.pharmaceutical_care_plan.patients.all():
+                
+                patient_full_name = patients.get_full_name()
+                print(patient_full_name)
+                self.assertEqual(patient_full_name, f"John Philips")
+    
+    def test_get_pharmaceutical_care_plan_absolute_url(self):
+        """ function that test that patient detail absolute url is correct as claimed 
+
+        NB: The patient first_name which was created will dynamically be inserted in the
+        slug as the first value before slug modifier will be added up as a string."""
+
+        pharmaceutical_care_plan = PatientDetail.objects.get(id=1)
+        absolute_url = f'/pharmcare/patient-list/{pharmaceutical_care_plan.slug}/'
+        self.assertEqual(pharmaceutical_care_plan.get_absolute_url(), absolute_url)
+
+        
