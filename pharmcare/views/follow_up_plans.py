@@ -22,7 +22,7 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     cycle to display the follow up plan of the patients in our db record."""
 
     template_name = 'pharmcare/follow_up_plans/follow-up-plan-list.html'
-    ordering = 'id'
+    ordering = '-id'
 
     context_object_name = 'follow_up_plans'
 
@@ -58,7 +58,7 @@ class FollowUpPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 Q(adhered_to_medications_given__icontains=query) |
                 Q(referral__icontains=query)
             )\
-                .order_by('id')
+                .order_by('-id')
 
             # Pagination - of Medication History Page
 

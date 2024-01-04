@@ -56,7 +56,7 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     the client on the server when needed.
     """
 
-    ordering = 'first_name'
+    ordering = '-id'
     context_object_name = 'patients'
     template_name = 'pharmcare/patient_details/pharmcare-list.html'
 
@@ -114,18 +114,9 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             )\
                 . distinct()\
-                .order_by('id')
+                .order_by('-id')
 
-            # TODO - or use aggregate built in :/
-            consultation = []
-            for consultations in self.queryset:
-                total = 0
-                (consultations.consultation)
-
-            print(total)
-            
-
-            # Pagination - of Medication History Page
+        # Pagination - of Medication History Page
 
             search = Paginator(self.queryset, 10)
             page = self.request.GET.get('page')
@@ -140,7 +131,9 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 self.queryset = search.get_page(search.num_pages)
 
             context = {
-                'patients': self.queryset
+                'patients': self.queryset,
+                'total_consultation': queryset,
+                "timestamp":utc_standard_time()
             }
 
             return render(self.request, self.template_name, context)

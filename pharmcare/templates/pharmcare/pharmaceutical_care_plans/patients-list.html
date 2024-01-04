@@ -96,7 +96,13 @@
                   <td class="px-6 py-4"> {{ patient_qs.get_monitoring_plan }} </td>
                   <td class="px-6 py-4"> {{ patient_qs.get_follow_up_plan }} </td>
                   
+                  {% if patient_qs.discount  > 1 %}
                   <td class="px-6 py-4">₦{{ patient_qs.get_total }}</td>
+                  {% else %}
+                
+                  <td class="px-6 py-4">₦{{patient_qs.get_total_when_no_discount }}</td>
+                
+                  {%endif %}
            
                   <td class="px-6 py-4"> {{ patient_qs.date_created }} in UTC </td>
             

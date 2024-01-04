@@ -110,6 +110,18 @@ def time_in_hr_min():
     
     return f"{time_in_hr_and_min} PM"
 
+
+def reminder_time():
+     hr = datetime.now().hour   
+     timezone = datetime.now() 
+     if hr >=10 and hr < 12:
+         return str(timezone.time())[0:5]
+        
+        #return f'{time_in_hr_and_min } AM'
+        
+        
+    
+
 # print(utc_standard_time())
 
 

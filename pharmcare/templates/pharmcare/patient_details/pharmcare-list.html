@@ -122,7 +122,7 @@
               >
                 <td class="w-4 p-4">
                   <div class="flex items-center">
-                    <span>{{patient.slug }}</span>
+                    <span>{{patient.id }}</span>
                   </div>
                 </td>
                 
@@ -134,7 +134,7 @@
                 <td class="px-6 py-4">{{ patient.patient_class }}</td>
                 <td class="px-6 py-4">{{ patient.height }}ft</td>
                 <td class="px-6 py-4">{{ patient.BMI }}</td>
-                <td class="px-6 py-4">{{ patient.consultation }}</td>
+                <td class="px-6 py-4"> ₦{{ patient.consultation }}</td>
                 <td class="px-6 py-4"> {{ patient.patient_history|truncatechars:100 }} </td>
                 <td class="flex items-center px-6 py-4">
                    <a href="{% url "pharmcare:patient-detail" patient.slug %}"
@@ -142,10 +142,20 @@
                        hover:underline" >For further Details
                     </a>
                 </td>
+                {% endfor %}
+               
             </tr>
+            
+            {% if request.user.is_organizer %}
+            <td colspan='9' scope="col" class="px-6 py-3">
+              Cumm Consultation by all pharmacists/organizer on {{timestamp}} UTC</td>
+        
+            <td scope="col" class="px-6 py-3"> ₦{{total_consultation.consultation__sum}}</td>
+            {% endif %}
+            
             </tbody>
           
-           {% endfor %}
+          
            
            </table>
      

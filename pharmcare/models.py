@@ -12,7 +12,7 @@ from utils import (
     slug_modifier,
     generate_patient_unique_code
 )
-
+from functools import reduce
 
 # PHARMACEUTICALS MGMT - CARE PLAN
 
@@ -39,9 +39,6 @@ class PharmaceuticalCarePlan(models.Model):
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
 
-    # abstract patient full name from base patients (manytomany orm) manager
-    # prior to saving the entry to the db, and it is a nullable field.
-    patient_full_name = models.CharField(max_length=20, null=True, blank=True)
     has_improved = models.BooleanField(default=False,
                                        verbose_name="has improved \
                                     (tick good, if yes, otherwise don't.)")
@@ -61,14 +58,20 @@ class PharmaceuticalCarePlan(models.Model):
     discount = models\
         .PositiveBigIntegerField(null=True, blank=True,
                                  help_text="discount given to patient,\
-            perhaps due to his/her consistent loyalty, if any.")
+            perhaps due to his/her consistent loyalty strictly authorized by \
+                management (if any).")
 
     slug = models.SlugField(null=True, blank=True)
 
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.monitoring_plan.frequency
+        if self.monitoring_plan:
+            
+            return f'The  {self.monitoring_plan.frequency}'
+        return "Frequency of monitoring plan was not provided, perhaps\
+            you forgot to select the field in the form."
+        
 
     def get_pharmcare_absolute_url(self):
         reverse("pharmcare:patients-detail",
@@ -99,53 +102,35 @@ class PharmaceuticalCarePlan(models.Model):
             return self.progress_note
         return 'Not yet provided'
 
-    def get_total(self,  *args, **kwargs) -> int:
-        patient_pharmcare_summary = PharmaceuticalCarePlan.\
-            objects.filter(
-                id=self.pk,  *args, **kwargs)
+    def get_total(self) -> int:
+        """ patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+            id=self.pk) """
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
-        for patient_lists in patient_pharmcare_summary:
-            for patient_list in patient_lists.patients.all():
+       # for patient_list in patient_pharmcare_summary:
+        for patient_list in self.patients.all():
+            total += patient_list.get_total_charge()
 
-                total += patient_list.get_total_charge()
-            if self.discount:
-                # check discount if any
-                if total > self.discount:
-                    total -= self.discount
+        # check discount if any
+        if self.discount is None:
+            return patient_list.get_total_charge()
 
-                return total
+        total -= self.discount
+        return total
 
-        return patient_list.get_total_charge()
-
-    def get_patient_full_name(self):
-
-        for patient in self.patients.all():
-            patient_name = patient.get_full_name()
-            return patient_name
+    def get_total_when_no_discount(self) -> int:
+        """ patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+            id=self.pk) """
+        # pt_name = Patient.objects.get(id=self.pk)
+        total = 0
+       # for patient_list in patient_pharmcare_summary:
+        for patient_list in self.patients.all():
+            total += patient_list.get_total_charge()
+            return total
 
     def get_utc_by_date(self):
         if self.date_created.now() >= 17:
             return self.date_created.now()
-
-    def update(self, *args, **kwargs):
-        # self.patient_full_name = self.get_patient_full_name()
-        self.total_payment = self.get_total()
-
-        return super(PharmaceuticalCarePlan, self).update(self, *args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        """
-        Override the original save method to set the order number
-        if it hasn't been set already.
-        """
-        if not self.patient_unique_code:
-
-            self.patient_unique_code = generate_patient_unique_code()
-
-            self.total_payment = self.get_total()
-
-        super().save(*args, **kwargs)
 
 
 class Patient(models.Model):
@@ -202,7 +187,7 @@ class Patient(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id', '-date_created']
+        ordering = ['-id', '-date_created']
 
     def __str__(self):
         return self.patient.first_name
@@ -226,11 +211,10 @@ class Patient(models.Model):
         return f'{self.patient.first_name} {self.patient.last_name}'
 
     def get_total_charge(self) -> int:
-        total = 0
 
+        total = 0
         # check whether there is additional charges like drug price to be added
         # if yes, then add medical charges to the total
-
         if self.medical_charge:
             amount_charged = self.patient\
                 .consultation + self.medical_charge
@@ -239,29 +223,6 @@ class Patient(models.Model):
         total += self.patient.consultation
 
         return total
-
-    # super has no attribute update()
-    # AttributeError: 'super' object has no attribute 'update'
-    def update(self, *args, **kwargs):
-        """ override the update method to dynamically update the 
-        total and slug in the db whenever form_valid()  of the patient is 
-        checked. """
-
-        self.total = self.get_total_charge()
-        self.slug = slug_modifier()
-        return super(Patient, self).update(self, *args, **kwargs)
-
-    def sum_number(acc, total): return acc + total  # sum numbers fn
-    """  def get_cummulative(self):
-        cumm_total = reduce(self.sum_number, self.get_total_charge())
-        print(cumm_total)
-        return cumm_total  """
-
-    """   def save(self, *args, **kwargs):
-        self.total = self.get_total_charge()
-        
-        return super().save(self, *args, **kwargs)
-     """
 
 
 class PatientDetail(models.Model):
@@ -656,7 +617,7 @@ class FollowUpPlan(models.Model):
 
     def __str__(self) -> str:
 
-        return f''' {self.patient.first_name.title()}
+        return f''' {self.patient}
             state of improvement by score is
             {self.state_of_improvement_by_score}
 
