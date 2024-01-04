@@ -731,7 +731,7 @@ class PatientTest(TestCase):
                 + self.patients.patient.consultation
             total += amount_charged
             self.assertEqual(total, 6000)
-        
+
     def test_patients_user_profile(self):
         """ function that assert follow up plan user profile username """
         userprofile, created = UserProfile.objects.get_or_create(
@@ -759,7 +759,7 @@ class PatientTest(TestCase):
                          self.patient_detail.first_name)
 
 
-#Pharmaceutical Care Plan Test Suites
+# Pharmaceutical Care Plan Test Suites
 
 class PharmaceuticalCarePlanTest(TestCase):
     """ Unit tests for our Patient pharmacutical care planof our model """
@@ -812,8 +812,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-        
-        
+
         cls.medication_changes = MedicationChanges.objects.create(
             user=cls.user,
             pharmacist=None,
@@ -829,7 +828,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-        
+
         cls.progress_notes = ProgressNote.objects.create(
             user=cls.user,
             pharmacist=None,
@@ -839,7 +838,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
- 
+
         cls.monitoring_plan = MonitoringPlan.objects.create(
             user=cls.user,
             pharmacist=None,
@@ -853,7 +852,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-      
+
         cls.analysis_of_cp = AnalysisOfClinicalProblem.objects.create(
             user=cls.user,
             pharmacist=None,
@@ -867,7 +866,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-        
+
         cls.follow_up_plan = FollowUpPlan.objects.create(
 
             user=cls.user,
@@ -901,9 +900,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-        
-       
-        
+
         cls.pharmaceutical_care_plan = PharmaceuticalCarePlan.objects.create(
 
             user=cls.user,
@@ -911,7 +908,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             organization=profile_user,
             patients=cls.patients,
             slug=slug_modifier(),
-        
+
             patient_unique_code=generate_patient_unique_code(),
             has_improved=True,
             progress_note=cls.progress_notes,
@@ -920,13 +917,11 @@ class PharmaceuticalCarePlanTest(TestCase):
             monitoring_plan=cls.monitoring_plan,
             follow_up_plan=cls.follow_up_plan,
             total_payment=None,
-            discount= 500,
+            discount=500,
 
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
-        
-        
 
     def test_pharmaceutical_care_plan_patient_unique_code(self):
         """ assert the state of notes length given """
@@ -946,9 +941,9 @@ class PharmaceuticalCarePlanTest(TestCase):
 
     def test_pharmaceutical_care_plan_total_payment(self):
         """function that assert the total payment of the patient. """
-        
+
         self.assertEqual(self.pharmaceutical_care_plan.get_total(), 5500)
-        
+
     def test_pharmaceutical_care_plan_user_profile(self):
         """ function that assert pharmacutical care planuser profile username """
         userprofile, created = UserProfile.objects.get_or_create(
@@ -960,7 +955,8 @@ class PharmaceuticalCarePlanTest(TestCase):
         during post_save signal instance."""
         userprofile, created = UserProfile.objects.get_or_create(
             user=self.user)
-        self.assertEqual(self.pharmaceutical_care_plan.organization, userprofile)
+        self.assertEqual(
+            self.pharmaceutical_care_plan.organization, userprofile)
 
     def test_pharmaceutical_care_plan_user(self):
         """ function that assert pharmacutical care plan organization is same with the  userprofile
@@ -974,11 +970,11 @@ class PharmaceuticalCarePlanTest(TestCase):
 
         if self.pharmaceutical_care_plan.patients.exists():
             for patients in self.pharmaceutical_care_plan.patients.all():
-                
+
                 patient_full_name = patients.get_full_name()
                 print(patient_full_name)
                 self.assertEqual(patient_full_name, f"John Philips")
-    
+
     def test_get_pharmaceutical_care_plan_absolute_url(self):
         """ function that test that patient detail absolute url is correct as claimed 
 
@@ -986,7 +982,44 @@ class PharmaceuticalCarePlanTest(TestCase):
         slug as the first value before slug modifier will be added up as a string."""
 
         pharmaceutical_care_plan = PatientDetail.objects.get(id=1)
-        absolute_url = f'/pharmcare/patient-list/{pharmaceutical_care_plan.slug}/'
-        self.assertEqual(pharmaceutical_care_plan.get_absolute_url(), absolute_url)
+        absolute_url = f'/pharmcare/patient-list/{
+            pharmaceutical_care_plan.slug}/'
+        self.assertEqual(
+            pharmaceutical_care_plan.get_absolute_url(), absolute_url)
 
-        
+
+# Team test
+class TeamTest(TestCase):
+
+    def setUp(self):
+
+        self.staff = Team.objects.create(
+            full_name="Dayoni James",
+            position="CEO",
+            image="image",
+            description="Hello my position ...",
+            alt_description="I am an expert in",
+            facebook_aria_label="facebook aria label",
+            twitter_aria_label="twitter aria label",
+            instagram_aria_label="instagram aria label",
+            facebook_link="facebok",
+            instagram_link='instagram link',
+            twitter_link="twitter link",
+            chat="chat me now on whatsapp",
+        )
+
+    def test_staff_full_name(self):
+        """ assert the state of full name length given """
+        full_name_length = self.staff._meta.\
+            get_field('full_name').max_length
+
+        # NB - patient notes was not given
+        self.assertEqual(full_name_length, 50)
+
+    def test_staff_chat(self):
+        """function that assert the chat field name of the patient. """
+
+        chat_field_name = self.staff._meta.\
+            get_field('chat').verbose_name
+        self.assertEqual(chat_field_name,
+                         "chat")
