@@ -46,21 +46,18 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
-            
-            
-            
+
             self.queryset = self.queryset.filter(
                 Q(patient_unique_code__icontains=query) |
-                Q(has_improved__icontains=query) 
-              
+                Q(has_improved__icontains=query)
+
             )\
                 .order_by(self.ordering)
-            
-            
+
             for pt in self.queryset:
-                for p in pt.patients.all():
-                    print(p.get_total_charge())
-                    
+
+                print(pt.get_total_when_no_discount())
+
             # Pagination - of Pharmacutical Care Plan Page
 
             search = Paginator(self.queryset, 10)
@@ -99,8 +96,8 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
 
     def get_queryset(self, slug, *args, **kwargs):
         user = self.request.user
-        patients =  get_object_or_404(Patient, slug=slug)
-        
+        patients = get_object_or_404(Patient, slug=slug)
+
         if user.is_organizer:
             self.queryset = PharmaceuticalCarePlan.objects.filter(
                 organization=user.userprofile)
@@ -124,18 +121,20 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
         # form.organization = user.pharmacist.organization
         form.patient_unique_code = generate_patient_unique_code()
         form.slug = slug_modifier()
-        #form.total_payment = form.get_total()
+        # form.total_payment = form.get_total()
         form.save()
-        if reminder_time():
-             messages.warning(self.request, f"""Please Pharm {user.username.title()}, be cautious of given
-                      dicount to customers! Any discount must be authorized by the management.""")
+        if reminder_time():  # show this from 11hr to 12hr of the day
+            messages.warning(self.request,
+                             f"""Please Pharm {user.username.title()}, be cautious of given
+                     dicount to customers! Any discount must be authorized by the
+                     management.""")
         return super(PatientSummaryCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:patients')
 
 
-class PatientSummaryDetailView(OrganizerPharmacistLoginRequiredMixin, 
+class PatientSummaryDetailView(OrganizerPharmacistLoginRequiredMixin,
                                DetailView):
     """ Handles request-response cycle made by the admin/pharmacists to 
     delete a patient record"""

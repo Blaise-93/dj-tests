@@ -2,8 +2,6 @@ from django.test import TestCase
 from pharmcare.models import *
 from django.utils import timezone
 from datetime import timedelta
-from django.shortcuts import redirect
-from django.urls import reverse, reverse_lazy
 from songs.models import User
 from utils import slug_modifier, generate_patient_unique_code
 from leads.models import UserProfile
@@ -1014,6 +1012,7 @@ class TeamTest(TestCase):
             get_field('full_name').max_length
 
         # NB - patient notes was not given
+        
         self.assertEqual(full_name_length, 50)
 
     def test_staff_chat(self):

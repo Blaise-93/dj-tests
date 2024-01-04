@@ -125,7 +125,8 @@ class PharmaceuticalCarePlan(models.Model):
         total = 0
        # for patient_list in patient_pharmcare_summary:
         for patient_list in self.patients.all():
-            total += patient_list.get_total_charge()
+            total = patient_list.get_total_charge()
+            print(total)
             return total
 
     def get_utc_by_date(self):
