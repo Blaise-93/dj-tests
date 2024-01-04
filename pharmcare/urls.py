@@ -130,7 +130,7 @@ urlpatterns = [
 
     # pharmcare detail uris
     path('<str:slug>/', PatientDetailView.as_view(), name='patient-detail'),
-    path('patient-info/<int:pk>/', PatientsDetailView.as_view(),
+    path('patient-info/<str:slug>/', PatientsDetailView.as_view(),
          name='patients-info-detail'),
     path("medication-changes/<str:slug>/",
          MedicationChangesDetailView.as_view(), name='medication-changes-detail'),
@@ -159,7 +159,7 @@ urlpatterns = [
          MedicationHistoryUpdateView.as_view(), name='medication-history-update'),
     path('patient-list/<int:pk>/patients-update/',
          PatientSummaryUpateView.as_view(), name='patients-update'),
-    path('patient-info/<int:pk>/update/',
+    path('patient-info/<str:slug>/update/',
          PatientUpateView.as_view(), name='patients-info-update'),
     path("medication-changes/<str:slug>/update/",
          MedicationChangesUpdateView.as_view(), name='medication-changes-update'),
@@ -187,7 +187,7 @@ urlpatterns = [
 
     path('patient-list/<int:pk>/patients-delete/',
          delete_patient_summary, name='patients-delete'),
-    path('patients-info/<int:pk>/delete/',
+    path('patients-info/<str:slug>/delete/',
          delete_patient_view, name='patient-info-delete'),
 
     path("medication-changes/<str:slug>/delete/",

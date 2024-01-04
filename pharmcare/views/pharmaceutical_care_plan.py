@@ -1,11 +1,12 @@
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
-from django.views import View
-from django.shortcuts import render, redirect
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerPharmacistLoginRequiredMixin
 from django.db.models import Q
+from utils import reminder_time
 from django.contrib import messages
 from django.views.generic import (
     CreateView,
@@ -25,6 +26,7 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
     template_name = 'pharmcare/pharmaceutical_care_plans/patients-list.html'
     # queryset = Patient.objects.all()
     context_object_name = 'patient_list'
+    ordering = 'id'
 
     def get(self, *args, **kwargs):
         query = self.request.GET.get('q', '')
@@ -44,13 +46,21 @@ class PatientSummaryListView(OrganizerPharmacistLoginRequiredMixin,
 
                 # query the self.queryset via filter to
                 # allow the user search the content s/he wants
+            
+            
+            
             self.queryset = self.queryset.filter(
                 Q(patient_unique_code__icontains=query) |
-                Q(has_improved__icontains=query) |
-                Q(patient_full_name__icontains=query)
+                Q(has_improved__icontains=query) 
+              
             )\
-                .order_by('id')
-
+                .order_by(self.ordering)
+            
+            
+            for pt in self.queryset:
+                for p in pt.patients.all():
+                    print(p.get_total_charge())
+                    
             # Pagination - of Pharmacutical Care Plan Page
 
             search = Paginator(self.queryset, 10)
@@ -87,8 +97,10 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
    # queryset = PharmaceuticalCarePlan.objects.all()
     form_class = PharmaceuticalCarePlanModelForm
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, slug, *args, **kwargs):
         user = self.request.user
+        patients =  get_object_or_404(Patient, slug=slug)
+        
         if user.is_organizer:
             self.queryset = PharmaceuticalCarePlan.objects.filter(
                 organization=user.userprofile)
@@ -110,14 +122,21 @@ class PatientSummaryCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView
         form.user = user
         form.organization = user.userprofile
         # form.organization = user.pharmacist.organization
+        form.patient_unique_code = generate_patient_unique_code()
+        form.slug = slug_modifier()
+        #form.total_payment = form.get_total()
         form.save()
+        if reminder_time():
+             messages.warning(self.request, f"""Please Pharm {user.username.title()}, be cautious of given
+                      dicount to customers! Any discount must be authorized by the management.""")
         return super(PatientSummaryCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
         return reverse('pharmcare:patients')
 
 
-class PatientSummaryDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
+class PatientSummaryDetailView(OrganizerPharmacistLoginRequiredMixin, 
+                               DetailView):
     """ Handles request-response cycle made by the admin/pharmacists to 
     delete a patient record"""
     template_name = 'pharmcare/pharmaceutical_care_plans/patients-detail.html'
@@ -197,7 +216,7 @@ def delete_patient_summary(request, pk, *args, **kwargs):
         patient_summary.delete()
         messages.success(
             request, 'The patient information was successfully deleted.')
-        return redirect('pharmcare:patient-info')
+        return redirect('pharmcare:patients')
 
     except ObjectDoesNotExist:
         messages.info(

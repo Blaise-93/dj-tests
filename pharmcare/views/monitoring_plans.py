@@ -21,7 +21,7 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """ A class view that handles registered/allowed user's request cycle
     to display the monitoring plan of the patients in our db record."""
     template_name = 'pharmcare/monitoring_plans/monitoring-plan-list.html'
-    ordering = 'id'
+    ordering = '-id'
 
     has_improved = models.BooleanField(default=False)
 
@@ -50,7 +50,7 @@ class MonitoringPlanListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                     Q(parameter_used__icontains=query)
 
                 )\
-                    .order_by('id')
+                    .order_by('-id')
 
             # Pagination - of Medication History Page
 

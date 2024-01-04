@@ -20,9 +20,11 @@ from django.views.generic import (
 from pharmcare.models import *
 from pharmcare.forms import *
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-
+from django.db.models import Sum, Avg, Min, Max
 
 # ERROR HANDLERS
+
+
 def error_404(request, exception):
     """ handles 404 exception neatly using our 404 template """
 
@@ -54,7 +56,7 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     the client on the server when needed.
     """
 
-    ordering = 'first_name'
+    ordering = '-id'
     context_object_name = 'patients'
     template_name = 'pharmcare/patient_details/pharmcare-list.html'
 
@@ -97,6 +99,13 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 # query the self.queryset via filter to
                 # allow the user search the content s/he
 
+            queryset = PatientDetail.objects.\
+                aggregate(Avg('consultation'), Sum('consultation'),
+                          Max('consultation'), Min('consultation'))
+
+            # for p in queryset:
+            # print(queryset['consultation__sum'])
+
             self.queryset = self.queryset.filter(
                 Q(gender__icontains=query) |
                 Q(last_name__icontains=query) |
@@ -105,9 +114,9 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
 
             )\
                 . distinct()\
-                .order_by('id')
+                .order_by('-id')
 
-            # Pagination - of Medication History Page
+        # Pagination - of Medication History Page
 
             search = Paginator(self.queryset, 10)
             page = self.request.GET.get('page')
@@ -122,7 +131,9 @@ class PatientDetailListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 self.queryset = search.get_page(search.num_pages)
 
             context = {
-                'patients': self.queryset
+                'patients': self.queryset,
+                'total_consultation': queryset,
+                "timestamp":utc_standard_time()
             }
 
             return render(self.request, self.template_name, context)

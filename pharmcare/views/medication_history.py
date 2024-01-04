@@ -23,7 +23,7 @@ class MedicationHistoryListView(OrganizerPharmacistLoginRequiredMixin,
     if the admin/pharmacists wants, and limit the list by 10 via pagination. """
 
     template_name = 'pharmcare/medication_history/medication-history-list.html'
-    ordering = 'id'
+    ordering = '-id'
 
     context_object_name = 'med_history'
 
@@ -59,7 +59,7 @@ class MedicationHistoryListView(OrganizerPharmacistLoginRequiredMixin,
                 Q(medication_list__icontains=query) |
                 Q(indication_and_evidence__icontains=query)
             )\
-                .order_by('id')
+                .order_by('-id')
 
             # Pagination - of Medication History Page
 

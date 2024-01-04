@@ -57,8 +57,7 @@
                 </th>
                 <th scope="col" class="px-6 py-3">Medical Charge</th>
                 <th scope="col" class="px-6 py-3">Notes</th>
-                {% comment %} <th scope="col" class="px-6 py-3">Patient
-                 </th> {% endcomment %}
+      
                 <th scope="col" class="px-6 py-3">Medical History</th>
                 <th scope="col" class="px-6 py-3">Total</th>
                 <th scope="col" class="px-6 py-3">Date Created</th>
@@ -84,8 +83,6 @@
             
                   <td class="px-6 py-4">{{ patient.get_medical_charge }}</td>
                   <td class="px-6 py-4">{{ patient.notes }}</td>
-{% comment %} 
-                  <td class="px-6 py-4">{{ patient.patient }}</td> {% endcomment %}
                   <td class="px-6 py-4">{{ patient.medical_history}}</td>
                   <td class="px-6 py-4">{{ patient.total }}</td>
           
@@ -95,16 +92,34 @@
                   <td class="flex items-center px-6 py-4">
                 <a
                       href="
-                      {% url "pharmcare:patients-info-detail" patient.pk %} 
+                      {% url "pharmcare:patients-info-detail" patient.slug %} 
                           
                       "  class="pr-2 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                       >For Further Details</a
                     > 
                   </td>
             </tr>
+            {% endfor %}
+         
+              <tr class="">
+                {% if request.user.is_organizer %}
+                <td colspan='2' scope="col" class="px-6 py-3">
+                  Cumm Medical Charges on {{timestamp}} UTC</td>
+            
+                <td scope="col" class="px-6 py-3"> ₦{{med_charge.medical_charge__sum }}</td>
+                </tr class='bg-white border-b dark:bg-gray-800 dark:border-gray-700 
+                hover:bg-gray-50 dark:hover:bg-gray-600'> 
+                <td colspan='5' scope="col" class="px-6 py-3">
+                  Cumm Total by all pharmacists/organizer on {{timestamp}} UTC</td>
+            
+                <td scope="col" class="px-6 py-3"> ₦{{total.total__sum}}</td>
+                {% endif %}
+              
+
+            
             </tbody>
             
-          {% endfor %}
+    
            </table>
         
      </div>

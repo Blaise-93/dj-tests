@@ -53,6 +53,7 @@ class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
     cycle of the organizer """
     template_name = 'pharmcare/pharmacist/pharmacist-list.html'
     context_object_name = 'pharmacists'
+    ordering = 'id'
 
     def get_queryset(self):
         user_userprofile = self.request.user.userprofile
@@ -64,7 +65,7 @@ class PharmacistListView(OrgnizerAndLoginRequiredMixin, generic.ListView):
             Q(first_name__icontains=query) |
             Q(phone_number__icontains=query) |
             Q(slug__icontains=query)
-        )
+        ).order_by(self.ordering)
 
         # Pagination - of Pharmacist Page
 

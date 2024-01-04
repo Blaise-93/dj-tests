@@ -13,7 +13,7 @@ from django.contrib.auth.views import (
 )
 from django.views.generic import TemplateView
 from django.urls import path, include
-from leads.views import LandingPageView, SignUpView
+from leads.views.leads import LandingPageView, SignUpView
 
 admin.site.site_header = 'MedConnect Pharmaceuticals'
 admin.site.index_title = 'Django_Test Administration'

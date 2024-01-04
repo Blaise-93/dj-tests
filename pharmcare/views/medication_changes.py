@@ -27,7 +27,7 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
     """
 
     template_name = 'pharmcare/medication_changes/medication-changes-list.html'
-    ordering = 'id'
+    ordering = '-id'
 
     context_object_name = 'med_changes'
 
@@ -63,7 +63,7 @@ class MedicationChangesListView(OrganizerPharmacistLoginRequiredMixin, ListView)
                 Q(dose__icontains=query) |
                 Q(route__icontains=query)
             )\
-                .order_by('id')
+                .order_by('-id')
 
             # Pagination - of Medication History Page
 

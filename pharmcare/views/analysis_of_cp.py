@@ -28,7 +28,7 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
     db record."""
 
     template_name = 'pharmcare/analysis_of_cp/analysis-of-clinical-problem-list.html'
-    ordering = 'id'
+    ordering = '-id'
 
     context_object_name = 'analysis_of_cp'  # cp -> clinical problem
 
@@ -64,7 +64,7 @@ class AnalysisOfClinicalProblemListView(OrganizerPharmacistLoginRequiredMixin,
                 Q(priority__icontains=query) |
                 Q(slug__icontains=query)
             )\
-                .order_by('id')
+                .order_by('-id')
 
             # Pagination - of Medication History Page
 

@@ -5,18 +5,19 @@ from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
     RegexValidator
-    )
+)
 from django.urls import reverse
 from django.utils.text import slugify
 from utils import (
     slug_modifier,
     generate_patient_unique_code
-    )
-
+)
+from functools import reduce
 
 # PHARMACEUTICALS MGMT - CARE PLAN
 
 phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
+score_regex = RegexValidator(regex=r'^[0-9%]+$')
 
 
 class PharmaceuticalCarePlan(models.Model):
@@ -28,7 +29,7 @@ class PharmaceuticalCarePlan(models.Model):
     """
     class Meta:
         ordering = ['id', '-date_created']
-    
+
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
@@ -38,9 +39,6 @@ class PharmaceuticalCarePlan(models.Model):
     patient_unique_code = models.CharField(
         max_length=20, null=True, blank=True)
 
-    # abstract patient full name from base patients (manytomany orm) manager
-    # prior to saving the entry to the db, and it is a nullable field.
-    patient_full_name = models.CharField(max_length=20, null=True, blank=True)
     has_improved = models.BooleanField(default=False,
                                        verbose_name="has improved \
                                     (tick good, if yes, otherwise don't.)")
@@ -58,14 +56,22 @@ class PharmaceuticalCarePlan(models.Model):
         'FollowUpPlan', on_delete=models.SET_NULL, blank=True, null=True)
     total_payment = models.PositiveBigIntegerField(null=True, blank=True)
     discount = models\
-        .PositiveBigIntegerField(null=True, blank=True, default=0,
+        .PositiveBigIntegerField(null=True, blank=True,
                                  help_text="discount given to patient,\
-            perhaps due to his/her consistent loyalty, if any.")
+            perhaps due to his/her consistent loyalty strictly authorized by \
+                management (if any).")
+
+    slug = models.SlugField(null=True, blank=True)
 
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.monitoring_plan.frequency
+        if self.monitoring_plan:
+            
+            return f'The  {self.monitoring_plan.frequency}'
+        return "Frequency of monitoring plan was not provided, perhaps\
+            you forgot to select the field in the form."
+        
 
     def get_pharmcare_absolute_url(self):
         reverse("pharmcare:patients-detail",
@@ -97,44 +103,34 @@ class PharmaceuticalCarePlan(models.Model):
         return 'Not yet provided'
 
     def get_total(self) -> int:
-        patient_pharmcare_summary = PharmaceuticalCarePlan.\
-            objects.filter(
-                id=self.pk)
+        """ patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+            id=self.pk) """
         # pt_name = Patient.objects.get(id=self.pk)
         total = 0
-        for patient_list in patient_pharmcare_summary:
-            for patient_list in self.patients.all():
+       # for patient_list in patient_pharmcare_summary:
+        for patient_list in self.patients.all():
+            total += patient_list.get_total_charge()
 
-                total += patient_list.get_total_charge()
-            if self.discount:
-                # check discount if any
-                if total > self.discount:
-                    total -= self.discount
+        # check discount if any
+        if self.discount is None:
+            return patient_list.get_total_charge()
 
+        total -= self.discount
+        return total
+
+    def get_total_when_no_discount(self) -> int:
+        """ patient_pharmcare_summary = PharmaceuticalCarePlan.objects.filter(
+            id=self.pk) """
+        # pt_name = Patient.objects.get(id=self.pk)
+        total = 0
+       # for patient_list in patient_pharmcare_summary:
+        for patient_list in self.patients.all():
+            total += patient_list.get_total_charge()
             return total
-        return patient_list.get_total_charge()
 
     def get_utc_by_date(self):
         if self.date_created.now() >= 17:
             return self.date_created.now()
-
-    def save(self, *args, **kwargs):
-        self.total_payment = self.get_total()
-        print(self.total_payment)
-        return super().save(self, *args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        """
-        Override the original save method to set the order number
-        if it hasn't been set already.
-        """
-        if not self.patient_unique_code:
-
-            self.patient_unique_code = generate_patient_unique_code()
-
-            self.total_payment = self.get_total()
-
-        super().save(*args, **kwargs)
 
 
 class Patient(models.Model):
@@ -191,7 +187,7 @@ class Patient(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id', '-date_created']
+        ordering = ['-id', '-date_created']
 
     def __str__(self):
         return self.patient.first_name
@@ -207,36 +203,26 @@ class Patient(models.Model):
         UTC+0 time integrity."""
         date_time = datetime.strptime(
             str(self.date_created.date()), '%Y-%m-%d')
-        lagos_time = date_time + timedelta(hours=2)
 
+        lagos_time = date_time + timedelta(hours=2)
         return lagos_time
 
     def get_full_name(self):
         return f'{self.patient.first_name} {self.patient.last_name}'
 
     def get_total_charge(self) -> int:
+
         total = 0
         # check whether there is additional charges like drug price to be added
         # if yes, then add medical charges to the total
         if self.medical_charge:
-            amount_charged = self.patient.consultation + self.medical_charge
+            amount_charged = self.patient\
+                .consultation + self.medical_charge
             total += amount_charged
             return total
         total += self.patient.consultation
 
         return total
-
-    def sum_number(acc, total): return acc + total  # sum numbers fn
-    """  def get_cummulative(self):
-        cumm_total = reduce(self.sum_number, self.get_total_charge())
-        print(cumm_total)
-        return cumm_total  """
-
-    """   def save(self, *args, **kwargs):
-        self.total = self.get_total_charge()
-        
-        return super().save(self, *args, **kwargs)
-     """
 
 
 class PatientDetail(models.Model):
@@ -256,6 +242,7 @@ class PatientDetail(models.Model):
         - Not all collected leads of our clients are actually patients, so that's why we 
     have a separate model to better record our patients and give them all the medical
     support they need during the pharmaceutical care process.
+
         - Some clients can later turn to patient in the future so keeping the leads
         record separately is great so that you can know who came in the pharmacy or the 
         organization and at what time.
@@ -440,10 +427,10 @@ class Pharmacist(models.Model):
 
 class MedicationHistory(models.Model):
     """ A model that handles all our patients detail medical history """
-    
+
     class Meta:
         verbose_name_plural = 'Medication History'
-        ordering =  ['id', '-date_created']
+        ordering = ['id', '-date_created']
 
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
@@ -477,7 +464,7 @@ class ProgressNote(models.Model):
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
     organization = models.ForeignKey(
-       'leads.UserProfile', on_delete=models.CASCADE)
+        'leads.UserProfile', on_delete=models.CASCADE)
     notes = models.TextField(editable=True, verbose_name="patient's note")
     date_created = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField()
@@ -507,6 +494,7 @@ class MedicationChanges(models.Model):
     class Meta:
         verbose_name_plural = 'Medication Changes'
         ordering = ['id', '-date_created']
+
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
@@ -536,8 +524,8 @@ class MonitoringPlan(models.Model):
     to monitor patients plan and justification of the patient wellbeing."""
 
     class Meta:
-        ordering =  ['id', '-date_created']
-        
+        ordering = ['id', '-date_created']
+
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
@@ -607,7 +595,7 @@ class FollowUpPlan(models.Model):
     """
 
     class Meta:
-        ordering =  ['id', '-date_created']
+        ordering = ['id', '-date_created']
     user = models.ForeignKey('songs.User', on_delete=models.CASCADE)
     pharmacist = models.ForeignKey(
         "Pharmacist", on_delete=models.SET_NULL, null=True, blank=True)
@@ -619,8 +607,8 @@ class FollowUpPlan(models.Model):
     follow_up_requirement = models.CharField(max_length=100)
     action_taken_and_future_plan = models.CharField(max_length=100,
                                                     verbose_name="Action Taken/Future Plan")
-    state_of_improvement_by_score = models.CharField(max_length=4,
-                                                     default='for example -> 70%')
+    state_of_improvement_by_score = models.CharField(
+        max_length=3, validators=[score_regex], default='for example -> 70%')
     has_improved_than_before = models.BooleanField(default=False)
     slug = models.SlugField()
     adhered_to_medications_given = models.BooleanField(default=False)
@@ -629,7 +617,7 @@ class FollowUpPlan(models.Model):
 
     def __str__(self) -> str:
 
-        return f'''
+        return f''' {self.patient}
             state of improvement by score is
             {self.state_of_improvement_by_score}
 
@@ -644,8 +632,7 @@ class Team(models.Model):
     """ Team model in our db """
     class Meta:
         verbose_name_plural = 'Med-Connect Staff'
-    
-        
+
     full_name = models.CharField(max_length=50, verbose_name="Full name")
     position = models.CharField(max_length=25)
     image = models.ImageField()

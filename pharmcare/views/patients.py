@@ -1,12 +1,12 @@
 from django.db.models.base import Model as Model
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
-
+from django.shortcuts import render, redirect, get_object_or_404
+from utils import utc_standard_time, slug_modifier
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from agents.mixins import OrganizerPharmacistLoginRequiredMixin
-from django.db.models import Q
+from django.db.models import Q, Sum, Max
 from django.contrib import messages
 from django.views.generic import (
     CreateView,
@@ -24,10 +24,10 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
     """
 
     template_name = 'pharmcare/patients/patient-info-list.html'
-    ordering = 'id'
+    ordering = '-id'
     context_object_name = 'patient_info'
 
-    def get(self, *args, **kwargs):
+    def get(self, slug, *args, **kwargs):
         query = self.request.GET.get('q', '')
         user = self.request.user
 
@@ -46,9 +46,17 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
              # filter by total and medical charge based on user's search
             self.queryset = Patient.objects.filter(
 
-                    Q(date_created__icontains=query) |
-                    Q(medical_charge__icontains=query)
-                ).order_by('id')
+                Q(date_created__icontains=query) |
+                Q(medical_charge__icontains=query)
+            ).order_by('-id')
+
+            patient_total = Patient.objects.aggregate(
+                Sum('total'), Max("total")
+            )
+
+            patient_med_charges = Patient.objects.aggregate(
+                Sum('medical_charge'), Max("total")
+            )
 
             # Pagination - of Patient
 
@@ -65,7 +73,10 @@ class PatientListView(OrganizerPharmacistLoginRequiredMixin, ListView):
                 self.queryset = search.get_page(search.num_pages)
 
             context = {
-                'patient_info': self.queryset
+                'patient_info': self.queryset,
+                'total': patient_total,
+                "med_charge": patient_med_charges,
+                "timestamp": utc_standard_time()
             }
 
             return render(self.request, self.template_name, context)
@@ -102,20 +113,18 @@ class PatientCreateView(OrganizerPharmacistLoginRequiredMixin, CreateView):
 
     def form_valid(self,  form: BaseModelForm) -> HttpResponse:
         user = self.request.user
-
         form = form.save(commit=False)
-       # form.patient_id = self.kwargs['pk']
-        print(self.kwargs['pk'])
+        # call and save each user, total, slug and organization instances
+        # to the db
         form.user = user
-
+        form.total = form.get_total_charge()
+        form.slug = slug_modifier()
         form.organization = user.userprofile
         form.save()
 
-        # Patient.objects.create(pharmacist=user.pharmacist.organization)
         return super(PatientCreateView, self).form_valid(form)
 
     def get_success_url(self) -> str:
-        # slug = self.get_object().id
         return reverse('pharmcare:patient-info')
 
 
@@ -124,7 +133,6 @@ class PatientsDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
     delete a patient record"""
     template_name = 'pharmcare/patients/patient-info-detail.html'
     context_object_name = "patient_qs"
-  
 
     def get_success_url(self):
         return reverse('pharmcare:patients-detail')
@@ -147,7 +155,7 @@ class PatientsDetailView(OrganizerPharmacistLoginRequiredMixin, DetailView):
 class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
     """ Handles request-response cycle made by the admin/pharmacists to update 
     a patient record"""
-    
+
     template_name = 'pharmcare/patients/patient-info-update.html'
 
     form_class = PatientModelForm
@@ -164,7 +172,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
             queryset = Patient.objects.filter(
                 organization=user.userprofile)
         else:
-        
+
             queryset = Patient.objects.filter(
                 pharmacist=user.pharmacist.organization
             )
@@ -174,7 +182,7 @@ class PatientUpateView(OrganizerPharmacistLoginRequiredMixin, UpdateView):
 
 
 @login_required
-def delete_patient_view(request, pk, *args, **kwargs):
+def delete_patient_view(request, slug, *args, **kwargs):
     """Handles request-response cycle made by the admin/pharmacists to delete
     each patient record."""
     template_name = 'pharmcare/patients/patient-info-detail.html'
@@ -183,14 +191,14 @@ def delete_patient_view(request, pk, *args, **kwargs):
 
     if user.is_organizer:
         patient = Patient.objects.get(
-            organization=user.userprofile, pk=pk, *args, **kwargs)
+            organization=user.userprofile, slug=slug, *args, **kwargs)
 
     else:
         patient = Patient.objects.get(
-            organization=user.pharmacist.organization, pk=pk, *args, **kwargs)
+            organization=user.pharmacist.organization, slug=slug, *args, **kwargs)
 
         patient = Patient.objects.get(
-            pharmacist__user=user, pk=pk, *args, **kwargs)
+            pharmacist__user=user, slug=slug, *args, **kwargs)
 
     context = {"patient-info": patient}
     try:
@@ -206,7 +214,3 @@ def delete_patient_view(request, pk, *args, **kwargs):
             request, 'The patient information you are looking for \
                 does not exist.')
         return render(request, "pharmcare/patient-info-list")
-
-
-
-
