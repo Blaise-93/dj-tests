@@ -1,10 +1,7 @@
 from django.forms.models import BaseModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.conf import settings
 from django.views import generic
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from utils import time_in_hr_min
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -14,7 +11,7 @@ from agents.mixins import (
     OrgnizerAndLoginRequiredMixin
 )
 
-from staff.models import Attendance, Management
+from staff.models import Attendance
 from django.db.models import Q
 from django.contrib import messages
 from staff.forms import AttendanceModelForm

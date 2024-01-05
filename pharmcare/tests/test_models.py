@@ -1077,7 +1077,7 @@ class PharmacistTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        ''' set up non-modified patient progress notes object used by
+        ''' set up non-modified pharmacist object used by
          by all class method: this action is performed once '''
 
         super(PharmacistTest, cls).setUpClass()

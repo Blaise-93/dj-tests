@@ -94,8 +94,6 @@ def utc_standard_time():
 
 
 
-
-
 def time_in_hr_min():
     " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
     when a staff wants to update his/her record."
@@ -112,14 +110,26 @@ def time_in_hr_min():
 
 
 def reminder_time():
+     """ helper function reminder time to always
+     alert a pharmacist about discount privileges"""
+     
      hr = datetime.now().hour   
      timezone = datetime.now() 
      if hr >=10 and hr < 12:
          return str(timezone.time())[0:5]
         
+        
+def date_signed_out():
+    """ a helper function that automatically get stored in 
+    our db as the staff date signed out of his/her attendance"""
+    
+    day = datetime.today().day
+    month = datetime.today().month
+    year = datetime.today().year
+    
+    return f'{month}/{day}/{year}'
 
-# print(utc_standard_time())
 
 
-# print(time_in_hr_min())
-#print(datetime.now()  - timedelta(hours=1))
+print(date_signed_out())
+

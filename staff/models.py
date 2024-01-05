@@ -13,31 +13,35 @@ from django.utils import timezone
 
 class Attendance(models.Model):
     """ A model responsible for creating attendance table of an instance made in our db
-    with relationship mapping of the organization and an assigned management."""    
-    
-    # NB: time regex ensures that each string input by the user is enforced to 
+    with relationship mapping of the organization and an assigned management."""
+
+    # NB: time regex ensures that each string input by the user is enforced to
     # be a number and a colon
-    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',  
-                    message=("Enter a \
+    time_regex = RegexValidator(regex=r'[0-9]+:[0-9]+(?![^()]*\\)',
+                                message=("Enter a \
         valid value that consist of number from 0-9 with a colon \
             (:) in between the two numbers."))
-    
-    
+
+    date_regex = RegexValidator(regex=r'^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/(19|20)\d{2}$',
+                                message=("Enter a \
+        valid value that consist of number and a slash in standard date time format eg. 1/5/2024 (D/M/Y)."))
+
     full_name = models.CharField(
         max_length=30, validators=[MinLengthValidator(8)])
-    
+
     sign_in_time = models.CharField(
         max_length=5, validators=[time_regex],
         help_text='Enter the time you resumed for work in this format -> 8:00')
-    
+
     date_added = models.CharField(
-        max_length=10, help_text='Enter the date you resumed for work in\
+        max_length=10, validators=[date_regex],
+        help_text='Enter the date you resumed for work in\
             this format -> 12/12/2023')
-    
+
     staff_attendance_ref = models.CharField(
         max_length=15, blank=True, null=True,
         verbose_name="Staff Daily Attendance Ref "
-        )
+    )
 
     sign_out_time = models.CharField(
         # allows us to collate managements based on the organization
@@ -82,7 +86,7 @@ class Attendance(models.Model):
 
         lagos_time = timezone.localtime(
             self.date_created, timezone.get_fixed_timezone(120))
-           
+
         return lagos_time
 
     def get_fullname(self) -> str:
@@ -101,8 +105,6 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
-        
-
 
     def get_sign_in_time(self):
         """ a helper function to accurately output when the staff signed out 
@@ -114,8 +116,6 @@ class Attendance(models.Model):
             return f"{self.sign_in_time} AM"
         else:
             return f"{self.sign_in_time} PM"
-        
-    
 
     def time_utc(self):
         """ a helper function to accurately output when attendance starts to 
@@ -154,7 +154,7 @@ class Management(models.Model):
     """ Management of our models. Managements are assigned to each attendance
     made by our staff in our compnay
     """
-    
+
     phone_regex = RegexValidator(regex=r'^\+?1\d{9,12}$')
 
     user = models.OneToOneField('songs.User', on_delete=models.CASCADE)
