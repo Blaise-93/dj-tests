@@ -1,5 +1,6 @@
 from django.test import TestCase
-from leads.views import LandingPageView
+from leads.views.leads import *
+from leads.views.category import *
 from django.urls import reverse
 
 
@@ -9,7 +10,6 @@ class LandingPageTest(TestCase):
     def test_get(self):
 
         response = self.client.get(reverse('landing-page'))
-        print(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'leads/landing-page.html')
         response = self.client.get(reverse('landing-page'))
