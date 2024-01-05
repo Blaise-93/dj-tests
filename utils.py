@@ -119,7 +119,7 @@ def reminder_time():
          return str(timezone.time())[0:5]
         
         
-def date_signed_out():
+def  date_signed_in_and_or_out():
     """ a helper function that automatically get stored in 
     our db as the staff date signed out of his/her attendance"""
     
@@ -129,7 +129,4 @@ def date_signed_out():
     
     return f'{month}/{day}/{year}'
 
-
-
-print(date_signed_out())
 

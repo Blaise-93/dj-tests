@@ -14,8 +14,7 @@ class AttendanceModelForm(forms.ModelForm):
         fields = [
             'full_name',
             'sign_in_time',
-            'sign_out_time',
-            'date_added',
+            'sign_out_time'
         
         ]
 
