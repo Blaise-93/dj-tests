@@ -207,6 +207,131 @@ class MedicationHistoryTest(TestCase):
         self.assertEqual(
             self.medical_history.get_medication_absolute_url(), absolute_url)
 
+# Patient - Many to Many Relationship Model
+
+
+class PatientTest(TestCase):
+    """ Unit tests for our pharmaceutical_care_plan of our model """
+
+    @classmethod
+    def setUpClass(cls):
+        ''' set up non-modified patient object used by
+         by all class method: this action is performed once '''
+
+        super(PatientTest, cls).setUpClass()
+
+        cls.user = User.objects.create(
+            username='Bruno',
+            first_name='Bruno',
+            last_name='Marz',
+            email='test_email',
+            password='test_password'
+        )
+
+        profile_user, created = UserProfile.objects.get_or_create(
+            user=cls.user)
+
+        cls.patient_detail = PatientDetail.objects.create(
+            first_name='John',
+            last_name='Philips',
+            email='johnphilips@gmail.com',
+            marital_status='marital_status',
+            patient_class='adult',
+            organization=profile_user,
+            gender='male',
+            age=60,
+            weight=78,
+            height=6,
+            BMI=None,
+            patient_history='Philip patient_history',
+            past_medical_history='BP patient',
+            social_history='smoker',
+            slug=slug_modifier(),
+            phone_number='08076543487',
+            consultation=1000
+        )
+
+        cls.medical_history = MedicationHistory.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            medication_list="Amatem softgel, Paractamol",
+            indication_and_evidence="For treatment of malaria and fever",
+            slug=slug_modifier(),
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+
+        cls.patients = Patient.objects.create(
+
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            slug=slug_modifier(),
+            patient=cls.patient_detail,
+            medical_charge=5000,
+            notes="patient notes",
+            medical_history=cls.medical_history,
+            total=None,
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+
+    def test_patients_notes(self):
+        """ assert the state of notes length given """
+        notes_length = self.patients._meta.\
+            get_field('notes').max_length
+
+        # NB - patient notes was not given
+        self.assertNotEqual(notes_length, 200)
+
+    def test_patients_slug(self):
+        """function that assert the slug field name of the patient. """
+
+        slug_field_name = self.patients._meta.\
+            get_field('slug').verbose_name
+        self.assertEqual(slug_field_name,
+                         "slug")
+
+    def test_patients_total(self):
+        """function that assert the total payment of the patient. """
+        total = 0
+        if self.patients.medical_charge:
+            total += self.patients.medical_charge
+            self.assertEqual(total, 5000)
+        elif self.patients.medical_charge and self.patients.patient.consultation:
+            amount_charged = self.patients.medical_charge \
+                + self.patients.patient.consultation
+            total += amount_charged
+            self.assertEqual(total, 6000)
+
+    def test_patients_user_profile(self):
+        """ function that assert follow up plan user profile username """
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(userprofile.user.username, "Bruno")
+
+    def test_patients_user_organization(self):
+        """ function that assert follow up plan  organization is same with the  userprofile
+        during post_save signal instance."""
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(self.patients.organization, userprofile)
+
+    def test_patients_user(self):
+        """ function that assert follow up plan  organization is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.patients.user, self.user)
+
+    def test_patients_patient_name(self):
+        """ function that assert follow up plan  organization is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.patients.patient.first_name,
+                         self.patient_detail.first_name)
+
 
 # Medication Changes
 class MedicationChangesTest(TestCase):
@@ -288,9 +413,8 @@ class MedicationChangesTest(TestCase):
             get_field('stop_date').attname
         self.assertEqual(stop_date_field_name, "stop_date")
 
+
 # Progress Note
-
-
 class ProgressNoteTest(TestCase):
     """ Unit tests for our Patient progress notes of our model """
 
@@ -325,7 +449,7 @@ class ProgressNoteTest(TestCase):
         )
 
     def test_progress_note_user_profile(self):
-        """ function that assert patient progress note user profile username """
+        """ function that assert patient pharmacist user profile username """
         userprofile, created = UserProfile.objects.get_or_create(
             user=self.user)
         self.assertEqual(userprofile.user.username, "Bruno")
@@ -632,17 +756,179 @@ class FollowUpPlanTest(TestCase):
                          self.patient_detail.first_name)
 
 
-# Patient - Many to Many Relationship Model
-
-class PatientTest(TestCase):
-    """ Unit tests for our pharmaceutical_care_plan of our model """
+# Patient history
+class MedicationHistoryTest(TestCase):
+    """ Unit tests for our Patient medical history of our model """
 
     @classmethod
     def setUpClass(cls):
-        ''' set up non-modified patient object used by
+        ''' set up non-modified patient medicationhistory object used by
          by all class method: this action is performed once '''
 
-        super(PatientTest, cls).setUpClass()
+        super(MedicationHistoryTest, cls).setUpClass()
+
+        cls.user = User.objects.create(
+            username='Bruno',
+            first_name='Bruno',
+            last_name='Marz',
+            email='test_email',
+            password='test_password'
+        )
+
+        # user = User.objects.get(id=1).username
+
+        profile_user, created = UserProfile.objects.get_or_create(
+            user=cls.user)
+
+        cls.medical_history = MedicationHistory.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            medication_list="Amatem softgel, Paractamol",
+            indication_and_evidence="For treatment of malaria and fever",
+            slug=slug_modifier(),
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+
+       # print(cls.medical_history.date_created)
+
+    def test_med_history_user_profile(self):
+        """ function that assert med history user profile username """
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(userprofile.user.username, "Bruno")
+
+    def test_med_history_user_organization(self):
+        """ function that assert med history organization is same with the  userprofile
+        during post_save signal instance."""
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(self.medical_history.organization, userprofile)
+
+    def test_med_history_user(self):
+        """ function that assert med history organization is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.medical_history.user, self.user)
+
+    def test_med_history_medication_list(self):
+        """ assert the medication list length given """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        medication_list_length = self.medical_history._meta.\
+            get_field('medication_list').max_length
+        self.assertEqual(medication_list_length, 600)
+
+    def test_med_history_indication_and_evidence(self):
+        """function that assert the indication_and_evidence field name  """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        indication_and_evidence_field_name = self.medical_history._meta.\
+            get_field('indication_and_evidence').verbose_name
+        self.assertEqual(indication_and_evidence_field_name,
+                         "indication and evidence")
+
+    def test_get_med_history_absolute_url(self):
+        """ function that test that patient medical history absolute url is 
+        correct as claimed 
+        """
+
+        absolute_url = f'/pharmcare/medication-history/{
+            self.medical_history.pk}/'
+        self.assertEqual(
+            self.medical_history.get_medication_absolute_url(), absolute_url)
+
+
+# Medication Changes
+class MedicationChangesTest(TestCase):
+    """ Unit tests for our Patient medication changes of our model """
+
+    @classmethod
+    def setUpClass(cls):
+        ''' set up non-modified patient medication changes object used by
+         by all class method: this action is performed once '''
+
+        super(MedicationChangesTest, cls).setUpClass()
+
+        cls.user = User.objects.create(
+            username='Bruno',
+            first_name='Bruno',
+            last_name='Marz',
+            email='test_email',
+            password='test_password'
+        )
+
+        # user = User.objects.get(id=1).username
+
+        profile_user, created = UserProfile.objects.get_or_create(
+            user=cls.user)
+
+        cls.medication_changes = MedicationChanges.objects.create(
+            user=cls.user,
+            pharmacist=None,
+            organization=profile_user,
+            medication_list="Amatem softgel, Paractamol",
+            dose='Amatem 500mg',
+            frequency='BD',
+            route='oral',
+            slug=slug_modifier(),
+            start_or_continued_date='12/12/2023',
+            stop_date='10/1/2024',
+
+            # utc date time
+            date_created=timezone.now() - timedelta(hours=1)
+        )
+
+    def test_med_changes_user_profile(self):
+        """ function that assert med history user profile username """
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(userprofile.user.username, "Bruno")
+
+    def test_med_changes_user_organization(self):
+        """ function that assert med changes organization is same with the  userprofile
+        during post_save signal instance."""
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(self.medication_changes.organization, userprofile)
+
+    def test_med_changes_user(self):
+        """ function that assert medication changes organization is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.medication_changes.user, self.user)
+
+    def test_med_changes_medication_list(self):
+        """ assert the medication list length given """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        medication_list_length = self.medication_changes._meta.\
+            get_field('medication_list').max_length
+        self.assertEqual(medication_list_length, 100)
+
+    def test_med_changes_route(self):
+        """function that assert the route field name of the patient. """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        med_route_field_name = self.medication_changes._meta.\
+            get_field('route').verbose_name
+        self.assertEqual(med_route_field_name, "route")
+
+    def test_med_changes_stop_date(self):
+        """function that assert the route field name of the patient. """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        stop_date_field_name = self.medication_changes._meta.\
+            get_field('stop_date').attname
+        self.assertEqual(stop_date_field_name, "stop_date")
+
+
+# Follow up Plan
+class FollowUpPlanTest(TestCase):
+    """ Unit tests for our Patient follow up plan of our model """
+
+    @classmethod
+    def setUpClass(cls):
+        ''' set up non-modified patient follow up plan object used by
+         by all class method: this action is performed once '''
+
+        super(FollowUpPlanTest, cls).setUpClass()
 
         cls.user = User.objects.create(
             username='Bruno',
@@ -675,86 +961,192 @@ class PatientTest(TestCase):
             consultation=1000
         )
 
-        cls.medical_history = MedicationHistory.objects.create(
-            user=cls.user,
-            pharmacist=None,
-            organization=profile_user,
-            medication_list="Amatem softgel, Paractamol",
-            indication_and_evidence="For treatment of malaria and fever",
-            slug=slug_modifier(),
-            # utc date time
-            date_created=timezone.now() - timedelta(hours=1)
-        )
-
-        cls.patients = Patient.objects.create(
+        cls.follow_up_plan = FollowUpPlan.objects.create(
 
             user=cls.user,
             pharmacist=None,
             organization=profile_user,
             slug=slug_modifier(),
             patient=cls.patient_detail,
-            medical_charge=5000,
-            notes="patient notes",
-            medical_history=cls.medical_history,
-            total=None,
+            follow_up_requirement='follow up plan',
+            action_taken_and_future_plan='action taken and future plan',
+            state_of_improvement_by_score='state of improvement by score',
+            has_improved_than_before=True,
+            adhered_to_medications_given=True,
+            referral='UNTH',
 
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
 
-    def test_patients_notes(self):
-        """ assert the state of notes length given """
-        notes_length = self.patients._meta.\
-            get_field('notes').max_length
+    def test_follow_up_plan_state_of_improvement_by_score(self):
+        """ assert the state of improvement by score length given """
 
-        # NB - patient notes was not given
-        self.assertNotEqual(notes_length, 200)
+        state_of_improvement_by_score_length = self.follow_up_plan._meta.\
+            get_field('state_of_improvement_by_score').max_length
+        self.assertEqual(state_of_improvement_by_score_length, 3)
 
-    def test_patients_slug(self):
-        """function that assert the slug field name of the patient. """
+    def test_follow_up_plan_has_improved_than_before(self):
+        """function that assert the has improved than before field name of the patient. """
 
-        slug_field_name = self.patients._meta.\
-            get_field('slug').verbose_name
-        self.assertEqual(slug_field_name,
-                         "slug")
+        has_improved_than_before_field_name = self.follow_up_plan._meta.\
+            get_field('has_improved_than_before').verbose_name
+        self.assertEqual(has_improved_than_before_field_name,
+                         "has improved than before")
 
-    def test_patients_total(self):
-        """function that assert the total payment of the patient. """
-        total = 0
-        if self.patients.medical_charge:
-            total += self.patients.medical_charge
-            self.assertEqual(total, 5000)
-        elif self.patients.medical_charge and self.patients.patient.consultation:
-            amount_charged = self.patients.medical_charge \
-                + self.patients.patient.consultation
-            total += amount_charged
-            self.assertEqual(total, 6000)
+    def test_follow_up_plan_referral(self):
+        """function that assert the result and action field name of the patient. """
 
-    def test_patients_user_profile(self):
+        referral_field_name = self.follow_up_plan._meta.\
+            get_field('referral').attname
+        self.assertEqual(referral_field_name,
+                         "referral")
+
+    def test_follow_up_plan_user_profile(self):
         """ function that assert follow up plan user profile username """
         userprofile, created = UserProfile.objects.get_or_create(
             user=self.user)
         self.assertEqual(userprofile.user.username, "Bruno")
 
-    def test_patients_user_organization(self):
+    def test_follow_up_plan_user_organization(self):
         """ function that assert follow up plan  organization is same with the  userprofile
         during post_save signal instance."""
         userprofile, created = UserProfile.objects.get_or_create(
             user=self.user)
-        self.assertEqual(self.patients.organization, userprofile)
+        self.assertEqual(self.follow_up_plan.organization, userprofile)
 
-    def test_patients_user(self):
+    def test_follow_up_plan_user(self):
         """ function that assert follow up plan  organization is same with the  userprofile
         during post_save signal instance."""
 
-        self.assertEqual(self.patients.user, self.user)
+        self.assertEqual(self.follow_up_plan.user, self.user)
 
-    def test_patients_patient_name(self):
+    def test_follow_up_plan_patient_name(self):
         """ function that assert follow up plan  organization is same with the  userprofile
         during post_save signal instance."""
 
-        self.assertEqual(self.patients.patient.first_name,
+        self.assertEqual(self.follow_up_plan.patient.first_name,
                          self.patient_detail.first_name)
+
+
+# Team test
+class TeamTest(TestCase):
+    """ Team unit testing of our model. This testcase helps us ascertain whether 
+    the team model performs exact task designated it to do."""
+
+
+    def setUp(self):
+        """ set up fixtures for our team model """
+        self.staff = Team.objects.create(
+            full_name="Dayoni James",
+            position="CEO",
+            image="image",
+            description="Hello my position ...",
+            alt_description="I am an expert in",
+            facebook_aria_label="facebook aria label",
+            twitter_aria_label="twitter aria label",
+            instagram_aria_label="instagram aria label",
+            facebook_link="facebok",
+            instagram_link='instagram link',
+            twitter_link="twitter link",
+            chat="chat me now on whatsapp",
+        )
+
+    def test_staff_full_name(self):
+        """ assert the state of full name length given """
+        full_name_length = self.staff._meta.\
+            get_field('full_name').max_length
+
+        # NB - patient notes was not given
+
+        self.assertEqual(full_name_length, 50)
+
+    def test_staff_chat(self):
+        """function that assert the chat field name of the patient. """
+
+        chat_field_name = self.staff._meta.\
+            get_field('chat').verbose_name
+        self.assertEqual(chat_field_name,
+                         "chat")
+
+#  Pharmacist
+
+
+class PharmacistTest(TestCase):
+    """ Unit tests for our Pharmacist model """
+
+    @classmethod
+    def setUpClass(cls):
+        ''' set up non-modified patient progress notes object used by
+         by all class method: this action is performed once '''
+
+        super(PharmacistTest, cls).setUpClass()
+
+        cls.user = User.objects.create(
+            username='Bruno',
+            first_name='Bruno',
+            last_name='Marz',
+            email='test_email',
+            password='test_password'
+        )
+
+        # user = User.objects.get(id=1).username
+
+        profile_user, created = UserProfile.objects.get_or_create(
+            user=cls.user)
+
+        cls.pharmacist = Pharmacist.objects.create(
+            user=cls.user,
+            organization=profile_user,
+            slug=slug_modifier(),
+            first_name="Bruno",
+            last_name="Marz",
+            phone_number="08034459023",
+            email="brunomarz@gmail.com",
+            # utc date time
+            date_joined=timezone.now() - timedelta(hours=1)
+        )
+
+    def test_pharmacist_user_profile(self):
+        """ function that assert pharmacist user profile username """
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(userprofile.user.username, "Bruno")
+
+    def test_pharmacist_user_organization(self):
+        """ function that assert pharmacist organization is same with the  userprofile
+        during post_save signal instance."""
+        userprofile, created = UserProfile.objects.get_or_create(
+            user=self.user)
+        self.assertEqual(self.pharmacist.organization, userprofile)
+
+    def test_pharmacist_user(self):
+        """ function that assert pharmacist user is same with the  userprofile
+        during post_save signal instance."""
+
+        self.assertEqual(self.pharmacist.user, self.user)
+
+    def test__pharmacist_email(self):
+        """ assert the pharmacist length given """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        note_length = self.pharmacist._meta.\
+            get_field('email').max_length
+        self.assertEqual(note_length, 30)
+
+    def test_pharmacist_slug(self):
+        """function that assert the route field name of the patient. """
+        # patient_detail = MedicationHistory.objects.get(id=1)
+        pharmacist_slug_field_name = self.pharmacist._meta.\
+            get_field('slug').verbose_name
+        self.assertEqual(pharmacist_slug_field_name, 'slug')
+
+    def test_pharmacist_full_name(self):
+        """ function that assert pharmacist fullname is same with what was provided ."""
+
+        self.\
+            assertEqual\
+            (f"""{self.pharmacist.first_name} {self.pharmacist.last_name} """\
+             .strip(), 'Bruno Marz')
 
 
 # Pharmaceutical Care Plan Test Suites
@@ -904,9 +1296,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             user=cls.user,
             pharmacist=None,
             organization=profile_user,
-            patients=cls.patients,
             slug=slug_modifier(),
-
             patient_unique_code=generate_patient_unique_code(),
             has_improved=True,
             progress_note=cls.progress_notes,
@@ -920,7 +1310,16 @@ class PharmaceuticalCarePlanTest(TestCase):
             # utc date time
             date_created=timezone.now() - timedelta(hours=1)
         )
+        
+        # assign and add the patients instance to pharmaceutical care model
+        cls.pharmaceutical_care_plan.patients.add(cls.patients)
 
+    def test_pharmaceutical_care_has_correct_discount(self):
+        """ check that the patient has expected discount based on user loyalty """
+
+        self.assertEqual(self.pharmaceutical_care_plan.discount, 500)
+        
+        
     def test_pharmaceutical_care_plan_patient_unique_code(self):
         """ assert the state of notes length given """
         notes_length = self.pharmaceutical_care_plan._meta.\
@@ -970,7 +1369,7 @@ class PharmaceuticalCarePlanTest(TestCase):
             for patients in self.pharmaceutical_care_plan.patients.all():
 
                 patient_full_name = patients.get_full_name()
-                print(patient_full_name)
+    
                 self.assertEqual(patient_full_name, f"John Philips")
 
     def test_get_pharmaceutical_care_plan_absolute_url(self):
@@ -980,45 +1379,11 @@ class PharmaceuticalCarePlanTest(TestCase):
         slug as the first value before slug modifier will be added up as a string."""
 
         pharmaceutical_care_plan = PatientDetail.objects.get(id=1)
-        absolute_url = f'/pharmcare/patient-list/{
+        absolute_url = f'/pharmcare/{
             pharmaceutical_care_plan.slug}/'
         self.assertEqual(
             pharmaceutical_care_plan.get_absolute_url(), absolute_url)
-
-
-# Team test
-class TeamTest(TestCase):
-
-    def setUp(self):
-
-        self.staff = Team.objects.create(
-            full_name="Dayoni James",
-            position="CEO",
-            image="image",
-            description="Hello my position ...",
-            alt_description="I am an expert in",
-            facebook_aria_label="facebook aria label",
-            twitter_aria_label="twitter aria label",
-            instagram_aria_label="instagram aria label",
-            facebook_link="facebok",
-            instagram_link='instagram link',
-            twitter_link="twitter link",
-            chat="chat me now on whatsapp",
-        )
-
-    def test_staff_full_name(self):
-        """ assert the state of full name length given """
-        full_name_length = self.staff._meta.\
-            get_field('full_name').max_length
-
-        # NB - patient notes was not given
         
-        self.assertEqual(full_name_length, 50)
+        
 
-    def test_staff_chat(self):
-        """function that assert the chat field name of the patient. """
-
-        chat_field_name = self.staff._meta.\
-            get_field('chat').verbose_name
-        self.assertEqual(chat_field_name,
-                         "chat")
+        
