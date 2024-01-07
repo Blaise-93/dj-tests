@@ -33,6 +33,12 @@ class Attendance(models.Model):
         max_length=5, validators=[time_regex],
         help_text='Enter the time you resumed for work in this format -> 8:00')
 
+    expected_sign_in_time = models.CharField(
+        max_length=5, validators=[time_regex])
+    
+    sign_in_time_difference = models.CharField(
+        max_length=5, validators=[time_regex])
+
     date_added = models.CharField(
         max_length=10, validators=[date_regex],
         help_text='Enter the date you resumed for work in\
@@ -63,6 +69,7 @@ class Attendance(models.Model):
         null=True, blank=True)
     date_sign_out_time = models.CharField(max_length=7, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
+    
 
     slug = models.SlugField()
 
@@ -85,7 +92,7 @@ class Attendance(models.Model):
         return lagos_time """
 
         lagos_time = timezone.localtime(
-            self.date_created, timezone.get_fixed_timezone(120))
+            self.date_created, timezone.get_fixed_timezone(1))
 
         return lagos_time
 
@@ -94,6 +101,70 @@ class Attendance(models.Model):
         if len(self.full_name) <= 8:
             return 'Kindly enter your full name'
         return self.full_name
+
+    def sign_in_difference(self):
+        if self.expected_sign_in_time and self.sign_in_time:
+            # eg 7:45 AM
+
+            # claimed signed in by the staff - split time
+            sign_in_time_in_hr_in_tens = self.sign_in_time[:2]
+            sign_in_time_in_hr = self.sign_in_time[0]
+            sign_in_time_in_mins_in_tens = self.sign_in_time[3:5] 
+            sign_in_time_in_min_ = self.expected_sign_in_time[2:]
+
+            # expected signed in time by the staff in str.
+            expected_sign_in_time_in_hr_in_tens = self.expected_sign_in_time[:2]
+            expected_sign_in_time_in_hr = self.expected_sign_in_time[0]
+            expected_sign_in_time_in_min_in_tens = self.expected_sign_in_time[3:5]
+            expected_sign_in_time_in_min_ = self.expected_sign_in_time[2:]
+
+            # p = '18:20'[:2] -> 18 hr
+            # p = '18:30'[3:]  - 30 min
+            # p = '1:30'[0] -> 1 hr
+            # p = '8:30'[2:] - 30 mins
+            
+            # convert the splitted time in str to int.
+            if int(sign_in_time_in_hr_in_tens) >= 10 \
+                    and int(sign_in_time_in_mins_in_tens) >= 0:
+
+                diff_in_hr_of_tens = int(
+                    expected_sign_in_time_in_hr_in_tens) \
+                    - int(sign_in_time_in_hr_in_tens)
+                diff_in_mins_of_tens = int(
+                    expected_sign_in_time_in_min_in_tens) \
+                    - int(sign_in_time_in_mins_in_tens)
+
+                # convert back to string:
+                diff_hr = str(diff_in_hr_of_tens)
+                diff_min = str(diff_in_mins_of_tens)
+                return f"{diff_hr}:{diff_min}"
+
+            elif int(sign_in_time_in_hr) < 10 \
+                    and int(sign_in_time_in_min_) >= 10:
+
+                diff_in_hr_ = int(expected_sign_in_time_in_hr) - \
+                    int(sign_in_time_in_hr)
+                diff_in_mins_of_tens = int(
+                    expected_sign_in_time_in_min_) \
+                    - int(sign_in_time_in_min_)
+
+                # convert back to string:
+                diff_hr = str(diff_in_hr_)
+                diff_min = str(diff_in_mins_of_tens)
+                return f"{diff_hr}:{diff_min}"
+
+            else:
+
+                diff_in_hr_ = int(expected_sign_in_time_in_hr) - \
+                    int(sign_in_time_in_hr)
+                diff_in_mins_ = int(
+                    expected_sign_in_time_in_min_) \
+                    - int(sign_in_time_in_min_)
+
+                # convert back to string: like 8:30
+                diff_hr = str(diff_in_hr_)
+                diff_min = str(diff_in_mins_)
+                return f"{diff_hr}:{diff_min}"
 
     def get_sign_out_time(self):
         """ a helper function to accurately output when the staff signed out 

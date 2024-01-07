@@ -13,6 +13,12 @@ class LandingPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'leads/landing-page.html')
         response = self.client.get(reverse('landing-page'))
-        # TODO some sort of test
         self.assertTemplateUsed(response, 'leads/landing-page.html')
+       # self.assertEqual(self.response.context['WHATSAPP_LINK'], '08099158877')
+      #  self.assertIn( "attendance", self.attendance_page_response.context)
+        
+        
+        
+
+     
  

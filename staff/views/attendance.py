@@ -2,7 +2,10 @@ from django.forms.models import BaseModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import generic
-from utils import time_in_hr_min,  date_signed_in_and_or_out
+from utils import (time_in_hr_min,
+                   time_in_hr_min_,
+                   date_signed_in_and_or_out
+                   )
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -133,6 +136,7 @@ class AttendanceCreateView(OrganizerManagementLoginRequiredMixin,
         attendance = form.save(commit=False)
         attendance.user = user
         attendance.date_added = date_signed_in_and_or_out()
+        attendance.expected_sign_in_time = time_in_hr_min()
         attendance.organization = user.userprofile
         attendance.save()
 

@@ -93,6 +93,13 @@ def utc_standard_time():
     return datetime.now() - timedelta(hours=1)
 
 
+def time_in_hr_min_():
+    " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
+    when a staff wants to update his/her record, and don't insert PM or AM to db."
+
+    timezone = datetime.now() 
+    time_in_hr_and_min = str(timezone.time())[0:5]
+    return time_in_hr_and_min
 
 def time_in_hr_min():
     " Helper function that dynamically output time in UTC+1 to the db as a Charfield \
@@ -130,3 +137,10 @@ def  date_signed_in_and_or_out():
     return f'{month}/{day}/{year}'
 
 
+ # p = '18:20'[:2] -> 18 hr
+            # p = '18:30'[3:]  - 30 min
+            # p = '1:30'[0] -> 1 hr
+            # p = '18:30'[2:] - 30 mins
+ 
+p = '1:25 PM'[0]
+print(p)

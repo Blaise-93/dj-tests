@@ -9,7 +9,7 @@ from leads.models import *
 
 # Attendance
 
-class AttendanceTest(TestCase):
+class AttendanceTestModel(TestCase):
     """ Unit tests for the Attendance of our model """
 
     @classmethod
@@ -17,7 +17,7 @@ class AttendanceTest(TestCase):
         ''' set up non-modified attendance object used by
          by all class method: this action is performed once '''
 
-        super(AttendanceTest, cls).setUpClass()
+        super(AttendanceTestModel, cls).setUpClass()
 
         time = timezone.now() - timedelta(hours=1)
 
@@ -144,7 +144,7 @@ class AttendanceTest(TestCase):
 # Management
 
 
-class ManagementTest(TestCase):
+class ManagementTestModel(TestCase):
     """ Unit tests for our Management model """
 
     @classmethod
@@ -152,7 +152,7 @@ class ManagementTest(TestCase):
         ''' set up non-modified staff progress notes object used by
          by all class method: this action is performed once '''
 
-        super(ManagementTest, cls).setUpClass()
+        super(ManagementTestModel, cls).setUpClass()
 
         cls.user = User.objects.create(
             username='Chinwe',
